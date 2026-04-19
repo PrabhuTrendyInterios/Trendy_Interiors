@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import RoomSelection from '../components/estimator/RoomSelection';
+import BudgetSelection from '../components/estimator/BudgetSelection';
 import './Estimator.css';
 
 const Estimator = () => {
@@ -45,16 +46,28 @@ const Estimator = () => {
         );
       case 2:
         return (
+          <BudgetSelection
+            selectedBudget={formData.budgetPlan}
+            onSelectBudget={(budgetPlan) => updateFormData('budgetPlan', budgetPlan)}
+            onPrev={handlePrevStep}
+            onNext={handleNextStep}
+          />
+        );
+      case 3:
+        return (
           <div className="estimator-placeholder">
-            <h2>Step 2: Coming Soon!</h2>
-            <p>You have selected:</p>
-            <ul style={{ listStyleType: 'none', padding: 0, margin: '20px 0' }}>
-              {Object.entries(formData.rooms).map(([room, count]) => (
-                <li key={room} style={{ fontSize: '1.2rem', marginBottom: '10px' }}>
-                  <strong>{count}</strong> x {room}
-                </li>
-              ))}
-            </ul>
+            <h2>Step 3: Dimensions</h2>
+            <p>We are almost there. Your selected rooms and budget plan will help us fine-tune the final estimate.</p>
+            <div className="selected-summary">
+              <strong>Rooms selected:</strong>{' '}
+              {Object.entries(formData.rooms).length > 0 ?
+                Object.entries(formData.rooms).map(([room, count]) => `${count} ${room}${count > 1 ? 's' : ''}`).join(', ') :
+                'No rooms selected yet.'
+              }
+            </div>
+            <div className="selected-summary">
+              <strong>Budget plan:</strong> {formData.budgetPlan ? formData.budgetPlan.replace(/\b\w/g, (l) => l.toUpperCase()) : 'Not selected yet.'}
+            </div>
             <div className="estimator-actions">
               <button className="btn-secondary" onClick={handlePrevStep}>Back</button>
             </div>
