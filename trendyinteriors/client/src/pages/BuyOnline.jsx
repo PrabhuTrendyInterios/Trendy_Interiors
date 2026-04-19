@@ -205,7 +205,9 @@ const BuyOnline = () => {
         <div className="container">
           <div className="cta-block">
             <h2>Need help choosing the right solution?</h2>
-            <button className="btn-gold">Get Free Consultation</button>
+            <Link to="/estimator" style={{ textDecoration: 'none' }}>
+              <button className="btn-gold">Get Free Consultation</button>
+            </Link>
           </div>
         </div>
       </section>

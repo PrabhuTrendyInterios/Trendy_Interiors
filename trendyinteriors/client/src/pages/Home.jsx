@@ -176,7 +176,7 @@ const Home = () => {
             <Link to="/projects" className="btn-primary" style={{ textDecoration: 'none' }}>
               View Projects
             </Link>
-            <Link to="/reachus" className="btn-secondary" style={{ textDecoration: 'none' }}>
+            <Link to="/estimator" className="btn-secondary" style={{ textDecoration: 'none' }}>
               Get Free Consultation
             </Link>
           </div>

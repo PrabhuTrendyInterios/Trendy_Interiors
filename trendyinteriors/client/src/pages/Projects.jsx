@@ -241,7 +241,7 @@ const Projects = () => {
           <div className="cta-content">
             <h2>Have a project in mind?</h2>
             <p>Let's collaborate to create something extraordinary for your space.</p>
-            <Link to="/reachus" style={{ textDecoration: 'none' }}>
+            <Link to="/estimator" style={{ textDecoration: 'none' }}>
               <button className="btn-cta-gold">Get Free Consultation</button>
             </Link>
           </div>

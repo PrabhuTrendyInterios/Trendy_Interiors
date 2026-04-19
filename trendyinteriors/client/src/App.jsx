@@ -15,6 +15,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminRoute from './components/AdminRoute';
+import Estimator from './pages/Estimator';
 import './App.css';
 
 const Layout = () => {
@@ -34,6 +35,7 @@ const Layout = () => {
           <Route path="/give-testimonial" element={<GiveTestimonial />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/buy-online" element={<BuyOnline />} />
+          <Route path="/estimator" element={<Estimator />} />
 
           {/* Auth Routes - Admin Only Login */}
           <Route path="/login" element={<Login />} />

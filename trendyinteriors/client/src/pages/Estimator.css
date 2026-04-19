@@ -1,0 +1,334 @@
+/* Luxury Estimator Styling */
+.estimator-page {
+  padding-bottom: var(--spacing-lg);
+  min-height: 100vh;
+  background-color: var(--color-off-white);
+}
+
+.estimator-header-bg {
+  background-color: var(--color-charcoal);
+  color: var(--color-white);
+  padding: var(--spacing-xl) 0 var(--spacing-lg);
+  text-align: center;
+  margin-bottom: -40px;
+}
+
+.estimator-page-title {
+  color: var(--color-gold);
+  margin-bottom: var(--spacing-sm);
+}
+
+.estimator-page-subtitle {
+  color: var(--color-gray-lighter);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.estimator-wrapper {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-lg);
+  position: relative;
+  z-index: 10;
+}
+
+/* Progress Bar */
+.estimator-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.progress-step {
+  padding: 10px 20px;
+  background-color: var(--color-off-white);
+  border-radius: 30px;
+  color: var(--color-gray-light);
+  font-weight: 500;
+  transition: var(--transition-normal);
+  border: 1px solid transparent;
+}
+
+.progress-step.active {
+  background-color: var(--color-charcoal);
+  color: var(--color-gold);
+  border-color: var(--color-gold);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.1);
+}
+
+.progress-line {
+  flex: 1;
+  max-width: 80px;
+  height: 2px;
+  background-color: var(--color-gray-lighter);
+  margin: 0 10px;
+  transition: var(--transition-normal);
+}
+
+.progress-line.active {
+  background-color: var(--color-gold);
+}
+
+/* Room Selection Styles */
+.room-selection-header {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.room-selection-header h2 {
+  color: var(--color-charcoal-dark);
+}
+
+.room-selection-header p {
+  color: var(--color-gray);
+}
+
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.room-card {
+  background-color: var(--color-off-white);
+  background-size: cover;
+  background-position: center;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.room-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.room-card.selected {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.5), inset 0 0 0 2px var(--color-gold);
+  transform: translateY(-5px);
+}
+
+/* Specific Card Layouts */
+.room-card-livingRoom {
+  grid-column: span 3;
+  grid-row: span 2;
+  padding: var(--spacing-xl);
+}
+
+.room-card-livingRoom .room-icon {
+  font-size: 5rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.room-card-livingRoom .room-name {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.room-card-bedroom,
+.room-card-kitchen {
+  grid-column: span 3;
+}
+
+.room-card-bathroom,
+.room-card-dining,
+.room-card-office {
+  grid-column: span 2;
+}
+
+.room-icon {
+  font-size: 3rem;
+  color: var(--color-white);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  transition: var(--transition-normal);
+  margin-bottom: var(--spacing-sm);
+}
+
+.room-card:hover .room-icon {
+  color: var(--color-gold);
+}
+
+.room-name {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-white);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.room-counter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 140px;
+  margin-top: 15px;
+  padding: 6px 15px;
+  background-color: var(--color-white);
+  border-radius: 30px;
+  border: 1px solid var(--color-gray-lighter);
+  transition: all var(--transition-normal);
+}
+
+.counter-btn {
+  background-color: transparent;
+  border: 1px solid var(--color-gray-lighter);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  color: var(--color-charcoal);
+  padding: 0;
+}
+
+.counter-btn:hover:not(:disabled) {
+  background-color: var(--color-gold);
+  color: var(--color-white);
+  border-color: var(--color-gold);
+}
+
+.counter-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.counter-value {
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+  color: var(--color-charcoal-dark);
+}
+
+.selected-summary {
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+  padding: 15px;
+  background-color: #fff9eb;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--color-charcoal-dark);
+  font-size: 1.05rem;
+}
+
+/* Actions */
+.estimator-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  border-top: 1px solid var(--color-gray-lighter);
+  padding-top: var(--spacing-md);
+}
+
+.btn-primary {
+  background-color: var(--color-gold);
+  color: var(--color-white);
+  padding: 12px 32px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 1.1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-gold-dark);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-charcoal);
+  border: 1px solid var(--color-charcoal);
+  padding: 12px 32px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-charcoal);
+  color: var(--color-white);
+}
+
+.estimator-placeholder {
+  text-align: center;
+  padding: var(--spacing-lg) 0;
+}
+
+@media (max-width: 900px) {
+  .room-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .room-card-livingRoom {
+    grid-column: span 2;
+    grid-row: span 1;
+    padding: var(--spacing-lg);
+  }
+  
+  .room-card-livingRoom .room-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .room-card-livingRoom .room-name {
+    font-size: 1.25rem;
+    margin-bottom: 0;
+  }
+  
+  .room-card-bedroom,
+  .room-card-kitchen,
+  .room-card-bathroom,
+  .room-card-dining,
+  .room-card-office {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .estimator-wrapper {
+    padding: var(--spacing-md);
+  }
+  
+  .progress-step {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .progress-line {
+    max-width: 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .room-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .room-card-livingRoom,
+  .room-card-bedroom,
+  .room-card-kitchen,
+  .room-card-bathroom,
+  .room-card-dining,
+  .room-card-office {
+    grid-column: span 1;
+  }
+}
