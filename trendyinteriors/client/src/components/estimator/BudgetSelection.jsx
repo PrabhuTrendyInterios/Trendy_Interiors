@@ -3,14 +3,14 @@ import { FaDollarSign } from 'react-icons/fa';
 
 const budgetPlans = [
   {
-    id: 'budgetFriendly',
+    id: 'lowCost',
     title: 'Low Cost Plan',
     price: '₹18k - ₹25k',
     subtitle: 'Essential upgrades with cost-conscious choices',
     details: ['Smart material picks', 'Functional layouts', 'Quick styling fixes'],
   },
   {
-    id: 'essential',
+    id: 'budgetFriendly',
     title: 'Budget Friendly Plan',
     price: '₹25k - ₹35k',
     subtitle: 'Smart solutions for compact spaces',
@@ -77,7 +77,7 @@ const BudgetSelection = ({ selectedBudget, onSelectBudget, onPrev, onNext }) => 
           onClick={onNext}
           disabled={!selectedBudget}
         >
-          Continue
+          Next
         </button>
       </div>
     </div>
