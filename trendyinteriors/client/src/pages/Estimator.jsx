@@ -5,6 +5,8 @@ import DimensionsSelection from '../components/estimator/DimensionsSelection';
 import './Estimator.css';
 
 const ESTIMATOR_DRAFT_KEY = 'trendyInteriorsEstimatorDraft';
+const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'https://trendyinteriors-1.onrender.com');
+const ESTIMATOR_API_URL = `${API_BASE_URL}/api/estimators`;
 
 const buildRoomInstances = (rooms) =>
   Object.entries(rooms || {}).flatMap(([roomName, count]) =>
@@ -17,6 +19,11 @@ const buildRoomInstances = (rooms) =>
 
 const Estimator = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState('');
+  const [quoteSummary, setQuoteSummary] = useState(null);
+  const [submissionResult, setSubmissionResult] = useState(null);
   const [formData, setFormData] = useState(() => {
     try {
       const storedDraft = localStorage.getItem(ESTIMATOR_DRAFT_KEY);
@@ -53,6 +60,14 @@ const Estimator = () => {
     }
   }, [formData.rooms, formData.selectedRoomForDimensions]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(ESTIMATOR_DRAFT_KEY, JSON.stringify(formData));
+    } catch (error) {
+      console.error('Unable to save estimator draft', error);
+    }
+  }, [formData]);
+
   const handleNextStep = () => {
     setCurrentStep((prev) => prev + 1);
   };
@@ -62,13 +77,23 @@ const Estimator = () => {
   };
 
   const updateFormData = (key, value) => {
+    setApiError('');
+    setSubmissionResult(null);
     setFormData((prev) => ({
       ...prev,
       [key]: value,
     }));
+
+    if (key === 'rooms' || key === 'budgetPlan') {
+      setQuoteSummary(null);
+    }
   };
 
   const updateRoomDimensions = (roomId, key, value) => {
+    setApiError('');
+    setSubmissionResult(null);
+    setQuoteSummary(null);
+
     setFormData((prev) => ({
       ...prev,
       roomDimensionsByRoom: {
@@ -87,6 +112,10 @@ const Estimator = () => {
   };
 
   const updateRoomDesignIdea = (roomId, idea) => {
+    setApiError('');
+    setSubmissionResult(null);
+    setQuoteSummary(null);
+
     setFormData((prev) => ({
       ...prev,
       roomDimensionsByRoom: {
@@ -102,6 +131,80 @@ const Estimator = () => {
         },
       },
     }));
+  };
+
+  const parseApiError = async (response) => {
+    try {
+      const body = await response.json();
+      if (Array.isArray(body.errors) && body.errors.length > 0) {
+        return body.errors.join(' ');
+      }
+      return body.message || body.error || 'Request failed.';
+    } catch (error) {
+      return 'Request failed.';
+    }
+  };
+
+  const handleDimensionsNext = async () => {
+    if (isCalculating) {
+      return;
+    }
+
+    setApiError('');
+    setIsCalculating(true);
+
+    try {
+      const response = await fetch(`${ESTIMATOR_API_URL}/calculate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error(await parseApiError(response));
+      }
+
+      const result = await response.json();
+      setQuoteSummary(result?.data?.quoteSummary || null);
+      setCurrentStep(4);
+    } catch (error) {
+      setApiError(error.message || 'Unable to calculate estimate.');
+    } finally {
+      setIsCalculating(false);
+    }
+  };
+
+  const handleSubmitEstimator = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
+    setApiError('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(ESTIMATOR_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error(await parseApiError(response));
+      }
+
+      const result = await response.json();
+      setSubmissionResult(result?.data || null);
+      localStorage.removeItem(ESTIMATOR_DRAFT_KEY);
+    } catch (error) {
+      setApiError(error.message || 'Unable to submit estimate request.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderStep = () => {
@@ -143,14 +246,15 @@ const Estimator = () => {
             roomDimensions={formData.roomDimensionsByRoom}
             onUpdateRoomDimensions={updateRoomDimensions}
             onSelectDesignIdea={updateRoomDesignIdea}
-            onNext={handleNextStep}
+            onNext={handleDimensionsNext}
             onPrev={handlePrevStep}
+            isCalculating={isCalculating}
           />
         );
       case 4:
         return (
           <div className="estimator-placeholder">
-            <h2>Adds On Coming Soon</h2>
+            <h2>Review &amp; Submit</h2>
             <p>You have selected:</p>
             <ul style={{ listStyleType: 'none', padding: 0, margin: '20px 0' }}>
               {Object.entries(formData.rooms).map(([room, count]) => (
@@ -168,8 +272,40 @@ const Estimator = () => {
                 </li>
               ))}
             </ul>
+
+            {quoteSummary && (
+              <div className="selected-summary" style={{ textAlign: 'left' }}>
+                <p style={{ marginBottom: 8 }}><strong>Estimated Area:</strong> {quoteSummary.totalAreaSqFt} sq. ft</p>
+                <p style={{ marginBottom: 8 }}><strong>Estimated Total:</strong> {quoteSummary.currency} {quoteSummary.estimatedAmount}</p>
+                {Array.isArray(quoteSummary.lineItems) && quoteSummary.lineItems.length > 0 && (
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    {quoteSummary.lineItems.map((item) => (
+                      <li key={item.roomId} style={{ marginBottom: 6 }}>
+                        {item.label}: {item.areaSqFt} sq. ft x {quoteSummary.currency} {item.ratePerSqFt} = {quoteSummary.currency} {item.estimatedCost}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {apiError && (
+              <div className="selected-summary" style={{ backgroundColor: '#fff0f0', borderColor: '#f5a5a5', color: '#8b1f1f' }}>
+                <strong>Error:</strong> {apiError}
+              </div>
+            )}
+
+            {submissionResult && (
+              <div className="selected-summary" style={{ backgroundColor: '#eefaf0', borderColor: '#9fd5aa', color: '#1e5b2f' }}>
+                <strong>Estimator submitted successfully.</strong> Reference ID: {submissionResult._id}
+              </div>
+            )}
+
             <div className="estimator-actions">
               <button className="btn-secondary" onClick={handlePrevStep}>Back</button>
+              <button className="btn-primary" onClick={handleSubmitEstimator} disabled={isSubmitting || !!submissionResult}>
+                {isSubmitting ? 'Submitting...' : submissionResult ? 'Submitted' : 'Submit Estimate'}
+              </button>
             </div>
           </div>
         );
@@ -201,6 +337,16 @@ const Estimator = () => {
           </div>
 
           <div className="estimator-step-container">
+            {currentStep === 3 && isCalculating && (
+              <div className="selected-summary" style={{ marginBottom: 16 }}>
+                Calculating estimate preview...
+              </div>
+            )}
+            {currentStep === 3 && apiError && (
+              <div className="selected-summary" style={{ marginBottom: 16, backgroundColor: '#fff0f0', borderColor: '#f5a5a5', color: '#8b1f1f' }}>
+                <strong>Error:</strong> {apiError}
+              </div>
+            )}
             {renderStep()}
           </div>
         </div>

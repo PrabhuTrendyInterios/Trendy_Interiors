@@ -61,6 +61,7 @@ const DimensionsSelection = ({
   onSelectDesignIdea,
   onNext,
   onPrev,
+  isCalculating = false,
 }) => {
   const roomEntries = useMemo(
     () =>
@@ -292,8 +293,8 @@ const DimensionsSelection = ({
         <button className="btn-secondary" onClick={onPrev}>
           Back
         </button>
-        <button type="button" className="btn-primary" onClick={onNext}>
-          Next
+        <button type="button" className="btn-primary" onClick={onNext} disabled={isCalculating}>
+          {isCalculating ? 'Calculating...' : 'Next'}
         </button>
       </div>
     </div>

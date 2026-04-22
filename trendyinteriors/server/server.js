@@ -12,6 +12,7 @@ const teamMemberRoutes = require('./routes/teamMembers');
 const serviceRoutes = require('./routes/services');
 const categoryRoutes = require('./routes/categories');
 const designRoutes = require('./routes/designs');
+const estimatorRoutes = require('./routes/estimators');
 const chatbotRoutes = require('./routes/chatbot');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -52,6 +53,7 @@ app.use('/api/team-members', teamMemberRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/designs', designRoutes);
+app.use('/api/estimators', estimatorRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 
 // Health check
