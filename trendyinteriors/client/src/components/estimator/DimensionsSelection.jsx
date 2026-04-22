@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo } from 'react';
 
 const PLAN_LABELS = {
-  lowCost: 'Low Cost',
+  starter: 'Starter',
   budgetFriendly: 'Budget Friendly',
   premium: 'Premium',
-  luxury: 'Luxury',
+  signature: 'Luxury',
 };
 
 const ROOM_TITLES = {
@@ -17,16 +17,16 @@ const ROOM_TITLES = {
 };
 
 const planTags = {
-  lowCost: 'Essentials',
+  starter: 'Essentials',
   budgetFriendly: 'Smart Balance',
   premium: 'Elevated',
-  luxury: 'Signature Luxury',
+  signature: 'Signature Luxury',
 };
 
 const roomIdeaNames = {
   'Living Room': ['TV Wall & Storage', 'Statement Sofa Zone', 'Feature Ceiling Concept', 'Open Layout Styling', 'Premium Lighting Layer'],
   Bedroom: ['Wardrobe Wall Plan', 'Headboard Feature Design', 'Ambient Lighting Setup', 'Compact Storage Flow', 'Dresser + Mirror Corner'],
-  Kitchen: ['Modular Layout Plan', 'Counter + Backsplash Mood', 'Tall Unit Composition', 'Island/Peninsula Setup', 'Storage Optimization Design'],
+  Kitchen: ['Modular Layout Plan', 'Counter + Back splash Mood', 'Tall Unit Composition', 'Island/Peninsula Setup', 'Storage Optimization Design'],
   Bathroom: ['Vanity & Mirror Layout', 'Shower Partition Theme', 'Tile Harmony Board', 'Storage Niche Planning', 'Luxury Fixture Pairing'],
   'Home Office': ['Workstation Layout', 'Shelving + Storage Wall', 'Acoustic Comfort Setup', 'Task Lighting Plan', 'Client-Ready Corner'],
   'Dining Room': ['Dining Wall Feature', 'Table + Pendant Composition', 'Storage Console Design', 'Seating Balance Concept', 'Warm Lighting Mood'],

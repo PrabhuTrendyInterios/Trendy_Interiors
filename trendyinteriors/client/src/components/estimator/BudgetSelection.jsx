@@ -4,7 +4,7 @@ import { FaLeaf, FaDollarSign, FaStar, FaGem } from 'react-icons/fa';
 const budgetPlans = [
   {
     id: 'starter',
-    title: 'Low Cost',
+    title: 'Starter',
     price: '$499',
     unit: 'Room',
     subtitle: 'Essential styling for refreshing a single room with minimal changes.',
