@@ -17,6 +17,25 @@ const buildRoomInstances = (rooms) =>
     })),
   );
 
+const migrateRoomDimensions = (roomDimensionsByRoom) => {
+  const migrated = {};
+  Object.entries(roomDimensionsByRoom || {}).forEach(([roomId, dimensions]) => {
+    migrated[roomId] = {
+      length: dimensions?.length || '',
+      width: dimensions?.width || '',
+      height: dimensions?.height || '',
+      selectedDesignIdea: {
+        layout: dimensions?.selectedDesignIdea?.layout || '',
+        addons: Array.isArray(dimensions?.selectedDesignIdea?.addons) ? dimensions.selectedDesignIdea.addons : [],
+        room: dimensions?.selectedDesignIdea?.room || '',
+        roomType: dimensions?.selectedDesignIdea?.roomType || '',
+        planTier: dimensions?.selectedDesignIdea?.planTier || '',
+      },
+    };
+  });
+  return migrated;
+};
+
 const Estimator = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -33,7 +52,7 @@ const Estimator = () => {
           rooms: parsedDraft.rooms || {},
           budgetPlan: parsedDraft.budgetPlan || '',
           selectedRoomForDimensions: parsedDraft.selectedRoomForDimensions || '',
-          roomDimensionsByRoom: parsedDraft.roomDimensionsByRoom || {},
+          roomDimensionsByRoom: migrateRoomDimensions(parsedDraft.roomDimensionsByRoom),
         };
       }
     } catch (error) {
@@ -103,7 +122,13 @@ const Estimator = () => {
             length: '',
             width: '',
             height: '',
-            selectedDesignIdea: null,
+            selectedDesignIdea: {
+              layout: '',
+              addons: [],
+              room: '',
+              roomType: '',
+              planTier: '',
+            },
           }),
           [key]: value,
         },
@@ -125,9 +150,21 @@ const Estimator = () => {
             length: '',
             width: '',
             height: '',
-            selectedDesignIdea: null,
+            selectedDesignIdea: {
+              layout: '',
+              addons: [],
+              room: '',
+              roomType: '',
+              planTier: '',
+            },
           }),
-          selectedDesignIdea: idea,
+          selectedDesignIdea: {
+            layout: idea?.layout || '',
+            addons: idea?.addons || [],
+            room: idea?.room || '',
+            roomType: idea?.roomType || '',
+            planTier: idea?.planTier || '',
+          },
         },
       },
     }));

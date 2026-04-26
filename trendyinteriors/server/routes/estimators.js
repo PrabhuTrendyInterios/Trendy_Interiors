@@ -1,25 +1,26 @@
-const express = require('express');
-const Estimator = require('../models/Estimator');
-const { protect, authorize } = require('../middleware/authMiddleware');
+const express = require("express");
+const Estimator = require("../models/Estimator");
+const { protect, authorize } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-const VALID_PLANS = ['starter', 'budgetFriendly', 'premium', 'signature'];
+const VALID_PLANS = ["starter", "budgetFriendly", "premium", "signature"];
 
 const PLAN_BASE_RATE = {
-  starter: 7,
-  budgetFriendly: 12,
-  premium: 20,
-  signature: 35,
+  starter: 700,
+  budgetFriendly: 1200,
+  premium: 2000,
+  signature: 3500,
 };
 
 const ROOM_MULTIPLIER = {
-  'Living Room': 1.15,
+  "Living Room": 1.15,
   Bedroom: 1,
   Kitchen: 1.35,
   Bathroom: 1.25,
-  'Home Office': 1.1,
-  'Dining Room': 1.05,
+  "Home Office": 1.1,
+  "Dining Room": 1.05,
+  General: 1,
 };
 
 const toPositiveNumber = (value) => {
@@ -27,75 +28,131 @@ const toPositiveNumber = (value) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
+const getRoomType = (roomName = "") => {
+  const lower = String(roomName).toLowerCase();
+
+  if (lower.includes("kitchen")) return "Kitchen";
+  if (lower.includes("bedroom")) return "Bedroom";
+  if (lower.includes("living") || lower.includes("hall")) return "Living Room";
+  if (lower.includes("bathroom")) return "Bathroom";
+  if (lower.includes("dining")) return "Dining Room";
+  if (lower.includes("office")) return "Home Office";
+
+  return "General";
+};
+
+const getCanonicalRoomName = (roomName = "") => {
+  const type = getRoomType(roomName);
+  return type === "General" ? String(roomName || "General").trim() || "General" : type;
+};
+
+const roomNeedsAddons = (roomName = "") => {
+  const type = getRoomType(roomName);
+  return type === "Kitchen" || type === "Bedroom" || type === "Living Room";
+};
+
 const buildRoomInstances = (rooms) =>
-  Object.entries(rooms || {}).flatMap(([roomName, count]) =>
-    Array.from({ length: Number(count) || 0 }, (_, index) => ({
-      id: `${roomName}-${index + 1}`,
-      roomName,
-      label: Number(count) > 1 ? `${roomName} ${index + 1}` : roomName,
-    }))
+  Object.entries(rooms || {}).flatMap(([roomName, count]) => {
+    const quantity = Number(count) || 0;
+    const canonicalRoomName = getCanonicalRoomName(roomName);
+
+    return Array.from({ length: quantity }, (_, index) => ({
+      id: `${canonicalRoomName}-${index + 1}`,
+      originalRoomName: roomName,
+      roomName: canonicalRoomName,
+      label: quantity > 1 ? `${canonicalRoomName} ${index + 1}` : canonicalRoomName,
+      roomType: getRoomType(roomName),
+      needsAddons: roomNeedsAddons(roomName),
+    }));
+  });
+
+const getDimensionsForRoom = (roomDimensionsByRoom = {}, room) => {
+  return (
+    roomDimensionsByRoom[room.id] ||
+    roomDimensionsByRoom[`${room.originalRoomName}-1`] ||
+    roomDimensionsByRoom[room.originalRoomName] ||
+    roomDimensionsByRoom[room.roomName] ||
+    {}
   );
+};
+
+const normalizeSelectedDesign = (selectedDesignIdea, room, budgetPlan) => {
+  const rawDesign =
+    selectedDesignIdea && typeof selectedDesignIdea === "object" ? selectedDesignIdea : {};
+
+  return {
+    layout: "",
+    addons: Array.isArray(rawDesign.addons) ? rawDesign.addons : [],
+    room: room.roomName,
+    roomType: room.roomType,
+    planTier: budgetPlan || "",
+  };
+};
+
+const normalizeRoomsObject = (rooms = {}) => {
+  const normalized = {};
+
+  Object.entries(rooms || {}).forEach(([roomName, count]) => {
+    const canonicalRoomName = getCanonicalRoomName(roomName);
+    normalized[canonicalRoomName] = (Number(normalized[canonicalRoomName]) || 0) + (Number(count) || 0);
+  });
+
+  return normalized;
+};
 
 const validateEstimatorPayload = (payload, options = {}) => {
   const { requireCompleteRooms = false } = options;
   const errors = [];
 
-  const rooms = payload?.rooms || {};
+  const rooms = normalizeRoomsObject(payload?.rooms || {});
   const budgetPlan = payload?.budgetPlan;
-  const selectedRoomForDimensions = payload?.selectedRoomForDimensions || '';
+  const selectedRoomForDimensions = payload?.selectedRoomForDimensions || "";
   const roomDimensionsByRoom = payload?.roomDimensionsByRoom || {};
 
-  if (!rooms || typeof rooms !== 'object' || Array.isArray(rooms)) {
-    errors.push('rooms must be an object of room names and quantities.');
+  if (!payload?.rooms || typeof payload.rooms !== "object" || Array.isArray(payload.rooms)) {
+    errors.push("rooms must be an object of room names and quantities.");
   }
 
   const roomInstances = buildRoomInstances(rooms);
+
   if (roomInstances.length === 0) {
-    errors.push('At least one room must be selected.');
+    errors.push("At least one room must be selected.");
   }
 
   if (!VALID_PLANS.includes(budgetPlan)) {
-    errors.push(`budgetPlan must be one of: ${VALID_PLANS.join(', ')}.`);
-  }
-
-  if (
-    selectedRoomForDimensions &&
-    roomInstances.length > 0 &&
-    !roomInstances.some((room) => room.id === selectedRoomForDimensions)
-  ) {
-    errors.push('selectedRoomForDimensions must match one generated room instance ID.');
+    errors.push(`budgetPlan must be one of: ${VALID_PLANS.join(", ")}.`);
   }
 
   const normalizedDimensions = {};
 
   roomInstances.forEach((room) => {
-    const dimensions = roomDimensionsByRoom[room.id] || {};
+    const dimensions = getDimensionsForRoom(roomDimensionsByRoom, room);
+
     const length = toPositiveNumber(dimensions.length);
     const width = toPositiveNumber(dimensions.width);
     const height = toPositiveNumber(dimensions.height);
-    const selectedDesignIdea = dimensions.selectedDesignIdea || null;
+
+    const selectedDesignIdea = normalizeSelectedDesign(
+      dimensions.selectedDesignIdea,
+      room,
+      budgetPlan
+    );
 
     normalizedDimensions[room.id] = {
-      length,
-      width,
-      height,
+      length: length || 0,
+      width: width || 0,
+      height: height || 0,
       selectedDesignIdea,
     };
 
-    if (requireCompleteRooms) {
-      if (!length || !width || !height) {
-        errors.push(`Missing or invalid dimensions for room: ${room.id}.`);
-      }
-
-      if (!selectedDesignIdea || !selectedDesignIdea.id) {
-        errors.push(`selectedDesignIdea is required for room: ${room.id}.`);
-      }
-
-      if (selectedDesignIdea?.planTier && selectedDesignIdea.planTier !== budgetPlan) {
-        errors.push(`selectedDesignIdea.planTier must match budgetPlan for room: ${room.id}.`);
-      }
+    if (requireCompleteRooms && (!length || !width || !height)) {
+      errors.push(`Missing or invalid dimensions for room: ${room.label}.`);
     }
   });
+
+  const normalizedSelectedRoom = roomInstances.some((room) => room.id === selectedRoomForDimensions)
+    ? selectedRoomForDimensions
+    : roomInstances[0]?.id || "";
 
   return {
     errors,
@@ -103,9 +160,14 @@ const validateEstimatorPayload = (payload, options = {}) => {
     normalizedDimensions,
     rooms,
     budgetPlan,
-    selectedRoomForDimensions,
+    selectedRoomForDimensions: normalizedSelectedRoom,
     customerInfo: payload?.customerInfo || {},
   };
+};
+
+const getDesignCost = (selectedDesignIdea = {}, room) => {
+  if (!room.needsAddons || !Array.isArray(selectedDesignIdea.addons)) return 0;
+  return selectedDesignIdea.addons.length * 1500;
 };
 
 const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan) => {
@@ -114,17 +176,14 @@ const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan) => {
   const lineItems = roomInstances
     .map((room) => {
       const dimensions = normalizedDimensions[room.id] || {};
-      const length = dimensions.length || 0;
-      const width = dimensions.width || 0;
-      const areaSqFt = Number((length * width).toFixed(2));
+      const areaSqFt = Number(((dimensions.length || 0) * (dimensions.width || 0)).toFixed(2));
 
-      if (areaSqFt <= 0) {
-        return null;
-      }
+      if (areaSqFt <= 0) return null;
 
-      const roomMultiplier = ROOM_MULTIPLIER[room.roomName] || 1;
+      const selectedDesignIdea = dimensions.selectedDesignIdea || {};
+      const roomMultiplier = ROOM_MULTIPLIER[room.roomType] || 1;
       const ratePerSqFt = Number((baseRate * roomMultiplier).toFixed(2));
-      const estimatedCost = Number((areaSqFt * ratePerSqFt).toFixed(2));
+      const addonCost = getDesignCost(selectedDesignIdea, room);
 
       return {
         roomId: room.id,
@@ -133,37 +192,26 @@ const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan) => {
         areaSqFt,
         ratePerSqFt,
         roomMultiplier,
-        estimatedCost,
+        addons: selectedDesignIdea.addons || [],
+        estimatedCost: Number((areaSqFt * ratePerSqFt + addonCost).toFixed(2)),
       };
     })
     .filter(Boolean);
 
-  const totalAreaSqFt = Number(
-    lineItems.reduce((sum, item) => sum + item.areaSqFt, 0).toFixed(2)
-  );
-  const estimatedAmount = Number(
-    lineItems.reduce((sum, item) => sum + item.estimatedCost, 0).toFixed(2)
-  );
-
   return {
-    totalAreaSqFt,
-    estimatedAmount,
-    currency: 'USD',
+    totalAreaSqFt: Number(lineItems.reduce((sum, item) => sum + item.areaSqFt, 0).toFixed(2)),
+    estimatedAmount: Number(lineItems.reduce((sum, item) => sum + item.estimatedCost, 0).toFixed(2)),
+    currency: "INR",
     lineItems,
   };
 };
 
-// Validate payload and return quote preview (public)
-router.post('/calculate', async (req, res) => {
+router.post("/calculate", async (req, res) => {
   try {
     const validation = validateEstimatorPayload(req.body, { requireCompleteRooms: false });
 
     if (validation.errors.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: validation.errors,
-      });
+      return res.status(400).json({ success: false, message: "Validation failed", errors: validation.errors });
     }
 
     const quoteSummary = calculateQuote(
@@ -174,34 +222,20 @@ router.post('/calculate', async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Estimate preview calculated successfully',
-      data: {
-        quoteSummary,
-        completion: {
-          totalRooms: validation.roomInstances.length,
-          roomsWithMeasurements: validation.roomInstances.filter((room) => {
-            const dims = validation.normalizedDimensions[room.id];
-            return dims?.length && dims?.width && dims?.height;
-          }).length,
-        },
-      },
+      message: "Estimate preview calculated successfully",
+      data: { quoteSummary },
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// Create estimator submission (public)
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const validation = validateEstimatorPayload(req.body, { requireCompleteRooms: true });
 
     if (validation.errors.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: validation.errors,
-      });
+      return res.status(400).json({ success: false, message: "Validation failed", errors: validation.errors });
     }
 
     const quoteSummary = calculateQuote(
@@ -217,21 +251,19 @@ router.post('/', async (req, res) => {
       roomDimensionsByRoom: validation.normalizedDimensions,
       customerInfo: validation.customerInfo,
       quoteSummary,
-      status: 'submitted',
+      status: "submitted",
     });
 
-    req.app
-      .get('io')
-      ?.emit('admin:newEstimator', {
-        id: estimator._id,
-        budgetPlan: estimator.budgetPlan,
-        estimatedAmount: estimator.quoteSummary?.estimatedAmount || 0,
-        createdAt: estimator.createdAt,
-      });
+    req.app.get("io")?.emit("admin:newEstimator", {
+      id: estimator._id,
+      budgetPlan: estimator.budgetPlan,
+      estimatedAmount: estimator.quoteSummary?.estimatedAmount || 0,
+      createdAt: estimator.createdAt,
+    });
 
     return res.status(201).json({
       success: true,
-      message: 'Estimator submitted successfully',
+      message: "Estimator submitted successfully",
       data: estimator,
     });
   } catch (error) {
@@ -239,48 +271,21 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get all estimators (admin only)
-router.get('/', protect, authorize('admin'), async (req, res) => {
+router.get("/", protect, authorize("admin"), async (req, res) => {
   try {
-    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
-    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
-
-    const filter = {};
-    if (req.query.status) {
-      filter.status = req.query.status;
-    }
-    if (req.query.budgetPlan) {
-      filter.budgetPlan = req.query.budgetPlan;
-    }
-
-    const total = await Estimator.countDocuments(filter);
-    const estimators = await Estimator.find(filter)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
-
-    return res.status(200).json({
-      success: true,
-      data: estimators,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
+    const estimators = await Estimator.find({}).sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, data: estimators });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// Get single estimator (admin only)
-router.get('/:id', protect, authorize('admin'), async (req, res) => {
+router.get("/:id", protect, authorize("admin"), async (req, res) => {
   try {
     const estimator = await Estimator.findById(req.params.id);
 
     if (!estimator) {
-      return res.status(404).json({ success: false, message: 'Estimator not found' });
+      return res.status(404).json({ success: false, message: "Estimator not found" });
     }
 
     return res.status(200).json({ success: true, data: estimator });
