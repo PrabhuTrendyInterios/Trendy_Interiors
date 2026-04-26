@@ -94,6 +94,11 @@ const roomLineItemSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    layout: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     addons: {
       type: [String],
       default: [],

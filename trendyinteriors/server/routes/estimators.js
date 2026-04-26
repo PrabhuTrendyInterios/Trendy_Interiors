@@ -46,6 +46,11 @@ const getCanonicalRoomName = (roomName = "") => {
   return type === "General" ? String(roomName || "General").trim() || "General" : type;
 };
 
+const roomSupportsLayout = (roomName = "") => {
+  const type = getRoomType(roomName);
+  return type === "Kitchen" || type === "Bedroom";
+};
+
 const roomNeedsAddons = (roomName = "") => {
   const type = getRoomType(roomName);
   return type === "Kitchen" || type === "Bedroom" || type === "Living Room";
@@ -62,6 +67,7 @@ const buildRoomInstances = (rooms) =>
       roomName: canonicalRoomName,
       label: quantity > 1 ? `${canonicalRoomName} ${index + 1}` : canonicalRoomName,
       roomType: getRoomType(roomName),
+      supportsLayout: roomSupportsLayout(roomName),
       needsAddons: roomNeedsAddons(roomName),
     }));
   });
@@ -81,7 +87,7 @@ const normalizeSelectedDesign = (selectedDesignIdea, room, budgetPlan) => {
     selectedDesignIdea && typeof selectedDesignIdea === "object" ? selectedDesignIdea : {};
 
   return {
-    layout: "",
+    layout: typeof rawDesign.layout === "string" ? rawDesign.layout.trim() : "",
     addons: Array.isArray(rawDesign.addons) ? rawDesign.addons : [],
     room: room.roomName,
     roomType: room.roomType,
@@ -166,8 +172,17 @@ const validateEstimatorPayload = (payload, options = {}) => {
 };
 
 const getDesignCost = (selectedDesignIdea = {}, room) => {
-  if (!room.needsAddons || !Array.isArray(selectedDesignIdea.addons)) return 0;
-  return selectedDesignIdea.addons.length * 1500;
+  let cost = 0;
+
+  if (room.supportsLayout && selectedDesignIdea.layout) {
+    cost += 2500;
+  }
+
+  if (room.needsAddons && Array.isArray(selectedDesignIdea.addons)) {
+    cost += selectedDesignIdea.addons.length * 1500;
+  }
+
+  return cost;
 };
 
 const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan) => {
@@ -183,7 +198,7 @@ const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan) => {
       const selectedDesignIdea = dimensions.selectedDesignIdea || {};
       const roomMultiplier = ROOM_MULTIPLIER[room.roomType] || 1;
       const ratePerSqFt = Number((baseRate * roomMultiplier).toFixed(2));
-      const addonCost = getDesignCost(selectedDesignIdea, room);
+      const designCost = getDesignCost(selectedDesignIdea, room);
 
       return {
         roomId: room.id,
@@ -192,8 +207,9 @@ const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan) => {
         areaSqFt,
         ratePerSqFt,
         roomMultiplier,
+        layout: selectedDesignIdea.layout || "",
         addons: selectedDesignIdea.addons || [],
-        estimatedCost: Number((areaSqFt * ratePerSqFt + addonCost).toFixed(2)),
+        estimatedCost: Number((areaSqFt * ratePerSqFt + designCost).toFixed(2)),
       };
     })
     .filter(Boolean);

@@ -125,6 +125,23 @@ const getRoomType = (roomName = "") => {
   return "General";
 };
 
+const getCanonicalRoomName = (roomName = "") => {
+  const type = getRoomType(roomName);
+  return type === "General" ? String(roomName || "General").trim() || "General" : type;
+};
+
+const normalizeRoomsObject = (rooms = {}) => {
+  const normalized = {};
+
+  Object.entries(rooms || {}).forEach(([roomName, count]) => {
+    const canonicalRoomName = getCanonicalRoomName(roomName);
+    normalized[canonicalRoomName] =
+      (Number(normalized[canonicalRoomName]) || 0) + (Number(count) || 0);
+  });
+
+  return normalized;
+};
+
 const getRoomImage = (roomName) => {
   const type = getRoomType(roomName);
 
@@ -141,22 +158,22 @@ const getRoomOptions = (roomName) => {
 
   if (type === "Kitchen") {
     return {
-      showLayout: false,
+      showLayout: true,
       showAddons: true,
-      layoutTitle: "",
+      layoutTitle: "Kitchen Layout",
       addonTitle: "Kitchen Add-ons",
-      layouts: [],
+      layouts: KITCHEN_LAYOUTS,
       addons: KITCHEN_ADDONS,
     };
   }
 
   if (type === "Bedroom") {
     return {
-      showLayout: false,
+      showLayout: true,
       showAddons: true,
-      layoutTitle: "",
+      layoutTitle: "Wardrobe Type",
       addonTitle: "Bedroom Add-ons",
-      layouts: [],
+      layouts: BEDROOM_LAYOUTS,
       addons: BEDROOM_ADDONS,
     };
   }
@@ -194,17 +211,17 @@ const DimensionsSelection = ({
   onPrev,
   isCalculating = false,
 }) => {
-  const roomEntries = useMemo(
-    () =>
-      Object.entries(selectedRooms || {}).flatMap(([roomName, count]) =>
-        Array.from({ length: Number(count) || 0 }, (_, index) => ({
-          id: `${roomName}-${index + 1}`,
-          roomName,
-          label: Number(count) > 1 ? `${roomName} ${index + 1}` : roomName,
-        }))
-      ),
-    [selectedRooms]
-  );
+  const roomEntries = useMemo(() => {
+    const normalizedRooms = normalizeRoomsObject(selectedRooms || {});
+
+    return Object.entries(normalizedRooms).flatMap(([roomName, count]) =>
+      Array.from({ length: Number(count) || 0 }, (_, index) => ({
+        id: `${roomName}-${index + 1}`,
+        roomName,
+        label: Number(count) > 1 ? `${roomName} ${index + 1}` : roomName,
+      }))
+    );
+  }, [selectedRooms]);
 
   const selectedRoomEntry = roomEntries.find((room) => room.id === selectedRoom);
 
