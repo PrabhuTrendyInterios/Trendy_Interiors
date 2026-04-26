@@ -105,6 +105,7 @@ const validateEstimatorPayload = (payload, options = {}) => {
     budgetPlan,
     selectedRoomForDimensions,
     customerInfo: payload?.customerInfo || {},
+    extraAddons: Array.isArray(payload?.extraAddons) ? payload.extraAddons : [],
   };
 };
 
@@ -216,6 +217,7 @@ router.post('/', async (req, res) => {
       selectedRoomForDimensions: validation.selectedRoomForDimensions,
       roomDimensionsByRoom: validation.normalizedDimensions,
       customerInfo: validation.customerInfo,
+      extraAddons: validation.extraAddons,
       quoteSummary,
       status: 'submitted',
     });
