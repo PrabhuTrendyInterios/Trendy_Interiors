@@ -1,6 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+
 const BuyOnline = require('../../pages/BuyOnline').default;
 
 describe('client/pages/BuyOnline', () => {
@@ -10,11 +12,14 @@ describe('client/pages/BuyOnline', () => {
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
     jest.useRealTimers();
   });
 
   test('shows kitchen products and switches category', async () => {
+    const user = userEvent.setup({
+      advanceTimers: jest.advanceTimersByTime
+    });
+
     render(
       <MemoryRouter>
         <BuyOnline />
@@ -22,14 +27,28 @@ describe('client/pages/BuyOnline', () => {
     );
 
     expect(screen.getByText(/buy online/i)).toBeInTheDocument();
-    await act(async () => {
-      jest.advanceTimersByTime(450);
+
+    // Resolve first loading
+    act(() => {
+      jest.advanceTimersByTime(400);
     });
-    expect(screen.getByText(/premium modular island/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /interior accessories/i }));
-    await act(async () => {
-      jest.advanceTimersByTime(450);
+
+    expect(
+      screen.getByText(/premium modular island/i)
+    ).toBeInTheDocument();
+
+    // Click category
+    await user.click(
+      screen.getByRole('button', { name: /interior accessories/i })
+    );
+
+    // Resolve second loading
+    act(() => {
+      jest.advanceTimersByTime(400);
     });
-    await waitFor(() => expect(screen.getByText(/abstract wall art/i)).toBeInTheDocument());
+
+    expect(
+      screen.getByText(/abstract wall art/i)
+    ).toBeInTheDocument();
   });
 });

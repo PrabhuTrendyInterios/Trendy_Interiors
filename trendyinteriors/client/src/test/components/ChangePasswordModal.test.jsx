@@ -10,6 +10,7 @@ jest.mock('../../utils/passwordValidation', () => ({
 
 describe('client/components/ChangePasswordModal', () => {
   beforeEach(() => {
+    jest.useRealTimers();
     validatePassword.mockReturnValue({ isValid: true, errors: {} });
     getPasswordStrengthMessage.mockReturnValue('Use a strong password');
     localStorage.setItem('token', 'mock-token');
@@ -17,6 +18,7 @@ describe('client/components/ChangePasswordModal', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
     localStorage.clear();
   });
@@ -52,10 +54,10 @@ describe('client/components/ChangePasswordModal', () => {
     render(<ChangePasswordModal isOpen={true} onClose={jest.fn()} onSuccess={jest.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: /send otp/i }));
-    await screen.findByText(/one-time password/i);
+    const verifyButton = await screen.findByRole('button', { name: /verify otp/i });
 
-    fireEvent.click(screen.getByRole('button', { name: /verify otp/i }));
-    expect(screen.getByText(/please enter a valid 6-digit otp/i)).toBeInTheDocument();
+    fireEvent.click(verifyButton);
+    expect(await screen.findByText(/please enter a valid 6-digit otp/i)).toBeInTheDocument();
   });
 
   test('changes password successfully and calls success handlers', async () => {
