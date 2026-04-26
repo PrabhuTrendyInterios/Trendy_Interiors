@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import RoomSelection from '../components/estimator/RoomSelection';
 import BudgetSelection from '../components/estimator/BudgetSelection';
 import DimensionsSelection from '../components/estimator/DimensionsSelection';
+import ExtraAddons from '../components/estimator/ExtraAddons';
+import LeadCapture from '../components/estimator/LeadCapture';
 import './Estimator.css';
 
 const ESTIMATOR_DRAFT_KEY = 'trendyInteriorsEstimatorDraft';
@@ -53,6 +55,9 @@ const Estimator = () => {
           budgetPlan: parsedDraft.budgetPlan || '',
           selectedRoomForDimensions: parsedDraft.selectedRoomForDimensions || '',
           roomDimensionsByRoom: migrateRoomDimensions(parsedDraft.roomDimensionsByRoom),
+          roomDimensionsByRoom: parsedDraft.roomDimensionsByRoom || {},
+          extraAddons: parsedDraft.extraAddons || [],
+          leadData: parsedDraft.leadData || { name: '', email: '', phone: '', location: '', message: '' },
         };
       }
     } catch (error) {
@@ -64,6 +69,8 @@ const Estimator = () => {
       budgetPlan: '',
       selectedRoomForDimensions: '',
       roomDimensionsByRoom: {},
+      extraAddons: [],
+      leadData: { name: '', email: '', phone: '', location: '', message: '' },
     };
   });
 
@@ -170,6 +177,30 @@ const Estimator = () => {
     }));
   };
 
+  const toggleAddon = (addonId) => {
+    setFormData((prev) => {
+      const currentAddons = prev.extraAddons || [];
+      const newAddons = currentAddons.includes(addonId)
+        ? currentAddons.filter((id) => id !== addonId)
+        : [...currentAddons, addonId];
+      
+      return {
+        ...prev,
+        extraAddons: newAddons,
+      };
+    });
+  };
+
+  const updateLeadData = (key, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      leadData: {
+        ...prev.leadData,
+        [key]: value,
+      },
+    }));
+  };
+
   const parseApiError = async (response) => {
     try {
       const body = await response.json();
@@ -205,7 +236,7 @@ const Estimator = () => {
 
       const result = await response.json();
       setQuoteSummary(result?.data?.quoteSummary || null);
-      setCurrentStep(4);
+      setCurrentStep((prev) => prev + 1);
     } catch (error) {
       setApiError(error.message || 'Unable to calculate estimate.');
     } finally {
@@ -227,7 +258,15 @@ const Estimator = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          customerInfo: {
+            name: formData.leadData?.name || '',
+            email: formData.leadData?.email || '',
+            phone: formData.leadData?.phone || '',
+            location: formData.leadData?.location || '',
+          },
+        }),
       });
 
       if (!response.ok) {
@@ -290,6 +329,24 @@ const Estimator = () => {
         );
       case 4:
         return (
+          <ExtraAddons
+            selectedAddons={formData.extraAddons}
+            onToggleAddon={toggleAddon}
+            onPrev={handlePrevStep}
+            onNext={handleNextStep}
+          />
+        );
+      case 5:
+        return (
+          <LeadCapture
+            leadData={formData.leadData}
+            onUpdateLead={updateLeadData}
+            onPrev={handlePrevStep}
+            onNext={handleNextStep}
+          />
+        );
+      case 6:
+        return (
           <div className="estimator-placeholder">
             <h2>Review &amp; Submit</h2>
             <p>You have selected:</p>
@@ -301,6 +358,18 @@ const Estimator = () => {
               ))}
             </ul>
             <p>Plan: {formData.budgetPlan}</p>
+            {formData.extraAddons && formData.extraAddons.length > 0 && (
+              <>
+                <p>Extra Add-ons:</p>
+                <ul style={{ listStyleType: 'none', padding: 0, margin: '20px 0' }}>
+                  {formData.extraAddons.map((addon) => (
+                    <li key={addon} style={{ fontSize: '1.2rem', marginBottom: '10px' }}>
+                      <strong>{addon.charAt(0).toUpperCase() + addon.slice(1)}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
             <p>Rooms dimensions:</p>
             <ul style={{ listStyleType: 'none', padding: 0, margin: '20px 0' }}>
               {Object.entries(formData.roomDimensionsByRoom).map(([roomId, dimensions]) => (
@@ -371,6 +440,10 @@ const Estimator = () => {
             <div className={`progress-step ${currentStep >= 3 ? 'active' : ''}`}>3. Dimensions</div>
             <div className={`progress-line ${currentStep >= 4 ? 'active' : ''}`}></div>
             <div className={`progress-step ${currentStep >= 4 ? 'active' : ''}`}>4. Add Ons</div>
+            <div className={`progress-line ${currentStep >= 5 ? 'active' : ''}`}></div>
+            <div className={`progress-step ${currentStep >= 5 ? 'active' : ''}`}>5. Your Info</div>
+            <div className={`progress-line ${currentStep >= 6 ? 'active' : ''}`}></div>
+            <div className={`progress-step ${currentStep >= 6 ? 'active' : ''}`}>6. Review</div>
           </div>
 
           <div className="estimator-step-container">

@@ -139,6 +139,10 @@ const quoteSummarySchema = new mongoose.Schema(
 
 const customerInfoSchema = new mongoose.Schema(
   {
+    name: { type: String, trim: true },
+    email: { type: String, trim: true, lowercase: true },
+    phone: { type: String, trim: true },
+    location: { type: String, trim: true },
     name: {
       type: String,
       trim: true,
@@ -205,6 +209,10 @@ const estimatorSchema = new mongoose.Schema(
       type: String,
       enum: ["draft", "submitted", "quoted", "closed"],
       default: "submitted",
+    },
+    extraAddons: {
+      type: [String],
+      default: [],
     },
   },
   { timestamps: true }
