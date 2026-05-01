@@ -107,7 +107,7 @@ const normalizeRoomsObject = (rooms = {}) => {
 };
 
 const validateEstimatorPayload = (payload, options = {}) => {
-  const { requireCompleteRooms = false } = options;
+  const { requireCompleteRooms = false, requireBudgetPlan = true } = options;
   const errors = [];
 
   const rooms = normalizeRoomsObject(payload?.rooms || {});
@@ -125,7 +125,7 @@ const validateEstimatorPayload = (payload, options = {}) => {
     errors.push("At least one room must be selected.");
   }
 
-  if (!VALID_PLANS.includes(budgetPlan)) {
+  if (requireBudgetPlan && !VALID_PLANS.includes(budgetPlan)) {
     errors.push(`budgetPlan must be one of: ${VALID_PLANS.join(", ")}.`);
   }
 
@@ -225,7 +225,7 @@ const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan) => {
 
 router.post("/calculate", async (req, res) => {
   try {
-    const validation = validateEstimatorPayload(req.body, { requireCompleteRooms: false });
+    const validation = validateEstimatorPayload(req.body, { requireCompleteRooms: false, requireBudgetPlan: false });
 
     if (validation.errors.length > 0) {
       return res.status(400).json({ success: false, message: "Validation failed", errors: validation.errors });

@@ -94,6 +94,41 @@ const Estimator = () => {
     }
   }, [formData]);
 
+  // Calculate quote when reaching review step and budget is selected
+  useEffect(() => {
+    const calculateQuoteForReview = async () => {
+      if (currentStep !== 6 || !formData.budgetPlan || quoteSummary) {
+        return; // Don't recalculate if already calculated
+      }
+
+      setApiError('');
+      setIsCalculating(true);
+
+      try {
+        const response = await fetch(`${ESTIMATOR_API_URL}/calculate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (!response.ok) {
+          throw new Error(await parseApiError(response));
+        }
+
+        const result = await response.json();
+        setQuoteSummary(result?.data?.quoteSummary || null);
+      } catch (error) {
+        setApiError(error.message || 'Unable to calculate estimate.');
+      } finally {
+        setIsCalculating(false);
+      }
+    };
+
+    calculateQuoteForReview();
+  }, [currentStep, formData.budgetPlan]);
+
   const handleNextStep = () => {
     setCurrentStep((prev) => prev + 1);
   };
@@ -213,35 +248,10 @@ const Estimator = () => {
     }
   };
 
-  const handleDimensionsNext = async () => {
-    if (isCalculating) {
-      return;
-    }
-
-    setApiError('');
-    setIsCalculating(true);
-
-    try {
-      const response = await fetch(`${ESTIMATOR_API_URL}/calculate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error(await parseApiError(response));
-      }
-
-      const result = await response.json();
-      setQuoteSummary(result?.data?.quoteSummary || null);
-      setCurrentStep((prev) => prev + 1);
-    } catch (error) {
-      setApiError(error.message || 'Unable to calculate estimate.');
-    } finally {
-      setIsCalculating(false);
-    }
+  const handleDimensionsNext = () => {
+    // Just move to the next step without calculating yet
+    // Calculation will happen on the review step
+    setCurrentStep((prev) => prev + 1);
   };
 
   const handleSubmitEstimator = async () => {
@@ -303,16 +313,7 @@ const Estimator = () => {
         );
       case 2:
         return (
-          <BudgetSelection
-            selectedBudget={formData.budgetPlan}
-            onSelectBudget={(budgetPlan) => updateFormData('budgetPlan', budgetPlan)}
-            onPrev={handlePrevStep}
-            onNext={handleNextStep}
-          />
-        );
-      case 3:
-        return (
-          <DimensionsSelection
+                    <DimensionsSelection
             selectedRooms={formData.rooms}
             selectedBudget={formData.budgetPlan}
             selectedRoom={formData.selectedRoomForDimensions}
@@ -324,7 +325,16 @@ const Estimator = () => {
             onSelectDesignIdea={updateRoomDesignIdea}
             onNext={handleDimensionsNext}
             onPrev={handlePrevStep}
-            isCalculating={isCalculating}
+          />
+          
+        );
+      case 3:
+        return (
+            <BudgetSelection
+            selectedBudget={formData.budgetPlan}
+            onSelectBudget={(budgetPlan) => updateFormData('budgetPlan', budgetPlan)}
+            onPrev={handlePrevStep}
+            onNext={handleNextStep}
           />
         );
       case 4:
@@ -378,7 +388,11 @@ const Estimator = () => {
                 </li>
               ))}
             </ul>
-
+            {isCalculating && !quoteSummary && (
+              <div className="selected-summary" style={{ backgroundColor: '#eef4f9', borderColor: '#a9d5e8', color: '#1e5b7f' }}>
+                <strong>Calculating your estimate...</strong>
+              </div>
+            )}
             {quoteSummary && (
               <div className="selected-summary" style={{ textAlign: 'left' }}>
                 <p style={{ marginBottom: 8 }}><strong>Estimated Area:</strong> {quoteSummary.totalAreaSqFt} sq. ft</p>
@@ -435,9 +449,9 @@ const Estimator = () => {
           <div className="estimator-progress">
             <div className={`progress-step ${currentStep >= 1 ? 'active' : ''}`}>1. Room</div>
             <div className={`progress-line ${currentStep >= 2 ? 'active' : ''}`}></div>
-            <div className={`progress-step ${currentStep >= 2 ? 'active' : ''}`}>2. Budget</div>
+            <div className={`progress-step ${currentStep >= 2 ? 'active' : ''}`}>2. Dimensions</div>
             <div className={`progress-line ${currentStep >= 3 ? 'active' : ''}`}></div>
-            <div className={`progress-step ${currentStep >= 3 ? 'active' : ''}`}>3. Dimensions</div>
+            <div className={`progress-step ${currentStep >= 3 ? 'active' : ''}`}>3. Plan</div>
             <div className={`progress-line ${currentStep >= 4 ? 'active' : ''}`}></div>
             <div className={`progress-step ${currentStep >= 4 ? 'active' : ''}`}>4. Add Ons</div>
             <div className={`progress-line ${currentStep >= 5 ? 'active' : ''}`}></div>

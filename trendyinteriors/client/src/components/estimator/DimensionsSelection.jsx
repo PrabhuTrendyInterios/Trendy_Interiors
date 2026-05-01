@@ -410,11 +410,6 @@ const DimensionsSelection = ({
             )}
           </select>
         </div>
-
-        <div className="dimensions-plan-pill">
-          <span>Plan Tier</span>
-          <strong>{PLAN_LABELS[selectedBudget] || "Not selected"}</strong>
-        </div>
       </div>
 
       <div className="dimensions-room-navigation">
@@ -623,9 +618,8 @@ const DimensionsSelection = ({
           type="button"
           className="btn-primary"
           onClick={onNext}
-          disabled={isCalculating}
         >
-          {isCalculating ? "Calculating..." : "Next"}
+          Next
         </button>
       </div>
     </div>

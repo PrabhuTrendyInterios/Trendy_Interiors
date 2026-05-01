@@ -43,7 +43,7 @@ const budgetPlans = [
 
 const BudgetSelection = ({ selectedBudget, onSelectBudget, onPrev, onNext }) => {
   return (
-    <div className="budget-selection-container">
+    <div className={`budget-selection-container ${selectedBudget ? 'has-selection' : ''}`}>
       <div className="budget-selection-header">
         <h2>Choose Your Interior Plan</h2>
         <p>Pick one plan before continuing to your free consultation. Each option is tailored for a different level of service, from refresh to full luxury delivery.</p>

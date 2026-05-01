@@ -388,6 +388,72 @@
   color: var(--color-white);
 }
 
+/* Premium/Popular Card - Silver Styling */
+.budget-card.popular {
+  border-color: var(--color-silver-dark);
+  background-color: rgba(230, 230, 230, 0.95);
+}
+
+.budget-card.popular .plan-badge {
+  color: var(--color-silver-dark);
+  border-color: var(--color-silver);
+  background-color: rgba(192, 192, 192, 0.1);
+}
+
+.budget-card.popular .budget-card-icon {
+  background-color: rgba(192, 192, 192, 0.2);
+  color: var(--color-silver-dark);
+}
+
+.budget-card.popular .budget-plan-details li::before {
+  background-color: var(--color-silver);
+}
+
+.budget-card.popular .budget-card-cta {
+  background-color: rgba(192, 192, 192, 0.2);
+}
+
+.budget-card.popular .budget-card-cta.active {
+  background-color: var(--color-silver);
+  color: var(--color-charcoal-dark);
+}
+
+/* Premium Card Selected - Gold Styling */
+.budget-card.popular.selected {
+  border-color: var(--color-gold);
+  background-color: rgba(255, 250, 237, 0.95);
+}
+
+.budget-card.popular.selected .plan-badge {
+  color: var(--color-gold-dark);
+  border-color: var(--color-gold);
+  background-color: rgba(212, 175, 55, 0.15);
+}
+
+.budget-card.popular.selected .budget-card-icon {
+  background-color: rgba(212, 175, 55, 0.12);
+  color: var(--color-gold-dark);
+}
+
+.budget-card.popular.selected .budget-plan-details li::before {
+  background-color: var(--color-gold);
+}
+
+.budget-card.popular.selected .budget-card-cta {
+  background-color: rgba(212, 175, 55, 0.12);
+}
+
+.budget-card.popular.selected .budget-card-cta.active {
+  background-color: var(--color-gold);
+  color: var(--color-white);
+}
+
+/* Blur Effect for Unselected Cards */
+.budget-selection-container.has-selection .budget-card:not(.selected) {
+  filter: blur(4px);
+  opacity: 0.6;
+}
+
 .budget-summary {
   text-align: center;
   margin-bottom: var(--spacing-md);
