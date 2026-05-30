@@ -48,7 +48,7 @@ const LIFESTYLE_ADDONS = [
   }
 ];
 
-const ExtraAddons = ({ selectedAddons = [], onToggleAddon, onNext, onPrev }) => {
+const ExtraAddons = ({ selectedAddons = [], isStepCompleted, onToggleAddon, onNext, onPrev }) => {
   const renderAddonCard = (addon, isHorizontal = false) => (
     <div 
       key={addon.id} 
@@ -178,7 +178,7 @@ const ExtraAddons = ({ selectedAddons = [], onToggleAddon, onNext, onPrev }) => 
       }}>
         <button className="btn-secondary" onClick={onPrev}>Back</button>
         <button className="btn-primary" onClick={onNext}>
-          {selectedAddons.length > 0 ? 'Continue' : 'Skip & Continue'}
+          Next
         </button>
       </div>
     </div>

@@ -15,6 +15,7 @@
 
 .estimator-page-title {
   color: var(--color-gold);
+  margin-top: var(--spacing-lg);
   margin-bottom: var(--spacing-sm);
 }
 
@@ -55,12 +56,70 @@
   font-weight: 600;
   transition: var(--transition-normal);
   border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.95rem;
 }
 
-.progress-step.active {
+.progress-step:hover:not(:disabled) {
+  background-color: #e8e8e6;
+  color: var(--color-charcoal);
+}
+
+.progress-step.current {
   background-color: var(--color-charcoal);
   color: var(--color-gold);
+  border: 2px solid var(--color-gold);
+  box-shadow: 0 4px 12px rgba(43, 43, 43, 0.3), inset 0 0 0 1px var(--color-gold);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.progress-step.current:hover {
+  background-color: #1a1a1a;
+  box-shadow: 0 6px 16px rgba(43, 43, 43, 0.4), inset 0 0 0 1px var(--color-gold);
+  transform: translateY(-1px);
+}
+
+.progress-step.current:disabled {
+  opacity: 1;
+  cursor: pointer;
+  background-color: var(--color-charcoal);
+  color: var(--color-gold);
+  border: 2px solid var(--color-gold);
+}
+
+.progress-step.visited {
+  background-color: var(--color-gold);
+  color: var(--color-white);
   border-color: var(--color-gold);
+}
+
+.progress-step.visited:hover {
+  background-color: var(--color-gold-dark);
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+}
+
+.progress-step.visited:disabled {
+  opacity: 1;
+  cursor: pointer;
+  background-color: var(--color-gold);
+  color: var(--color-white);
+  border-color: var(--color-gold);
+}
+
+.progress-step:disabled,
+.progress-step.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--color-gray-lighter);
+  color: var(--color-gray);
+  border-color: transparent;
+}
+
+.progress-step:disabled:hover,
+.progress-step.disabled:hover {
+  background-color: var(--color-gray-lighter);
+  color: var(--color-gray);
 }
 
 .progress-line {
@@ -97,20 +156,26 @@
 /* Actions */
 .estimator-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: var(--spacing-sm);
   margin-top: var(--spacing-md);
   border-top: 1px solid var(--color-gray-lighter);
   padding-top: var(--spacing-md);
 }
 
+.btn-secondary,
 .btn-primary {
-  background-color: var(--color-gold);
-  color: var(--color-white);
   padding: 12px 32px;
   border-radius: var(--radius-sm);
   font-weight: 700;
   font-size: 1rem;
+  white-space: nowrap;
+  width: auto;
+}
+
+.btn-primary {
+  background-color: var(--color-gold);
+  color: var(--color-white);
   box-shadow: var(--shadow-sm);
 }
 
@@ -124,10 +189,6 @@
   background-color: transparent;
   color: var(--color-charcoal);
   border: 1px solid var(--color-charcoal);
-  padding: 12px 32px;
-  border-radius: var(--radius-sm);
-  font-weight: 700;
-  font-size: 1rem;
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -139,6 +200,23 @@
 .btn-secondary:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* Button Hidden State */
+.btn-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  cursor: default !important;
+  animation: none !important;
+}
+
+/* Button Animations */
+.estimator-actions > button:not(.btn-hidden):nth-child(1) {
+  animation: slideInFromLeft 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.estimator-actions > button:not(.btn-hidden):nth-child(2) {
+  animation: slideInFromRightSlow 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* Room Selection */
@@ -336,13 +414,13 @@
 }
 
 .budget-plan-price {
-  font-size: 2.5rem;
+  font-size: 1.8rem;
   font-weight: 800;
   color: var(--color-charcoal-dark);
 }
 
 .price-unit {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   margin-left: 6px;
   color: var(--color-gray);
 }
@@ -1040,8 +1118,75 @@
   padding: var(--spacing-lg) 0;
 }
 
+/* Step Animation Styles */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutToLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRightSlow {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.estimator-step-container {
+  animation: slideInFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
 /* Responsive */
+/* Desktop Large - 1200px and up */
+@media (min-width: 1200px) {
+  .estimator-wrapper {
+    padding: var(--spacing-xl);
+  }
+
+  .progress-step {
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+}
+
+/* Tablet Large - 1100px to 1199px */
 @media (max-width: 1100px) {
+  .estimator-wrapper {
+    padding: var(--spacing-lg);
+    max-width: 1200px;
+  }
+
   .premium-design-focus,
   .premium-room-focus {
     grid-template-columns: 1fr;
@@ -1061,13 +1206,24 @@
   .dimensions-room-navigation {
     grid-template-columns: 1fr;
   }
+
+  .progress-step {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+  }
 }
 
+/* Tablet - 900px to 1099px */
 @media (max-width: 900px) {
+  .estimator-wrapper {
+    padding: var(--spacing-md);
+  }
+
   .room-grid,
   .budget-grid,
   .premium-layout-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
   }
 
   .dimension-field-grid,
@@ -1088,43 +1244,306 @@
   .room-card-office {
     grid-column: span 1;
   }
-}
-
-@media (max-width: 768px) {
-  .estimator-wrapper {
-    padding: var(--spacing-md);
-  }
 
   .progress-step {
-    padding: 8px 12px;
+    padding: 9px 16px;
     font-size: 0.85rem;
   }
 
   .progress-line {
-    max-width: 40px;
+    max-width: 50px;
+    margin: 0 5px;
+  }
+
+  .estimator-progress {
+    margin-bottom: var(--spacing-md);
+  }
+}
+
+/* Tablet Small - 768px to 899px */
+@media (max-width: 768px) {
+  .estimator-page-header {
+    padding: var(--spacing-lg) 0 var(--spacing-md);
+  }
+
+  .estimator-wrapper {
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+  }
+
+  .progress-step {
+    padding: 8px 12px;
+    font-size: 0.75rem;
+  }
+
+  .progress-line {
+    max-width: 30px;
+    margin: 0 4px;
   }
 
   .estimator-actions {
     flex-direction: column;
+    gap: var(--spacing-md);
   }
 
   .btn-primary,
   .btn-secondary {
     width: 100%;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+  }
+
+  .room-grid,
+  .budget-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .budget-plan-price {
+    font-size: 1.5rem;
+  }
+
+  .price-unit {
+    font-size: 0.65rem;
+  }
+
+  .room-counter {
+    gap: 8px;
+  }
+
+  .counter-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+
+  .estimator-progress {
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
   }
 }
 
+/* Mobile Large - 600px to 767px */
 @media (max-width: 600px) {
+  .estimator-page-title {
+    font-size: 1.8rem;
+    margin-top: var(--spacing-md);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .estimator-page-subtitle {
+    font-size: 0.9rem;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .estimator-wrapper {
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+  }
+
   .room-grid,
   .budget-grid,
   .premium-layout-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
   }
 
   .premium-layout-card {
-    min-height: 360px;
+    min-height: 300px;
+  }
+
+  .progress-step {
+    padding: 7px 10px;
+    font-size: 0.65rem;
+    border-radius: 20px;
+  }
+
+  .progress-line {
+    max-width: 20px;
+    height: 1.5px;
+    margin: 0 3px;
+  }
+
+  .estimator-progress {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .budget-plan-price {
+    font-size: 1.3rem;
+  }
+
+  .price-unit {
+    font-size: 0.6rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    padding: 11px 14px;
+    font-size: 0.9rem;
+  }
+
+  .room-counter {
+    gap: 6px;
+  }
+
+  .counter-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.6rem;
+  }
+
+  .selected-summary {
+    font-size: 0.85rem;
+    padding: var(--spacing-sm);
+  }
+
+  .room-selection-header h2,
+  .budget-selection-header h2,
+  .dimensions-step-header h2 {
+    font-size: 1.6rem;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .room-selection-header p,
+  .budget-selection-header p,
+  .dimensions-step-header p {
+    font-size: 0.85rem;
   }
 }
+
+/* Mobile Extra Small - below 480px */
+@media (max-width: 480px) {
+  .estimator-page {
+    padding: var(--spacing-md) 0;
+  }
+
+  .estimator-page-title {
+    font-size: 1.5rem;
+    margin-top: var(--spacing-sm);
+  }
+
+  .estimator-wrapper {
+    padding: var(--spacing-sm);
+  }
+
+  .progress-step {
+    padding: 6px 8px;
+    font-size: 0.55rem;
+  }
+
+  .progress-line {
+    max-width: 15px;
+    margin: 0 2px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .budget-plan-price {
+    font-size: 1.1rem;
+  }
+
+  .room-selection-header h2,
+  .budget-selection-header h2,
+  .dimensions-step-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .room-selection-header p,
+  .budget-selection-header p,
+  .dimensions-step-header p {
+    font-size: 0.8rem;
+  }
+
+  .estimator-page-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .counter-btn {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Review Container - Responsive */
+.review-container {
+  display: grid;
+  grid-template-columns: 38.2% 61.8%;
+  gap: 3rem;
+  align-items: start;
+  width: 100%;
+}
+
+@media (max-width: 1100px) {
+  .review-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .review-container > div:first-child img {
+    height: 400px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .review-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .review-container > div:first-child {
+    display: none !important;
+  }
+
+  .review-container h2 {
+    font-size: 1.5rem !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .review-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .review-container > div:first-child {
+    display: none !important;
+  }
+
+  .review-container h2 {
+    font-size: 1.3rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-container {
+    gap: 0.75rem;
+  }
+
+  .review-container > div:first-child {
+    display: none !important;
+  }
+
+  .review-container h2 {
+    font-size: 1.1rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .review-container h4 {
+    font-size: 0.9rem !important;
+  }
+}
+
 /* Independent scroll for right side division */
 .premium-design-focus,
 .premium-room-focus {

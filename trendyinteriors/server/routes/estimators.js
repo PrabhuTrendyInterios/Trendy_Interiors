@@ -1,16 +1,18 @@
 const express = require("express");
 const Estimator = require("../models/Estimator");
 const { protect, authorize } = require("../middleware/authMiddleware");
+const { generateQuotationPDF } = require("../utils/quotationPDF");
 
 const router = express.Router();
 
 const VALID_PLANS = ["starter", "budgetFriendly", "premium", "signature"];
 
+// Base rates per sq. ft in INR (realistic interior design pricing)
 const PLAN_BASE_RATE = {
-  starter: 700,
-  budgetFriendly: 1200,
-  premium: 2000,
-  signature: 3500,
+  starter: 250,      // Basic designs, budget-conscious
+  budgetFriendly: 500,   // Standard quality designs
+  premium: 1000,     // Premium designs with more features
+  signature: 1500,   // Luxury/signature tier designs
 };
 
 const ROOM_MULTIPLIER = {
@@ -21,6 +23,39 @@ const ROOM_MULTIPLIER = {
   "Home Office": 1.1,
   "Dining Room": 1.05,
   General: 1,
+};
+
+// Layout costs in INR
+const LAYOUT_COSTS = {
+  "L Shape": 15000,
+  "U Shape": 20000,
+  "Straight": 12000,
+  "Island": 25000,
+  "Sliding Wardrobe": 18000,
+  "Hinged Wardrobe": 15000,
+};
+
+// Add-on costs in INR
+const ADDON_COSTS = {
+  "Chimney": 25000,
+  "Tall Unit": 22000,
+  "Bed Storage": 20000,
+  "Dressing Unit": 25000,
+  "Study Unit": 18000,
+  "Loft": 30000,
+  "TV Unit": 28000,
+  "Sofa Setup": 35000,
+  "False Ceiling": 40000,
+};
+
+// Extra/Global add-on costs (applied to overall project)
+const EXTRA_ADDONS_COSTS = {
+  "lighting": 15000,           // Lighting Package
+  "wallpaper": 12000,          // Wallpaper / Panels
+  "pooja": 18000,              // Pooja Unit
+  "ceiling": 25000,            // False Ceiling (additional)
+  "flooring": 35000,           // Luxury Flooring
+  "curtains": 10000,           // Curtains & Blinds
 };
 
 const toPositiveNumber = (value) => {
@@ -175,18 +210,22 @@ const validateEstimatorPayload = (payload, options = {}) => {
 const getDesignCost = (selectedDesignIdea = {}, room) => {
   let cost = 0;
 
+  // Add layout cost
   if (room.supportsLayout && selectedDesignIdea.layout) {
-    cost += 2500;
+    cost += LAYOUT_COSTS[selectedDesignIdea.layout] || 15000;
   }
 
+  // Add individual add-on costs
   if (room.needsAddons && Array.isArray(selectedDesignIdea.addons)) {
-    cost += selectedDesignIdea.addons.length * 1500;
+    selectedDesignIdea.addons.forEach((addon) => {
+      cost += ADDON_COSTS[addon] || 15000;
+    });
   }
 
   return cost;
 };
 
-const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan) => {
+const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan, extraAddons = []) => {
   const baseRate = PLAN_BASE_RATE[budgetPlan] || 0;
 
   const lineItems = roomInstances
@@ -199,7 +238,23 @@ const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan) => {
       const selectedDesignIdea = dimensions.selectedDesignIdea || {};
       const roomMultiplier = ROOM_MULTIPLIER[room.roomType] || 1;
       const ratePerSqFt = Number((baseRate * roomMultiplier).toFixed(2));
-      const designCost = getDesignCost(selectedDesignIdea, room);
+      
+      // Calculate base cost
+      const baseCost = Number((areaSqFt * ratePerSqFt).toFixed(2));
+      
+      // Calculate layout cost
+      let layoutCost = 0;
+      if (room.supportsLayout && selectedDesignIdea.layout) {
+        layoutCost = LAYOUT_COSTS[selectedDesignIdea.layout] || 15000;
+      }
+      
+      // Calculate addons cost
+      let addonsCost = 0;
+      if (room.needsAddons && Array.isArray(selectedDesignIdea.addons)) {
+        selectedDesignIdea.addons.forEach((addon) => {
+          addonsCost += ADDON_COSTS[addon] || 15000;
+        });
+      }
 
       return {
         roomId: room.id,
@@ -210,14 +265,46 @@ const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan) => {
         roomMultiplier,
         layout: selectedDesignIdea.layout || "",
         addons: selectedDesignIdea.addons || [],
-        estimatedCost: Number((areaSqFt * ratePerSqFt + designCost).toFixed(2)),
+        baseCost,
+        layoutCost,
+        addonsCost,
+        estimatedCost: Number((baseCost + layoutCost + addonsCost).toFixed(2)),
       };
     })
     .filter(Boolean);
 
+  // Calculate extra add-ons cost
+  let extraAddonsCost = 0;
+  if (Array.isArray(extraAddons) && extraAddons.length > 0) {
+    extraAddons.forEach((addonId) => {
+      extraAddonsCost += EXTRA_ADDONS_COSTS[addonId] || 0;
+    });
+  }
+
+  // Add extra add-ons as a line item if any were selected
+  if (extraAddonsCost > 0 && extraAddons.length > 0) {
+    lineItems.push({
+      roomId: "extra-addons",
+      roomName: "Extra Add-ons",
+      label: "Premium Add-ons",
+      areaSqFt: 0,
+      ratePerSqFt: 0,
+      roomMultiplier: 1,
+      layout: "",
+      addons: extraAddons,
+      baseCost: 0,
+      layoutCost: 0,
+      addonsCost: extraAddonsCost,
+      estimatedCost: extraAddonsCost,
+    });
+  }
+
+  const totalAreaSqFt = Number(lineItems.filter(item => item.areaSqFt > 0).reduce((sum, item) => sum + item.areaSqFt, 0).toFixed(2));
+  const estimatedAmount = Number((lineItems.reduce((sum, item) => sum + item.estimatedCost, 0) + extraAddonsCost).toFixed(2));
+
   return {
-    totalAreaSqFt: Number(lineItems.reduce((sum, item) => sum + item.areaSqFt, 0).toFixed(2)),
-    estimatedAmount: Number(lineItems.reduce((sum, item) => sum + item.estimatedCost, 0).toFixed(2)),
+    totalAreaSqFt,
+    estimatedAmount,
     currency: "INR",
     lineItems,
   };
@@ -234,7 +321,8 @@ router.post("/calculate", async (req, res) => {
     const quoteSummary = calculateQuote(
       validation.roomInstances,
       validation.normalizedDimensions,
-      validation.budgetPlan
+      validation.budgetPlan,
+      validation.extraAddons
     );
 
     return res.status(200).json({
@@ -258,7 +346,8 @@ router.post("/", async (req, res) => {
     const quoteSummary = calculateQuote(
       validation.roomInstances,
       validation.normalizedDimensions,
-      validation.budgetPlan
+      validation.budgetPlan,
+      validation.extraAddons
     );
 
     const estimator = await Estimator.create({
@@ -309,6 +398,32 @@ router.get("/:id", protect, authorize("admin"), async (req, res) => {
     return res.status(200).json({ success: true, data: estimator });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Generate and download quotation as PDF
+router.get("/:id/pdf/download", async (req, res) => {
+  try {
+    const estimator = await Estimator.findById(req.params.id);
+
+    if (!estimator) {
+      return res.status(404).json({ success: false, message: "Estimator not found" });
+    }
+
+    // Pass error handler callback to PDF generator
+    generateQuotationPDF(estimator, res, (err) => {
+      if (err) {
+        console.error('PDF generation failed:', err);
+        if (!res.headersSent) {
+          res.status(500).json({ success: false, message: 'Error generating PDF' });
+        }
+      }
+    });
+  } catch (error) {
+    if (!res.headersSent) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+    console.error('PDF route error:', error);
   }
 });
 

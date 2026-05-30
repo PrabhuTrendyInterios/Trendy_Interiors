@@ -5,8 +5,8 @@ const budgetPlans = [
   {
     id: 'starter',
     title: 'Starter',
-    price: '$499',
-    unit: 'Room',
+    price: '₹250',
+    unit: '/sq. ft',
     subtitle: 'Essential styling for refreshing a single room with minimal changes.',
     details: ['Digital Mood Board', 'Shopping List', 'Color Palette'],
     icon: <FaLeaf />,
@@ -14,8 +14,8 @@ const budgetPlans = [
   {
     id: 'budgetFriendly',
     title: 'Budget Friendly',
-    price: '$1,299',
-    unit: 'project',
+    price: '₹500',
+    unit: '/sq. ft',
     subtitle: 'Perfect for homeowners seeking professional guidance on a sensible budget.',
     details: ['Everything in Low Cost', '2D Floor Layouts', 'Material Swatches'],
     icon: <FaDollarSign />,
@@ -23,8 +23,8 @@ const budgetPlans = [
   {
     id: 'premium',
     title: 'Premium',
-    price: '$2,850',
-    unit: 'project',
+    price: '₹1,000',
+    unit: '/sq. ft',
     subtitle: 'Complete design transformation with 3D renderings and contractor management.',
     details: ['Photorealistic 3D Renders', 'Contractor Liaison', 'Custom Furniture Sourcing', 'Priority Support'],
     icon: <FaStar />,
@@ -33,15 +33,15 @@ const budgetPlans = [
   {
     id: 'signature',
     title: 'Luxury',
-    price: '$7,500',
-    unit: '/project',
+    price: '₹1,500',
+    unit: '/sq. ft',
     subtitle: 'The ultimate white-glove experience for high-end residential estates.',
     details: ['On-site White Glove Service', 'Bespoke Artisanal Pieces', 'Unlimited Revisions'],
     icon: <FaGem />,
   },
 ];
 
-const BudgetSelection = ({ selectedBudget, onSelectBudget, onPrev, onNext }) => {
+const BudgetSelection = ({ selectedBudget, isStepCompleted, onSelectBudget, onPrev, onNext }) => {
   return (
     <div className={`budget-selection-container ${selectedBudget ? 'has-selection' : ''}`}>
       <div className="budget-selection-header">
@@ -89,8 +89,8 @@ const BudgetSelection = ({ selectedBudget, onSelectBudget, onPrev, onNext }) => 
         <button className="btn-secondary" onClick={onPrev}>
           Back
         </button>
-        <button className="btn-primary" onClick={onNext} disabled={!selectedBudget}>
-          Continue
+        <button className="btn-primary" onClick={onNext} disabled={!selectedBudget && !isStepCompleted}>
+          Next
         </button>
       </div>
     </div>

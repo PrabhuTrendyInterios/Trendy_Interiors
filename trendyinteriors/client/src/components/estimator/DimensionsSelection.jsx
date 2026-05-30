@@ -7,6 +7,28 @@ const PLAN_LABELS = {
   signature: "Luxury",
 };
 
+// Layout and Add-on Pricing in INR
+const LAYOUT_COSTS = {
+  "L Shape": 15000,
+  "U Shape": 20000,
+  "Straight": 12000,
+  "Island": 25000,
+  "Sliding Wardrobe": 18000,
+  "Hinged Wardrobe": 15000,
+};
+
+const ADDON_COSTS = {
+  "Chimney": 25000,
+  "Tall Unit": 22000,
+  "Bed Storage": 20000,
+  "Dressing Unit": 25000,
+  "Study Unit": 18000,
+  "Loft": 30000,
+  "TV Unit": 28000,
+  "Sofa Setup": 35000,
+  "False Ceiling": 40000,
+};
+
 const ROOM_IMAGES = {
   "Living Room":
     "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=900&q=80",
@@ -203,6 +225,7 @@ const DimensionsSelection = ({
   selectedRooms,
   selectedBudget,
   selectedRoom,
+  isStepCompleted,
   onSelectRoom,
   roomDimensions,
   onUpdateRoomDimensions,
@@ -276,8 +299,10 @@ const DimensionsSelection = ({
 
   const roomIsComplete = (roomId) => {
     const dimensions = roomDimensions?.[roomId] || {};
+    // eslint-disable-next-line no-unused-vars
     const design = dimensions.selectedDesignIdea || {};
     const room = roomEntries.find((item) => item.id === roomId);
+    // eslint-disable-next-line no-unused-vars
     const options = getRoomOptions(room?.roomName);
 
     const hasMeasurements =
@@ -562,6 +587,9 @@ const DimensionsSelection = ({
                   >
                     <div className="premium-image-option-overlay"></div>
                     <span>{layout.label}</span>
+                    <div style={{ fontSize: '0.75rem', marginTop: '4px', fontWeight: 'bold', color: '#d4af37' }}>
+                      ₹{(LAYOUT_COSTS[layout.label] || 15000).toLocaleString('en-IN')}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -587,6 +615,9 @@ const DimensionsSelection = ({
                   >
                     <div className="premium-image-option-overlay"></div>
                     <span>{addon.label}</span>
+                    <div style={{ fontSize: '0.75rem', marginTop: '4px', fontWeight: 'bold', color: '#d4af37' }}>
+                      ₹{(ADDON_COSTS[addon.label] || 15000).toLocaleString('en-IN')}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -613,11 +644,11 @@ const DimensionsSelection = ({
         <button className="btn-secondary" onClick={onPrev}>
           Back
         </button>
-
         <button
           type="button"
           className="btn-primary"
           onClick={onNext}
+          disabled={(!selectedRoomDimensions.length || !selectedRoomDimensions.width || !selectedRoomDimensions.height) && !isStepCompleted}
         >
           Next
         </button>

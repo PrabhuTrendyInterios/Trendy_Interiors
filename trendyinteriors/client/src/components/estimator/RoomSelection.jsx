@@ -10,8 +10,8 @@ const rooms = [
   { id: 'dining', name: 'Dining Room', icon: <FaCoffee />, image: 'https://images.pexels.com/photos/2724749/pexels-photo-2724749.jpeg?auto=compress&cs=tinysrgb&w=800' },
 ];
 
-const RoomSelection = ({ selectedRooms, onUpdateRoomCount, onNext }) => {
-  const hasSelection = Object.keys(selectedRooms).length > 0;
+const RoomSelection = ({ selectedRooms, isStepCompleted, onUpdateRoomCount, onNext }) => {
+  const hasSelection = Object.keys(selectedRooms).length > 0 || isStepCompleted;
 
   return (
     <div className="room-selection-container">
@@ -66,12 +66,15 @@ const RoomSelection = ({ selectedRooms, onUpdateRoomCount, onNext }) => {
       )}
 
       <div className="estimator-actions">
+        <button className="btn-secondary btn-hidden" onClick={() => {}}>
+          Back
+        </button>
         <button
           className="btn-primary"
           onClick={onNext}
           disabled={!hasSelection}
         >
-          Next Step &rarr;
+          Next
         </button>
       </div>
     </div>

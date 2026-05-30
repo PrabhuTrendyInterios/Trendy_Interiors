@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const LeadCapture = ({ leadData, onUpdateLead, onNext, onPrev }) => {
+const LeadCapture = ({ leadData, isStepCompleted, onUpdateLead, onNext, onPrev }) => {
   const [errors, setErrors] = useState({});
 
   const validate = () => {
@@ -197,16 +197,9 @@ const LeadCapture = ({ leadData, onUpdateLead, onNext, onPrev }) => {
         </div>
 
         <div className="estimator-actions" style={{ marginTop: '60px', display: 'flex', gap: '20px' }}>
-          <button className="btn-secondary" onClick={onPrev} style={{ flex: 1, padding: '16px' }}>Back</button>
-          <button className="btn-primary" onClick={handleNext} style={{ 
-            flex: 1.5, 
-            background: 'var(--color-charcoal-dark)', 
-            color: 'var(--color-white)', 
-            padding: '16px',
-            fontSize: '1.1rem',
-            fontWeight: '600'
-          }}>
-            Generate My Quote
+          <button className="btn-secondary" onClick={onPrev}>Back</button>
+          <button className="btn-primary" onClick={handleNext}>
+            Next
           </button>
         </div>
       </div>

@@ -10,6 +10,25 @@ const ESTIMATOR_DRAFT_KEY = 'trendyInteriorsEstimatorDraft';
 const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'https://trendyinteriors-1.onrender.com');
 const ESTIMATOR_API_URL = `${API_BASE_URL}/api/estimators`;
 
+// Extra Add-ons Costs mapping
+const EXTRA_ADDONS_COSTS = {
+  "lighting": 15000,           // Lighting Package
+  "wallpaper": 12000,          // Wallpaper / Panels
+  "pooja": 18000,              // Pooja Unit
+  "ceiling": 25000,            // False Ceiling
+  "flooring": 35000,           // Luxury Flooring
+  "curtains": 10000,           // Curtains & Blinds
+};
+
+const EXTRA_ADDONS_LABELS = {
+  "lighting": "Lighting Package",
+  "wallpaper": "Wallpaper / Panels",
+  "pooja": "Pooja Unit",
+  "ceiling": "False Ceiling",
+  "flooring": "Luxury Flooring",
+  "curtains": "Curtains & Blinds",
+};
+
 const buildRoomInstances = (rooms) =>
   Object.entries(rooms || {}).flatMap(([roomName, count]) =>
     Array.from({ length: Number(count) || 0 }, (_, index) => ({
@@ -40,6 +59,7 @@ const migrateRoomDimensions = (roomDimensionsByRoom) => {
 
 const Estimator = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState(new Set());
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -55,7 +75,6 @@ const Estimator = () => {
           budgetPlan: parsedDraft.budgetPlan || '',
           selectedRoomForDimensions: parsedDraft.selectedRoomForDimensions || '',
           roomDimensionsByRoom: migrateRoomDimensions(parsedDraft.roomDimensionsByRoom),
-          roomDimensionsByRoom: parsedDraft.roomDimensionsByRoom || {},
           extraAddons: parsedDraft.extraAddons || [],
           leadData: parsedDraft.leadData || { name: '', email: '', phone: '', location: '', message: '' },
         };
@@ -130,11 +149,52 @@ const Estimator = () => {
   }, [currentStep, formData.budgetPlan]);
 
   const handleNextStep = () => {
+    // Mark current step as completed
+    setCompletedSteps(prev => new Set([...prev, currentStep]));
     setCurrentStep((prev) => prev + 1);
   };
 
   const handlePrevStep = () => {
     setCurrentStep((prev) => prev - 1);
+  };
+
+  // Check if current step is complete
+  const isCurrentStepComplete = () => {
+    switch (currentStep) {
+      case 1: // Room Selection
+        return Object.keys(formData.rooms).length > 0;
+      case 2: // Dimensions
+        return formData.selectedRoomForDimensions && Object.keys(formData.roomDimensionsByRoom).length > 0;
+      case 3: // Budget Plan
+        return formData.budgetPlan !== '';
+      case 4: // Extra Add-ons
+        return true; // This is optional
+      case 5: // Lead Capture
+        return formData.leadData.name && formData.leadData.email && formData.leadData.phone;
+      case 6: // Review
+        return true; // Just display mode
+      default:
+        return false;
+    }
+  };
+
+  // Check if a step can be navigated to
+  const canNavigateToStep = (step) => {
+    if (step === currentStep) return false; // Can't click current step
+    if (step < currentStep) return true; // Can always go back
+    if (step === currentStep + 1) return isCurrentStepComplete(); // Can go to next only if current is complete
+    return false; // Can't skip ahead
+  };
+
+  // Handle progress button click
+  const handleProgressClick = (step) => {
+    if (step < currentStep || (step === currentStep + 1 && isCurrentStepComplete())) {
+      // Mark current step as completed if going forward
+      if (step > currentStep && isCurrentStepComplete()) {
+        setCompletedSteps(prev => new Set([...prev, currentStep]));
+      }
+      setCurrentStep(step);
+    }
   };
 
   const updateFormData = (key, value) => {
@@ -299,6 +359,7 @@ const Estimator = () => {
         return (
           <RoomSelection
             selectedRooms={formData.rooms}
+            isStepCompleted={completedSteps.has(1)}
             onUpdateRoomCount={(room, count) => {
               const newRooms = { ...formData.rooms };
               if (count <= 0) {
@@ -317,6 +378,7 @@ const Estimator = () => {
             selectedRooms={formData.rooms}
             selectedBudget={formData.budgetPlan}
             selectedRoom={formData.selectedRoomForDimensions}
+            isStepCompleted={completedSteps.has(2)}
             onSelectRoom={(roomId) => {
               updateFormData('selectedRoomForDimensions', roomId);
             }}
@@ -332,6 +394,7 @@ const Estimator = () => {
         return (
             <BudgetSelection
             selectedBudget={formData.budgetPlan}
+            isStepCompleted={completedSteps.has(3)}
             onSelectBudget={(budgetPlan) => updateFormData('budgetPlan', budgetPlan)}
             onPrev={handlePrevStep}
             onNext={handleNextStep}
@@ -341,6 +404,7 @@ const Estimator = () => {
         return (
           <ExtraAddons
             selectedAddons={formData.extraAddons}
+            isStepCompleted={completedSteps.has(4)}
             onToggleAddon={toggleAddon}
             onPrev={handlePrevStep}
             onNext={handleNextStep}
@@ -350,6 +414,7 @@ const Estimator = () => {
         return (
           <LeadCapture
             leadData={formData.leadData}
+            isStepCompleted={completedSteps.has(5)}
             onUpdateLead={updateLeadData}
             onPrev={handlePrevStep}
             onNext={handleNextStep}
@@ -357,75 +422,178 @@ const Estimator = () => {
         );
       case 6:
         return (
-          <div className="estimator-placeholder">
-            <h2>Review &amp; Submit</h2>
-            <p>You have selected:</p>
-            <ul style={{ listStyleType: 'none', padding: 0, margin: '20px 0' }}>
-              {Object.entries(formData.rooms).map(([room, count]) => (
-                <li key={room} style={{ fontSize: '1.2rem', marginBottom: '10px' }}>
-                  <strong>{count}</strong> x {room}
-                </li>
-              ))}
-            </ul>
-            <p>Plan: {formData.budgetPlan}</p>
-            {formData.extraAddons && formData.extraAddons.length > 0 && (
-              <>
-                <p>Extra Add-ons:</p>
-                <ul style={{ listStyleType: 'none', padding: 0, margin: '20px 0' }}>
-                  {formData.extraAddons.map((addon) => (
-                    <li key={addon} style={{ fontSize: '1.2rem', marginBottom: '10px' }}>
-                      <strong>{addon.charAt(0).toUpperCase() + addon.slice(1)}</strong>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-            <p>Rooms dimensions:</p>
-            <ul style={{ listStyleType: 'none', padding: 0, margin: '20px 0' }}>
-              {Object.entries(formData.roomDimensionsByRoom).map(([roomId, dimensions]) => (
-                <li key={roomId} style={{ fontSize: '1.2rem', marginBottom: '10px' }}>
-                  <strong>{dimensions.length} x {dimensions.width} x {dimensions.height}</strong> - {roomId}
-                </li>
-              ))}
-            </ul>
-            {isCalculating && !quoteSummary && (
-              <div className="selected-summary" style={{ backgroundColor: '#eef4f9', borderColor: '#a9d5e8', color: '#1e5b7f' }}>
-                <strong>Calculating your estimate...</strong>
+          <div className="review-container">
+            {/* Left Side - Image */}
+            <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-lg)' }}>
+              <img 
+                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=500&q=80"
+                alt="Interior Design"
+                style={{ width: '100%', height: '500px', objectFit: 'cover', display: 'block' }}
+              />
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, transparent 60%)' }}></div>
+            </div>
+
+            {/* Right Side - Details & Quote */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div>
+                <h2 style={{ color: 'var(--color-charcoal-dark)', marginBottom: '1rem', fontSize: '2rem' }}>Your Design Quote</h2>
+                <p style={{ color: 'var(--color-gray)', marginBottom: '1.5rem', fontSize: '1rem' }}>Review your selections and get your personalized estimate</p>
               </div>
-            )}
-            {quoteSummary && (
-              <div className="selected-summary" style={{ textAlign: 'left' }}>
-                <p style={{ marginBottom: 8 }}><strong>Estimated Area:</strong> {quoteSummary.totalAreaSqFt} sq. ft</p>
-                <p style={{ marginBottom: 8 }}><strong>Estimated Total:</strong> {quoteSummary.currency} {quoteSummary.estimatedAmount}</p>
-                {Array.isArray(quoteSummary.lineItems) && quoteSummary.lineItems.length > 0 && (
-                  <ul style={{ margin: 0, paddingLeft: 18 }}>
-                    {quoteSummary.lineItems.map((item) => (
-                      <li key={item.roomId} style={{ marginBottom: 6 }}>
-                        {item.label}: {item.areaSqFt} sq. ft x {quoteSummary.currency} {item.ratePerSqFt} = {quoteSummary.currency} {item.estimatedCost}
-                      </li>
-                    ))}
-                  </ul>
+
+              {/* Summary Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ padding: '1rem', backgroundColor: '#fffdf3', borderRadius: '8px', borderLeft: '4px solid var(--color-gold)' }}>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Total Area</p>
+                  <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-charcoal-dark)' }}>
+                    {quoteSummary ? quoteSummary.totalAreaSqFt.toLocaleString('en-IN') : '0'} sq. ft
+                  </p>
+                </div>
+                <div style={{ padding: '1rem', backgroundColor: '#fffdf3', borderRadius: '8px', borderLeft: '4px solid var(--color-gold)' }}>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Plan Tier</p>
+                  <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-charcoal-dark)' }}>
+                    {formData.budgetPlan.charAt(0).toUpperCase() + formData.budgetPlan.slice(1)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Selected Rooms */}
+              <div>
+                <h4 style={{ color: 'var(--color-charcoal-dark)', marginBottom: '0.75rem', fontSize: '0.95rem', fontWeight: '600' }}>Selected Rooms</h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {Object.entries(formData.rooms).map(([room, count]) => (
+                    <div key={room} style={{ padding: '0.5rem 1rem', backgroundColor: 'rgba(212, 175, 55, 0.1)', borderRadius: '20px', fontSize: '0.9rem', color: 'var(--color-charcoal-dark)', border: '1px solid var(--color-gold)' }}>
+                      <strong>{count}x</strong> {room}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Main Quote Box */}
+              {isCalculating && !quoteSummary && (
+                <div style={{ padding: '2rem', backgroundColor: '#eef4f9', borderRadius: '12px', textAlign: 'center', color: '#1e5b7f', border: '1px solid #a9d5e8' }}>
+                  <p style={{ margin: 0, fontWeight: '600' }}>Calculating your estimate...</p>
+                </div>
+              )}
+
+              {quoteSummary && (
+                <>
+                  <div style={{ padding: '2rem', backgroundColor: '#fffdf3', borderRadius: '12px', border: '2px solid var(--color-gold)' }}>
+                    <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '600' }}>Estimated Total Cost</p>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                      <span style={{ fontSize: '1.5rem', color: 'var(--color-gold-dark)' }}>₹</span>
+                      <p style={{ margin: 0, fontSize: '3rem', fontWeight: '800', color: 'var(--color-charcoal-dark)' }}>
+                        {quoteSummary.estimatedAmount.toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                  
+                  {/* Detailed Breakdown */}
+                  {Array.isArray(quoteSummary.lineItems) && quoteSummary.lineItems.length > 0 && (
+                    <div style={{ borderTop: '1px solid rgba(212, 175, 55, 0.2)', paddingTop: '1.5rem' }}>
+                      <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', fontWeight: '600', color: 'var(--color-charcoal-dark)' }}>Cost Breakdown</p>
+                      {quoteSummary.lineItems.map((item) => (
+                        <div key={item.roomId} style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(212, 175, 55, 0.15)' }}>
+                          {item.roomId === 'extra-addons' ? (
+                            // Extra Add-ons Display - Show each with individual cost
+                            <>
+                              <p style={{ margin: '0 0 0.75rem 0', fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.95rem' }}>Premium Add-ons</p>
+                              {Array.isArray(item.addons) && item.addons.length > 0 && (
+                                <div style={{ marginTop: '0.25rem' }}>
+                                  {item.addons.map((addon, idx) => (
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', paddingLeft: '1rem' }}>
+                                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-gold-dark)' }}>
+                                        • {EXTRA_ADDONS_LABELS[addon] || addon}
+                                      </p>
+                                      <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.85rem' }}>
+                                        ₹{(EXTRA_ADDONS_COSTS[addon] || 0).toLocaleString('en-IN')}
+                                      </p>
+                                    </div>
+                                  ))}
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                                    <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.9rem' }}>Total Add-ons</p>
+                                    <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '0.9rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            // Room Items Display
+                            <>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.95rem' }}>{item.label}</p>
+                                <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '1rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
+                              </div>
+                              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-gray)' }}>
+                                {item.areaSqFt} sq. ft × ₹{item.ratePerSqFt}/sq. ft = ₹{(item.areaSqFt * item.ratePerSqFt).toLocaleString('en-IN')}
+                              </p>
+                              {item.layoutCost > 0 && (
+                                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
+                                  {item.layout} Layout: +₹{item.layoutCost.toLocaleString('en-IN')}
+                                </p>
+                              )}
+                              {item.addonsCost > 0 && (
+                                <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
+                                  Room Add-ons: +₹{item.addonsCost.toLocaleString('en-IN')}
+                                </p>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                </>
+              )}
+
+              {apiError && (
+                <div style={{ padding: '1.5rem', backgroundColor: '#fff0f0', borderRadius: '12px', border: '1px solid #f5a5a5', color: '#8b1f1f' }}>
+                  <p style={{ margin: 0, fontWeight: '600' }}>⚠ Error: {apiError}</p>
+                </div>
+              )}
+
+              {submissionResult && (
+                <div style={{ padding: '1.5rem', backgroundColor: '#eefaf0', borderRadius: '12px', border: '1px solid #9fd5aa', color: '#1e5b2f' }}>
+                  <p style={{ margin: 0, fontWeight: '600' }}>✓ Estimator submitted successfully!</p>
+                  <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem' }}>Reference ID: {submissionResult._id}</p>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="estimator-actions">
+                {submissionResult ? (
+                  <>
+                    <button 
+                      className="btn-secondary" 
+                      onClick={() => {
+                        // Download PDF
+                        window.open(`${ESTIMATOR_API_URL}/${submissionResult._id}/pdf/download`, '_blank');
+                      }}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                    >
+                      📥 Download PDF
+                    </button>
+                    <button 
+                      className="btn-secondary" 
+                      onClick={() => {
+                        // Reset form
+                        localStorage.removeItem(ESTIMATOR_DRAFT_KEY);
+                        window.location.reload();
+                      }}
+                    >
+                      Create New Quotation
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button className="btn-secondary" onClick={handlePrevStep}>
+                      Back
+                    </button>
+                    <button className="btn-primary" onClick={handleSubmitEstimator} disabled={isSubmitting}>
+                      {isSubmitting ? 'Submitting...' : 'Submit Estimate'}
+                    </button>
+                  </>
                 )}
               </div>
-            )}
-
-            {apiError && (
-              <div className="selected-summary" style={{ backgroundColor: '#fff0f0', borderColor: '#f5a5a5', color: '#8b1f1f' }}>
-                <strong>Error:</strong> {apiError}
-              </div>
-            )}
-
-            {submissionResult && (
-              <div className="selected-summary" style={{ backgroundColor: '#eefaf0', borderColor: '#9fd5aa', color: '#1e5b2f' }}>
-                <strong>Estimator submitted successfully.</strong> Reference ID: {submissionResult._id}
-              </div>
-            )}
-
-            <div className="estimator-actions">
-              <button className="btn-secondary" onClick={handlePrevStep}>Back</button>
-              <button className="btn-primary" onClick={handleSubmitEstimator} disabled={isSubmitting || !!submissionResult}>
-                {isSubmitting ? 'Submitting...' : submissionResult ? 'Submitted' : 'Submit Estimate'}
-              </button>
             </div>
           </div>
         );
@@ -447,17 +615,53 @@ const Estimator = () => {
         <div className="estimator-wrapper">
           {/* Progress Indicator */}
           <div className="estimator-progress">
-            <div className={`progress-step ${currentStep >= 1 ? 'active' : ''}`}>1. Room</div>
-            <div className={`progress-line ${currentStep >= 2 ? 'active' : ''}`}></div>
-            <div className={`progress-step ${currentStep >= 2 ? 'active' : ''}`}>2. Dimensions</div>
-            <div className={`progress-line ${currentStep >= 3 ? 'active' : ''}`}></div>
-            <div className={`progress-step ${currentStep >= 3 ? 'active' : ''}`}>3. Plan</div>
-            <div className={`progress-line ${currentStep >= 4 ? 'active' : ''}`}></div>
-            <div className={`progress-step ${currentStep >= 4 ? 'active' : ''}`}>4. Add Ons</div>
-            <div className={`progress-line ${currentStep >= 5 ? 'active' : ''}`}></div>
-            <div className={`progress-step ${currentStep >= 5 ? 'active' : ''}`}>5. Your Info</div>
-            <div className={`progress-line ${currentStep >= 6 ? 'active' : ''}`}></div>
-            <div className={`progress-step ${currentStep >= 6 ? 'active' : ''}`}>6. Review</div>
+            <button 
+              className={`progress-step ${currentStep === 1 ? 'current' : ''} ${currentStep > 1 ? 'visited' : ''} ${!canNavigateToStep(1) ? 'disabled' : ''}`} 
+              onClick={() => handleProgressClick(1)}
+              disabled={!canNavigateToStep(1)}
+            >
+              1. Room
+            </button>
+            <div className={`progress-line ${currentStep > 1 ? 'active' : ''}`}></div>
+            <button 
+              className={`progress-step ${currentStep === 2 ? 'current' : ''} ${currentStep > 2 ? 'visited' : ''} ${!canNavigateToStep(2) ? 'disabled' : ''}`} 
+              onClick={() => handleProgressClick(2)}
+              disabled={!canNavigateToStep(2)}
+            >
+              2. Dimensions
+            </button>
+            <div className={`progress-line ${currentStep > 2 ? 'active' : ''}`}></div>
+            <button 
+              className={`progress-step ${currentStep === 3 ? 'current' : ''} ${currentStep > 3 ? 'visited' : ''} ${!canNavigateToStep(3) ? 'disabled' : ''}`} 
+              onClick={() => handleProgressClick(3)}
+              disabled={!canNavigateToStep(3)}
+            >
+              3. Plan
+            </button>
+            <div className={`progress-line ${currentStep > 3 ? 'active' : ''}`}></div>
+            <button 
+              className={`progress-step ${currentStep === 4 ? 'current' : ''} ${currentStep > 4 ? 'visited' : ''} ${!canNavigateToStep(4) ? 'disabled' : ''}`} 
+              onClick={() => handleProgressClick(4)}
+              disabled={!canNavigateToStep(4)}
+            >
+              4. Add Ons
+            </button>
+            <div className={`progress-line ${currentStep > 4 ? 'active' : ''}`}></div>
+            <button 
+              className={`progress-step ${currentStep === 5 ? 'current' : ''} ${currentStep > 5 ? 'visited' : ''} ${!canNavigateToStep(5) ? 'disabled' : ''}`} 
+              onClick={() => handleProgressClick(5)}
+              disabled={!canNavigateToStep(5)}
+            >
+              5. Your Info
+            </button>
+            <div className={`progress-line ${currentStep > 5 ? 'active' : ''}`}></div>
+            <button 
+              className={`progress-step ${currentStep === 6 ? 'current' : ''} ${currentStep > 6 ? 'visited' : ''} ${!canNavigateToStep(6) ? 'disabled' : ''}`} 
+              onClick={() => handleProgressClick(6)}
+              disabled={!canNavigateToStep(6)}
+            >
+              6. Review
+            </button>
           </div>
 
           <div className="estimator-step-container">
@@ -471,7 +675,9 @@ const Estimator = () => {
                 <strong>Error:</strong> {apiError}
               </div>
             )}
-            {renderStep()}
+            <div className="estimator-step-container" key={`step-${currentStep}`}>
+              {renderStep()}
+            </div>
           </div>
         </div>
       </div>
