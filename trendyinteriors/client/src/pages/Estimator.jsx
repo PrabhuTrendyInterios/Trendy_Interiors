@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import RoomSelection from '../components/estimator/RoomSelection';
-import BudgetSelection from '../components/estimator/BudgetSelection';
 import DimensionsSelection from '../components/estimator/DimensionsSelection';
 import ExtraAddons from '../components/estimator/ExtraAddons';
 import LeadCapture from '../components/estimator/LeadCapture';
@@ -45,6 +44,7 @@ const migrateRoomDimensions = (roomDimensionsByRoom) => {
       length: dimensions?.length || '',
       width: dimensions?.width || '',
       height: dimensions?.height || '',
+      sizeCategory: dimensions?.sizeCategory || '',
       selectedDesignIdea: {
         layout: dimensions?.selectedDesignIdea?.layout || '',
         addons: Array.isArray(dimensions?.selectedDesignIdea?.addons) ? dimensions.selectedDesignIdea.addons : [],
@@ -72,7 +72,7 @@ const Estimator = () => {
         const parsedDraft = JSON.parse(storedDraft);
         return {
           rooms: parsedDraft.rooms || {},
-          budgetPlan: parsedDraft.budgetPlan || '',
+          budgetPlan: parsedDraft.budgetPlan || 'premium',
           selectedRoomForDimensions: parsedDraft.selectedRoomForDimensions || '',
           roomDimensionsByRoom: migrateRoomDimensions(parsedDraft.roomDimensionsByRoom),
           extraAddons: parsedDraft.extraAddons || [],
@@ -85,7 +85,7 @@ const Estimator = () => {
 
     return {
       rooms: {},
-      budgetPlan: '',
+      budgetPlan: 'premium',
       selectedRoomForDimensions: '',
       roomDimensionsByRoom: {},
       extraAddons: [],
@@ -113,10 +113,10 @@ const Estimator = () => {
     }
   }, [formData]);
 
-  // Calculate quote when reaching review step and budget is selected
+  // Calculate quote when reaching review step
   useEffect(() => {
     const calculateQuoteForReview = async () => {
-      if (currentStep !== 6 || !formData.budgetPlan || quoteSummary) {
+      if (currentStep !== 5 || quoteSummary) {
         return; // Don't recalculate if already calculated
       }
 
@@ -146,7 +146,7 @@ const Estimator = () => {
     };
 
     calculateQuoteForReview();
-  }, [currentStep, formData.budgetPlan]);
+  }, [currentStep, formData, quoteSummary]);
 
   const handleNextStep = () => {
     // Mark current step as completed
@@ -165,13 +165,11 @@ const Estimator = () => {
         return Object.keys(formData.rooms).length > 0;
       case 2: // Dimensions
         return formData.selectedRoomForDimensions && Object.keys(formData.roomDimensionsByRoom).length > 0;
-      case 3: // Budget Plan
-        return formData.budgetPlan !== '';
-      case 4: // Extra Add-ons
+      case 3: // Extra Add-ons
         return true; // This is optional
-      case 5: // Lead Capture
+      case 4: // Lead Capture
         return formData.leadData.name && formData.leadData.email && formData.leadData.phone;
-      case 6: // Review
+      case 5: // Review
         return true; // Just display mode
       default:
         return false;
@@ -224,6 +222,7 @@ const Estimator = () => {
             length: '',
             width: '',
             height: '',
+            sizeCategory: '',
             selectedDesignIdea: {
               layout: '',
               addons: [],
@@ -252,6 +251,7 @@ const Estimator = () => {
             length: '',
             width: '',
             height: '',
+            sizeCategory: '',
             selectedDesignIdea: {
               layout: '',
               addons: [],
@@ -392,35 +392,25 @@ const Estimator = () => {
         );
       case 3:
         return (
-            <BudgetSelection
-            selectedBudget={formData.budgetPlan}
+          <ExtraAddons
+            selectedAddons={formData.extraAddons}
             isStepCompleted={completedSteps.has(3)}
-            onSelectBudget={(budgetPlan) => updateFormData('budgetPlan', budgetPlan)}
+            onToggleAddon={toggleAddon}
             onPrev={handlePrevStep}
             onNext={handleNextStep}
           />
         );
       case 4:
         return (
-          <ExtraAddons
-            selectedAddons={formData.extraAddons}
-            isStepCompleted={completedSteps.has(4)}
-            onToggleAddon={toggleAddon}
-            onPrev={handlePrevStep}
-            onNext={handleNextStep}
-          />
-        );
-      case 5:
-        return (
           <LeadCapture
             leadData={formData.leadData}
-            isStepCompleted={completedSteps.has(5)}
+            isStepCompleted={completedSteps.has(4)}
             onUpdateLead={updateLeadData}
             onPrev={handlePrevStep}
             onNext={handleNextStep}
           />
         );
-      case 6:
+      case 5:
         return (
           <div className="review-container">
             {/* Left Side - Image */}
@@ -441,17 +431,11 @@ const Estimator = () => {
               </div>
 
               {/* Summary Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                 <div style={{ padding: '1rem', backgroundColor: '#fffdf3', borderRadius: '8px', borderLeft: '4px solid var(--color-gold)' }}>
                   <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Total Area</p>
                   <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-charcoal-dark)' }}>
                     {quoteSummary ? quoteSummary.totalAreaSqFt.toLocaleString('en-IN') : '0'} sq. ft
-                  </p>
-                </div>
-                <div style={{ padding: '1rem', backgroundColor: '#fffdf3', borderRadius: '8px', borderLeft: '4px solid var(--color-gold)' }}>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Plan Tier</p>
-                  <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-charcoal-dark)' }}>
-                    {formData.budgetPlan.charAt(0).toUpperCase() + formData.budgetPlan.slice(1)}
                   </p>
                 </div>
               </div>
@@ -636,7 +620,7 @@ const Estimator = () => {
               onClick={() => handleProgressClick(3)}
               disabled={!canNavigateToStep(3)}
             >
-              3. Plan
+              3. Add Ons
             </button>
             <div className={`progress-line ${currentStep > 3 ? 'active' : ''}`}></div>
             <button 
@@ -644,7 +628,7 @@ const Estimator = () => {
               onClick={() => handleProgressClick(4)}
               disabled={!canNavigateToStep(4)}
             >
-              4. Add Ons
+              4. Your Info
             </button>
             <div className={`progress-line ${currentStep > 4 ? 'active' : ''}`}></div>
             <button 
@@ -652,25 +636,17 @@ const Estimator = () => {
               onClick={() => handleProgressClick(5)}
               disabled={!canNavigateToStep(5)}
             >
-              5. Your Info
-            </button>
-            <div className={`progress-line ${currentStep > 5 ? 'active' : ''}`}></div>
-            <button 
-              className={`progress-step ${currentStep === 6 ? 'current' : ''} ${currentStep > 6 ? 'visited' : ''} ${!canNavigateToStep(6) ? 'disabled' : ''}`} 
-              onClick={() => handleProgressClick(6)}
-              disabled={!canNavigateToStep(6)}
-            >
-              6. Review
+              5. Review
             </button>
           </div>
 
           <div className="estimator-step-container">
-            {currentStep === 3 && isCalculating && (
+            {currentStep === 5 && isCalculating && (
               <div className="selected-summary" style={{ marginBottom: 16 }}>
                 Calculating estimate preview...
               </div>
             )}
-            {currentStep === 3 && apiError && (
+            {currentStep === 5 && apiError && (
               <div className="selected-summary" style={{ marginBottom: 16, backgroundColor: '#fff0f0', borderColor: '#f5a5a5', color: '#8b1f1f' }}>
                 <strong>Error:</strong> {apiError}
               </div>

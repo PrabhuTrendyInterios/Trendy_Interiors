@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './LeadCapture.css';
 
 const LeadCapture = ({ leadData, isStepCompleted, onUpdateLead, onNext, onPrev }) => {
   const [errors, setErrors] = useState({});
@@ -52,28 +53,12 @@ const LeadCapture = ({ leadData, isStepCompleted, onUpdateLead, onNext, onPrev }
   };
 
   return (
-    <div className="lead-capture-container" style={{
-      display: 'flex',
-      minHeight: '650px',
-      borderRadius: 'var(--radius-lg)',
-      overflow: 'hidden',
-      backgroundColor: 'var(--color-white)',
-      boxShadow: 'var(--shadow-lg)',
-      margin: 'var(--spacing-md) 0'
-    }}>
+    <div className="lead-capture-container">
       {/* Visual Side */}
-      <div className="lead-visual-side" style={{
-        flex: '1',
-        backgroundImage: 'url("/images/estimator/lead-bg.png")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-        padding: '50px',
-        color: 'var(--color-white)'
-      }}>
+      <div
+        className="lead-visual-side"
+        style={{ backgroundImage: `url('/images/estimator/lead-bg.png')` }}
+      >
         {/* Darker overlay for better text readability */}
         <div style={{
           position: 'absolute',
@@ -82,59 +67,27 @@ const LeadCapture = ({ leadData, isStepCompleted, onUpdateLead, onNext, onPrev }
           zIndex: 1
         }} />
         <div style={{ zIndex: 2, position: 'relative' }}>
-          <h3 style={{ 
-            fontSize: '2.5rem', 
-            marginBottom: '15px', 
-            fontWeight: '700', 
-            color: 'var(--color-white)',
-            fontFamily: 'var(--font-heading)',
-            textShadow: '0 2px 10px rgba(0,0,0,0.3)'
-          }}>
+          <h3>
             Design Consultation
           </h3>
-          <p style={{ 
-            fontSize: '1.2rem', 
-            opacity: 0.95, 
-            lineHeight: '1.6', 
-            color: 'var(--color-white)',
-            fontFamily: 'var(--font-body)',
-            margin: 0
-          }}>
+          <p>
             Experience the art of luxury living. Share your details to receive a personalized design blueprint.
           </p>
         </div>
       </div>
 
       {/* Form Side */}
-      <div className="lead-form-side" style={{
-        flex: '1',
-        padding: '60px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        backgroundColor: 'var(--color-white)'
-      }}>
-        <div style={{ marginBottom: '50px' }}>
-          <h2 style={{ 
-            fontSize: '2.8rem', 
-            color: 'var(--color-charcoal-dark)', 
-            marginBottom: '15px', 
-            fontWeight: '800', 
-            letterSpacing: '-1.5px',
-            fontFamily: 'var(--font-heading)'
-          }}>
+      <div className="lead-form-side">
+        <div>
+          <h2>
             Your Details
           </h2>
-          <p style={{ 
-            color: 'var(--color-gray)', 
-            fontSize: '1.1rem',
-            fontFamily: 'var(--font-body)'
-          }}>
+          <p>
             Secure your complimentary consultation with our premium design experts.
           </p>
         </div>
 
-        <div className="lead-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '35px' }}>
+        <div className="lead-form-grid">
           {/* Name */}
           <div style={{ gridColumn: 'span 2' }}>
             <label style={labelStyle}>Full Name</label>
@@ -196,7 +149,7 @@ const LeadCapture = ({ leadData, isStepCompleted, onUpdateLead, onNext, onPrev }
           </div>
         </div>
 
-        <div className="estimator-actions" style={{ marginTop: '60px', display: 'flex', gap: '20px' }}>
+        <div className="estimator-actions">
           <button className="btn-secondary" onClick={onPrev}>Back</button>
           <button className="btn-primary" onClick={handleNext}>
             Next

@@ -9,14 +9,6 @@ jest.mock('../../components/estimator/RoomSelection', () => (props) => (
   </div>
 ));
 
-jest.mock('../../components/estimator/BudgetSelection', () => (props) => (
-  <div>
-    <button onClick={() => props.onSelectBudget('premium')}>Select Premium</button>
-    <button onClick={props.onPrev}>Back Budget</button>
-    <button onClick={props.onNext}>Next From Budget</button>
-  </div>
-));
-
 jest.mock('../../components/estimator/DimensionsSelection', () => (props) => (
   <div>
     <button onClick={props.onPrev}>Back Dimensions</button>
@@ -41,12 +33,12 @@ describe('client/pages/Estimator', () => {
     expect(screen.getByText('Select Bedroom')).toBeInTheDocument();
   });
 
-  test('moves from room selection to budget selection', async () => {
+  test('moves from room selection to dimensions selection', async () => {
     render(<Estimator />);
 
     fireEvent.click(screen.getByText('Select Bedroom'));
     fireEvent.click(screen.getByText('Next From Rooms'));
 
-    await waitFor(() => expect(screen.getByText('Select Premium')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Calculate')).toBeInTheDocument());
   });
 });

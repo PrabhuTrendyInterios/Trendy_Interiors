@@ -1,13 +1,11 @@
 import React from 'react';
-import { FaCouch, FaBed, FaUtensils, FaBath, FaBriefcase, FaCoffee, FaPlus, FaMinus } from 'react-icons/fa';
+import { FaCouch, FaBed, FaUtensils, FaPlus, FaMinus, FaPrayingHands } from 'react-icons/fa';
 
 const rooms = [
-  { id: 'livingRoom', name: 'Living Room', icon: <FaCouch />, image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800' },
-  { id: 'bedroom', name: 'Bedroom', icon: <FaBed />, image: 'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=800' },
   { id: 'kitchen', name: 'Kitchen', icon: <FaUtensils />, image: 'https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800' },
-  { id: 'bathroom', name: 'Bathroom', icon: <FaBath />, image: 'https://images.pexels.com/photos/1910472/pexels-photo-1910472.jpeg?auto=compress&cs=tinysrgb&w=800' },
-  { id: 'office', name: 'Home Office', icon: <FaBriefcase />, image: 'https://images.pexels.com/photos/1957478/pexels-photo-1957478.jpeg?auto=compress&cs=tinysrgb&w=800' },
-  { id: 'dining', name: 'Dining Room', icon: <FaCoffee />, image: 'https://images.pexels.com/photos/2724749/pexels-photo-2724749.jpeg?auto=compress&cs=tinysrgb&w=800' },
+  { id: 'bedroom', name: 'Bedroom', icon: <FaBed />, image: 'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=800' },
+  { id: 'hall', name: 'Hall', icon: <FaCouch />, image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800' },
+  { id: 'poojaroom', name: 'Pooja Room', icon: <FaPrayingHands />, image: '/images/estimator/poojaroom.png' },
 ];
 
 const RoomSelection = ({ selectedRooms, isStepCompleted, onUpdateRoomCount, onNext }) => {
