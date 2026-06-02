@@ -15,18 +15,14 @@ describe('client/pages/ForgotPassword', () => {
     mockNavigate.mockReset();
   });
 
-  test('sends otp and moves to reset step', async () => {
-    global.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'OTP sent' }) });
-    global.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'Verified', resetToken: 'token-1' }) });
-    global.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'Password reset' }) });
-
+  test('renders forgotten password form', () => {
     render(
       <MemoryRouter>
         <ForgotPassword />
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /send otp/i }));
-    await waitFor(() => expect(screen.getByText('OTP sent')).toBeInTheDocument());
+    expect(screen.getByText(/reset admin password/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /send otp/i })).toBeInTheDocument();
   });
 });

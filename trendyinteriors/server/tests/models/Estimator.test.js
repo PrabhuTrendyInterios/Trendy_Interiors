@@ -25,7 +25,7 @@ describe('server/models/Estimator', () => {
 
     expect(doc.validateSync()).toBeUndefined();
     expect(doc.status).toBe('submitted');
-    expect(doc.quoteSummary.currency).toBe('USD');
+    expect(doc.quoteSummary.currency).toBe('INR');
   });
 
   test('rejects invalid budget plan enum', () => {

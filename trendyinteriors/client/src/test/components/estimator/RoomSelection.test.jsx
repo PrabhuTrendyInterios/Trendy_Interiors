@@ -6,7 +6,7 @@ describe('client/components/estimator/RoomSelection', () => {
   test('disables next when no rooms selected', () => {
     render(<RoomSelection selectedRooms={{}} onUpdateRoomCount={jest.fn()} onNext={jest.fn()} />);
 
-    expect(screen.getByRole('button', { name: /next step/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /next/i })).toBeDisabled();
   });
 
   test('calls onUpdateRoomCount when plus button clicked', () => {

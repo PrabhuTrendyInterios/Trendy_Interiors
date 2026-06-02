@@ -13,7 +13,7 @@ describe('client/components/estimator/BudgetSelection', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^next$/i })).toBeDisabled();
   });
 
   test('calls onSelectBudget when plan card clicked', () => {
