@@ -50,4 +50,91 @@ describe('server/routes/auth', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
   });
+
+  test('POST /api/auth/test-email includes recipient info', async () => {
+    process.env.ADMIN_EMAIL = 'admin@trendy.com';
+    const res = await request(app).post('/api/auth/test-email').send({});
+    expect(res.body.details).toBeDefined();
+    expect(res.body.details.recipient).toBe('admin@trendy.com');
+  });
+
+  test('POST /api/auth/test-email falls back to default admin email', async () => {
+    delete process.env.ADMIN_EMAIL;
+    const res = await request(app).post('/api/auth/test-email').send({});
+    expect(res.body.details.recipient).toBe('trendyadmin123@gmail.com');
+  });
+
+  test('POST /api/auth/test-email handles email sending error', async () => {
+    const mail = require('../../utils/mail');
+    mail.sendAdminEmail.mockRejectedValueOnce(new Error('SMTP connection failed'));
+
+    const res = await request(app).post('/api/auth/test-email').send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.success).toBe(false);
+  });
+
+  test('POST /api/auth/forgot-password calls controller', async () => {
+    const authController = require('../../controllers/authController');
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: 'test@example.com' });
+    expect(authController.forgotPassword).toHaveBeenCalled();
+  });
+
+  test('POST /api/auth/verify-reset-otp calls controller', async () => {
+    const authController = require('../../controllers/authController');
+    const res = await request(app)
+      .post('/api/auth/verify-reset-otp')
+      .send({ email: 'test@example.com', otp: '123456' });
+    expect(authController.verifyResetOTP).toHaveBeenCalled();
+  });
+
+  test('POST /api/auth/reset-password calls controller', async () => {
+    const authController = require('../../controllers/authController');
+    const res = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ resetToken: 'token', password: 'new', confirmPassword: 'new' });
+    expect(authController.resetPassword).toHaveBeenCalled();
+  });
+
+  test('POST /api/auth/send-change-password-otp calls controller', async () => {
+    const authController = require('../../controllers/authController');
+    const res = await request(app)
+      .post('/api/auth/send-change-password-otp')
+      .send({});
+    expect(authController.sendChangePasswordOTP).toHaveBeenCalled();
+  });
+
+  test('PUT /api/auth/change-password-with-otp calls controller', async () => {
+    const authController = require('../../controllers/authController');
+    const res = await request(app)
+      .put('/api/auth/change-password-with-otp')
+      .send({ otp: '123456', newPassword: 'new', confirmPassword: 'new' });
+    expect(authController.changePasswordWithOTP).toHaveBeenCalled();
+  });
+
+  test('PUT /api/auth/updatedetails calls controller', async () => {
+    const authController = require('../../controllers/authController');
+    const res = await request(app)
+      .put('/api/auth/updatedetails')
+      .send({ name: 'New Name' });
+    expect(authController.updateDetails).toHaveBeenCalled();
+  });
+
+  test('PUT /api/auth/change-password calls controller', async () => {
+    const authController = require('../../controllers/authController');
+    const res = await request(app)
+      .put('/api/auth/change-password')
+      .send({ currentPassword: 'old', newPassword: 'new', confirmPassword: 'new' });
+    expect(authController.changePassword).toHaveBeenCalled();
+  });
+
+  test('POST /api/auth/login calls controller', async () => {
+    const authController = require('../../controllers/authController');
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'test@example.com', password: 'pass' });
+    expect(authController.login).toHaveBeenCalled();
+  });
 });

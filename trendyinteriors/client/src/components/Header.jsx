@@ -52,7 +52,7 @@ const Header = () => {
         <div className="logo">
           <Link to="/" onClick={closeMenu}>
             <div className="logo-wrapper">
-              <span className="logo-icon"><FaHome /></span>
+              <img src="/images/logo.png" alt="Trendy Interios Logo" className="logo-image" />
               <span className="logo-text">
                 Trendy <span className="logo-accent">Interios</span>
               </span>

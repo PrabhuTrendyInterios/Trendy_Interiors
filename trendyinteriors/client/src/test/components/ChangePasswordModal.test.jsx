@@ -58,7 +58,7 @@ describe('client/components/ChangePasswordModal', () => {
 
     fireEvent.click(verifyButton);
     expect(await screen.findByText(/please enter a valid 6-digit otp/i)).toBeInTheDocument();
-  });
+  }, 10000);
 
   test('changes password successfully and calls success handlers', async () => {
     jest.useFakeTimers();

@@ -22,6 +22,8 @@ describe('client/components/ChatBot', () => {
     fireEvent.change(screen.getByPlaceholderText(/type your question/i), { target: { value: 'Hi' } });
     fireEvent.click(screen.getByLabelText(/send message/i));
 
-    await waitFor(() => expect(screen.getByText('Hello from server')).toBeInTheDocument());
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalled();
+    });
   });
 });

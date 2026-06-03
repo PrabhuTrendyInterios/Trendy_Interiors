@@ -103,6 +103,22 @@
   transform: rotate(360deg);
 }
 
+.logo-image {
+  height: 45px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  transition: var(--transition-smooth);
+}
+
+.header.scrolled .logo-image {
+  height: 38px;
+}
+
+.logo:hover .logo-image {
+  transform: scale(1.05) rotate(360deg);
+}
+
 /* ===== NAVIGATION ===== */
 .navigation {
   display: flex;
