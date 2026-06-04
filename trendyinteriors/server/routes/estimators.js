@@ -16,7 +16,7 @@ const PLAN_BASE_RATE = {
 };
 
 const ROOM_MULTIPLIER = {
-  "Living Room": 1.15,
+  "Hall": 1.15,
   Bedroom: 1,
   Kitchen: 1.35,
   Bathroom: 1.25,
@@ -68,7 +68,7 @@ const getRoomType = (roomName = "") => {
 
   if (lower.includes("kitchen")) return "Kitchen";
   if (lower.includes("bedroom")) return "Bedroom";
-  if (lower.includes("living") || lower.includes("hall")) return "Living Room";
+  if (lower.includes("living") || lower.includes("hall")) return "Hall";
   if (lower.includes("bathroom")) return "Bathroom";
   if (lower.includes("dining")) return "Dining Room";
   if (lower.includes("office")) return "Home Office";
@@ -88,7 +88,7 @@ const roomSupportsLayout = (roomName = "") => {
 
 const roomNeedsAddons = (roomName = "") => {
   const type = getRoomType(roomName);
-  return type === "Kitchen" || type === "Bedroom" || type === "Living Room";
+  return type === "Kitchen" || type === "Bedroom" || type === "Hall";
 };
 
 const buildRoomInstances = (rooms) =>

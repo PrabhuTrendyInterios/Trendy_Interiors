@@ -177,7 +177,7 @@ const Home = () => {
               View Projects
             </Link>
             <Link to="/estimator" className="btn-secondary" style={{ textDecoration: 'none' }}>
-              Get Free Consultation
+              Design Your Dream Interior
             </Link>
           </div>
         </div>
