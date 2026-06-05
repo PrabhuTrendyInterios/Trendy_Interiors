@@ -1,61 +1,20 @@
 const express = require("express");
 const Estimator = require("../models/Estimator");
+const EstimatorConfig = require("../models/EstimatorConfig");
+const GlobalAddon = require("../models/GlobalAddon");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const { generateQuotationPDF } = require("../utils/quotationPDF");
 
 const router = express.Router();
 
-const VALID_PLANS = ["starter", "budgetFriendly", "premium", "signature"];
-
-// Base rates per sq. ft in INR (realistic interior design pricing)
-const PLAN_BASE_RATE = {
-  starter: 250,      // Basic designs, budget-conscious
-  budgetFriendly: 500,   // Standard quality designs
-  premium: 1000,     // Premium designs with more features
-  signature: 1500,   // Luxury/signature tier designs
-};
-
-const ROOM_MULTIPLIER = {
-  "Hall": 1.15,
+const DEFAULT_ROOM_MULTIPLIER = {
+  Hall: 1.15,
   Bedroom: 1,
   Kitchen: 1.35,
+  'Pooja Room': 1.2,
   Bathroom: 1.25,
-  "Home Office": 1.1,
-  "Dining Room": 1.05,
-  General: 1,
-};
-
-// Layout costs in INR
-const LAYOUT_COSTS = {
-  "L Shape": 15000,
-  "U Shape": 20000,
-  "Straight": 12000,
-  "Island": 25000,
-  "Sliding Wardrobe": 18000,
-  "Hinged Wardrobe": 15000,
-};
-
-// Add-on costs in INR
-const ADDON_COSTS = {
-  "Chimney": 25000,
-  "Tall Unit": 22000,
-  "Bed Storage": 20000,
-  "Dressing Unit": 25000,
-  "Study Unit": 18000,
-  "Loft": 30000,
-  "TV Unit": 28000,
-  "Sofa Setup": 35000,
-  "False Ceiling": 40000,
-};
-
-// Extra/Global add-on costs (applied to overall project)
-const EXTRA_ADDONS_COSTS = {
-  "lighting": 15000,           // Lighting Package
-  "wallpaper": 12000,          // Wallpaper / Panels
-  "pooja": 18000,              // Pooja Unit
-  "ceiling": 25000,            // False Ceiling (additional)
-  "flooring": 35000,           // Luxury Flooring
-  "curtains": 10000,           // Curtains & Blinds
+  'Home Office': 1.1,
+  'Dining Room': 1.05,
 };
 
 const toPositiveNumber = (value) => {
@@ -68,10 +27,8 @@ const getRoomType = (roomName = "") => {
 
   if (lower.includes("kitchen")) return "Kitchen";
   if (lower.includes("bedroom")) return "Bedroom";
-  if (lower.includes("living") || lower.includes("hall")) return "Hall";
-  if (lower.includes("bathroom")) return "Bathroom";
-  if (lower.includes("dining")) return "Dining Room";
-  if (lower.includes("office")) return "Home Office";
+  if (lower.includes("hall")) return "Hall";
+  if (lower.includes("pooja")) return "Pooja Room";
 
   return "General";
 };
@@ -117,7 +74,7 @@ const getDimensionsForRoom = (roomDimensionsByRoom = {}, room) => {
   );
 };
 
-const normalizeSelectedDesign = (selectedDesignIdea, room, budgetPlan) => {
+const normalizeSelectedDesign = (selectedDesignIdea, room) => {
   const rawDesign =
     selectedDesignIdea && typeof selectedDesignIdea === "object" ? selectedDesignIdea : {};
 
@@ -126,7 +83,6 @@ const normalizeSelectedDesign = (selectedDesignIdea, room, budgetPlan) => {
     addons: Array.isArray(rawDesign.addons) ? rawDesign.addons : [],
     room: room.roomName,
     roomType: room.roomType,
-    planTier: budgetPlan || "",
   };
 };
 
@@ -160,8 +116,8 @@ const validateEstimatorPayload = (payload, options = {}) => {
     errors.push("At least one room must be selected.");
   }
 
-  if (requireBudgetPlan && !VALID_PLANS.includes(budgetPlan)) {
-    errors.push(`budgetPlan must be one of: ${VALID_PLANS.join(", ")}.`);
+  if (requireBudgetPlan && false) {
+    // Budget plan validation removed - no longer required
   }
 
   const normalizedDimensions = {};
@@ -207,26 +163,30 @@ const validateEstimatorPayload = (payload, options = {}) => {
   };
 };
 
-const getDesignCost = (selectedDesignIdea = {}, room) => {
+const getDesignCost = (selectedDesignIdea = {}, room, estimatorConfig = {}) => {
   let cost = 0;
+  const roomConfig = estimatorConfig.rooms?.[room.roomType] || {};
 
-  // Add layout cost
-  if (room.supportsLayout && selectedDesignIdea.layout) {
-    cost += LAYOUT_COSTS[selectedDesignIdea.layout] || 15000;
+  // Add layout cost from database
+  if (room.supportsLayout && selectedDesignIdea.layout && roomConfig.layouts) {
+    const layout = roomConfig.layouts.find(l => l.name === selectedDesignIdea.layout && l.active);
+    cost += layout ? layout.price : 0;
   }
 
-  // Add individual add-on costs
-  if (room.needsAddons && Array.isArray(selectedDesignIdea.addons)) {
-    selectedDesignIdea.addons.forEach((addon) => {
-      cost += ADDON_COSTS[addon] || 15000;
+  // Add individual room-specific add-on costs
+  if (room.needsAddons && Array.isArray(selectedDesignIdea.addons) && roomConfig.addons) {
+    selectedDesignIdea.addons.forEach((addonName) => {
+      const addon = roomConfig.addons.find(a => a.name === addonName && a.active);
+      cost += addon ? addon.price : 0;
     });
   }
 
   return cost;
 };
 
-const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan, extraAddons = []) => {
-  const baseRate = PLAN_BASE_RATE[budgetPlan] || 0;
+const calculateQuote = (roomInstances, normalizedDimensions, extraAddons = [], estimatorConfig = {}, globalAddons = []) => {
+  const roomMultipliers = estimatorConfig.roomMultipliers || DEFAULT_ROOM_MULTIPLIER;
+  const baseRate = 1000;
 
   const lineItems = roomInstances
     .map((room) => {
@@ -236,23 +196,27 @@ const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan, extraAd
       if (areaSqFt <= 0) return null;
 
       const selectedDesignIdea = dimensions.selectedDesignIdea || {};
-      const roomMultiplier = ROOM_MULTIPLIER[room.roomType] || 1;
+      const roomMultiplier = roomMultipliers[room.roomType] || 1;
       const ratePerSqFt = Number((baseRate * roomMultiplier).toFixed(2));
       
       // Calculate base cost
       const baseCost = Number((areaSqFt * ratePerSqFt).toFixed(2));
       
-      // Calculate layout cost
+      // Calculate layout cost from database
       let layoutCost = 0;
       if (room.supportsLayout && selectedDesignIdea.layout) {
-        layoutCost = LAYOUT_COSTS[selectedDesignIdea.layout] || 15000;
+        const roomConfig = estimatorConfig.rooms?.[room.roomType] || {};
+        const layout = roomConfig.layouts?.find(l => l.name === selectedDesignIdea.layout && l.active);
+        layoutCost = layout ? layout.price : 0;
       }
       
-      // Calculate addons cost
+      // Calculate room-specific addons cost from database
       let addonsCost = 0;
       if (room.needsAddons && Array.isArray(selectedDesignIdea.addons)) {
-        selectedDesignIdea.addons.forEach((addon) => {
-          addonsCost += ADDON_COSTS[addon] || 15000;
+        const roomConfig = estimatorConfig.rooms?.[room.roomType] || {};
+        selectedDesignIdea.addons.forEach((addonName) => {
+          const addon = roomConfig.addons?.find(a => a.name === addonName && a.active);
+          addonsCost += addon ? addon.price : 0;
         });
       }
 
@@ -273,34 +237,40 @@ const calculateQuote = (roomInstances, normalizedDimensions, budgetPlan, extraAd
     })
     .filter(Boolean);
 
-  // Calculate extra add-ons cost
-  let extraAddonsCost = 0;
-  if (Array.isArray(extraAddons) && extraAddons.length > 0) {
+  // Calculate global add-ons cost from database
+  let globalAddonsCost = 0;
+  const selectedGlobalAddons = [];
+  
+  if (Array.isArray(extraAddons) && extraAddons.length > 0 && globalAddons.length > 0) {
     extraAddons.forEach((addonId) => {
-      extraAddonsCost += EXTRA_ADDONS_COSTS[addonId] || 0;
+      const addon = globalAddons.find(a => a._id?.toString() === addonId || a.name === addonId);
+      if (addon && addon.active) {
+        globalAddonsCost += addon.price || 0;
+        selectedGlobalAddons.push(addon.name);
+      }
     });
   }
 
-  // Add extra add-ons as a line item if any were selected
-  if (extraAddonsCost > 0 && extraAddons.length > 0) {
+  // Add global add-ons as a line item if any were selected
+  if (globalAddonsCost > 0 && selectedGlobalAddons.length > 0) {
     lineItems.push({
-      roomId: "extra-addons",
-      roomName: "Extra Add-ons",
+      roomId: "global-addons",
+      roomName: "Global Add-ons",
       label: "Premium Add-ons",
       areaSqFt: 0,
       ratePerSqFt: 0,
       roomMultiplier: 1,
       layout: "",
-      addons: extraAddons,
+      addons: selectedGlobalAddons,
       baseCost: 0,
       layoutCost: 0,
-      addonsCost: extraAddonsCost,
-      estimatedCost: extraAddonsCost,
+      addonsCost: globalAddonsCost,
+      estimatedCost: globalAddonsCost,
     });
   }
 
   const totalAreaSqFt = Number(lineItems.filter(item => item.areaSqFt > 0).reduce((sum, item) => sum + item.areaSqFt, 0).toFixed(2));
-  const estimatedAmount = Number((lineItems.reduce((sum, item) => sum + item.estimatedCost, 0) + extraAddonsCost).toFixed(2));
+  const estimatedAmount = Number(lineItems.reduce((sum, item) => sum + item.estimatedCost, 0).toFixed(2));
 
   return {
     totalAreaSqFt,
@@ -318,11 +288,20 @@ router.post("/calculate", async (req, res) => {
       return res.status(400).json({ success: false, message: "Validation failed", errors: validation.errors });
     }
 
+    // Fetch estimator config and global addons from database
+    let estimatorConfig = await EstimatorConfig.findOne();
+    if (!estimatorConfig) {
+      estimatorConfig = await EstimatorConfig.create({});
+    }
+
+    const globalAddons = await GlobalAddon.find({ active: true });
+
     const quoteSummary = calculateQuote(
       validation.roomInstances,
       validation.normalizedDimensions,
-      validation.budgetPlan,
-      validation.extraAddons
+      validation.extraAddons,
+      estimatorConfig,
+      globalAddons
     );
 
     return res.status(200).json({
@@ -343,11 +322,20 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ success: false, message: "Validation failed", errors: validation.errors });
     }
 
+    // Fetch estimator config and global addons from database
+    let estimatorConfig = await EstimatorConfig.findOne();
+    if (!estimatorConfig) {
+      estimatorConfig = await EstimatorConfig.create({});
+    }
+
+    const globalAddons = await GlobalAddon.find({ active: true });
+
     const quoteSummary = calculateQuote(
       validation.roomInstances,
       validation.normalizedDimensions,
-      validation.budgetPlan,
-      validation.extraAddons
+      validation.extraAddons,
+      estimatorConfig,
+      globalAddons
     );
 
     const estimator = await Estimator.create({

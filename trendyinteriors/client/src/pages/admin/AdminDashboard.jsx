@@ -153,7 +153,7 @@ const AdminDashboard = () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('No auth token found');
+                console.warn('No auth token found - skipping contacts fetch');
                 setContacts([]);
                 return;
             }
@@ -164,23 +164,45 @@ const AdminDashboard = () => {
                     'Content-Type': 'application/json'
                 }
             });
-            const data = await response.json();
+            
             if (!response.ok) {
-                console.error('Error fetching contacts:', response.status, data.error || data.message || 'Unknown error');
-                console.error('Full error response:', data);
+                let errorData = {};
+                try {
+                    errorData = await response.json();
+                } catch (parseError) {
+                    // If response is not JSON, use empty object
+                    errorData = { error: `HTTP ${response.status}` };
+                }
+                
+                // Log warning instead of error for authorization issues
+                if (response.status === 401 || response.status === 403) {
+                    console.warn('Contacts fetch - Authorization issue:', response.status, errorData.error || 'Access denied');
+                } else {
+                    console.warn('Failed to fetch contacts:', response.status, errorData.error || errorData.message || 'Unknown error');
+                }
+                
                 setContacts([]);
                 return;
             }
+            
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseError) {
+                console.warn('Error parsing contacts response:', parseError.message);
+                setContacts([]);
+                return;
+            }
+            
             if (data.success && Array.isArray(data.data)) {
-                console.log('Contacts loaded successfully:', data.data);
+                console.log('Contacts loaded successfully:', data.data.length, 'items');
                 setContacts(data.data);
             } else {
-                console.warn('Unexpected response format:', data);
+                console.warn('Unexpected response format from contacts endpoint');
                 setContacts([]);
             }
         } catch (error) {
-            console.error('Error fetching contacts:', error.message);
-            console.error('Full error:', error);
+            console.warn('Error fetching contacts:', error.message);
             setContacts([]);
         }
     };
@@ -268,15 +290,38 @@ const AdminDashboard = () => {
 
     const fetchAllData = useCallback(async () => {
         setLoading(true);
-        await Promise.all([
-            fetchProjects(),
-            fetchTestimonials(),
-            fetchContacts(),
-            fetchTeamMembers(),
-            fetchServices(),
-            fetchDesigns()
-        ]);
-        setLoading(false);
+        try {
+            await Promise.all([
+                fetchProjects().catch(err => {
+                    console.warn('Failed to fetch projects:', err.message);
+                    return null;
+                }),
+                fetchTestimonials().catch(err => {
+                    console.warn('Failed to fetch testimonials:', err.message);
+                    return null;
+                }),
+                fetchContacts().catch(err => {
+                    console.warn('Failed to fetch contacts:', err.message);
+                    return null;
+                }),
+                fetchTeamMembers().catch(err => {
+                    console.warn('Failed to fetch team members:', err.message);
+                    return null;
+                }),
+                fetchServices().catch(err => {
+                    console.warn('Failed to fetch services:', err.message);
+                    return null;
+                }),
+                fetchDesigns().catch(err => {
+                    console.warn('Failed to fetch designs:', err.message);
+                    return null;
+                })
+            ]);
+        } catch (error) {
+            console.error('Error in fetchAllData:', error);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     useEffect(() => {
