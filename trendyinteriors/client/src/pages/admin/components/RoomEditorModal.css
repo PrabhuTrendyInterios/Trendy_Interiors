@@ -1,0 +1,162 @@
+.room-editor-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.room-editor-modal {
+  width: 100%;
+  max-width: 820px;
+  background: linear-gradient(180deg, #1a1a1a 0%, #141414 100%);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  margin: auto;
+}
+
+.room-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 0;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.12);
+  padding-bottom: 1rem;
+}
+
+.room-editor-header h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.room-editor-header p {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-gray-lighter);
+}
+
+.room-editor-close {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.room-editor-close:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  color: var(--color-gold);
+}
+
+.room-editor-body {
+  padding: 1.5rem;
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+}
+
+.room-editor-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.room-editor-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.room-editor-footer {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.12);
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(180deg, transparent 0%, #141414 20%);
+}
+
+.room-nested-manager {
+  margin-top: 0.5rem;
+}
+
+.room-nested-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.room-nested-header .subsection-title {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.room-nested-add-btn {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+}
+
+.room-nested-empty {
+  color: var(--color-gray-lighter);
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem;
+  font-style: italic;
+}
+
+.room-nested-form {
+  margin-top: 0.75rem;
+}
+
+.room-nested-form-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gold);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.cms-nested-item-info h5 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.cms-nested-item-info p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-gray-lighter);
+}
+
+@media (max-width: 640px) {
+  .room-editor-overlay {
+    padding: 0.75rem;
+  }
+
+  .room-editor-body {
+    padding: 1rem;
+  }
+
+  .room-nested-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

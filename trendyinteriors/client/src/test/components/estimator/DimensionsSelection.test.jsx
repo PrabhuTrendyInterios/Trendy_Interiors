@@ -2,9 +2,20 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import DimensionsSelection from '../../../components/estimator/DimensionsSelection';
 
+const sampleRoomsCatalog = [
+  {
+    _id: '1',
+    id: 'bedroom',
+    name: 'Bedroom',
+    image: 'https://example.com/bedroom.jpg',
+    dimensions: [{ id: 'mid', name: 'Mid', label: 'Mid', length: 10, width: 12, height: 9 }],
+    layouts: [],
+    addons: [],
+  },
+];
+
 const baseProps = {
   selectedRooms: { Bedroom: 1 },
-  selectedBudget: 'premium',
   selectedRoom: 'Bedroom-1',
   onSelectRoom: jest.fn(),
   roomDimensions: {
@@ -17,6 +28,7 @@ const baseProps = {
   },
   onUpdateRoomDimensions: jest.fn(),
   onSelectDesignIdea: jest.fn(),
+  roomsCatalog: sampleRoomsCatalog,
   onNext: jest.fn(),
   onPrev: jest.fn(),
   isCalculating: false,
@@ -397,16 +409,6 @@ describe('client/components/estimator/DimensionsSelection', () => {
     expect(screen.getByRole('button', { name: /^next$/i })).toBeInTheDocument();
   });
 
-  // ============ Budget-Based Rendering Tests ============
-  test('renders different options based on budget', () => {
-    const { container, rerender } = render(<DimensionsSelection {...baseProps} selectedBudget="premium" />);
-
-    expect(container.querySelector('button') || container.querySelector('div')).toBeDefined();
-
-    rerender(<DimensionsSelection {...baseProps} selectedBudget="budget" />);
-
-    expect(container.querySelector('button') || container.querySelector('div')).toBeDefined();
-  });
 });
 
 

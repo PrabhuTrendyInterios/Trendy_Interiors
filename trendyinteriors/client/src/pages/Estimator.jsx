@@ -3,39 +3,18 @@ import RoomSelection from '../components/estimator/RoomSelection';
 import DimensionsSelection from '../components/estimator/DimensionsSelection';
 import ExtraAddons from '../components/estimator/ExtraAddons';
 import LeadCapture from '../components/estimator/LeadCapture';
+import {
+  API_BASE_URL,
+  buildRoomInstances,
+  fetchEstimatorRooms,
+  fetchGlobalAddons,
+  formatGlobalAddonForCard,
+  normalizeEstimatorRoom,
+} from '../utils/estimatorApi';
 import './Estimator.css';
 
 const ESTIMATOR_DRAFT_KEY = 'trendyInteriorsEstimatorDraft';
-const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'https://trendyinteriors-1.onrender.com');
 const ESTIMATOR_API_URL = `${API_BASE_URL}/api/estimators`;
-
-// Extra Add-ons Costs mapping
-const EXTRA_ADDONS_COSTS = {
-  "lighting": 15000,           // Lighting Package
-  "wallpaper": 12000,          // Wallpaper / Panels
-  "pooja": 18000,              // Pooja Unit
-  "ceiling": 25000,            // False Ceiling
-  "flooring": 35000,           // Luxury Flooring
-  "curtains": 10000,           // Curtains & Blinds
-};
-
-const EXTRA_ADDONS_LABELS = {
-  "lighting": "Lighting Package",
-  "wallpaper": "Wallpaper / Panels",
-  "pooja": "Pooja Unit",
-  "ceiling": "False Ceiling",
-  "flooring": "Luxury Flooring",
-  "curtains": "Curtains & Blinds",
-};
-
-const buildRoomInstances = (rooms) =>
-  Object.entries(rooms || {}).flatMap(([roomName, count]) =>
-    Array.from({ length: Number(count) || 0 }, (_, index) => ({
-      id: `${roomName}-${index + 1}`,
-      roomName,
-      label: Number(count) > 1 ? `${roomName} ${index + 1}` : roomName,
-    })),
-  );
 
 const migrateRoomDimensions = (roomDimensionsByRoom) => {
   const migrated = {};
@@ -49,8 +28,6 @@ const migrateRoomDimensions = (roomDimensionsByRoom) => {
         layout: dimensions?.selectedDesignIdea?.layout || '',
         addons: Array.isArray(dimensions?.selectedDesignIdea?.addons) ? dimensions.selectedDesignIdea.addons : [],
         room: dimensions?.selectedDesignIdea?.room || '',
-        roomType: dimensions?.selectedDesignIdea?.roomType || '',
-        planTier: dimensions?.selectedDesignIdea?.planTier || '',
       },
     };
   });
@@ -72,7 +49,6 @@ const Estimator = () => {
         const parsedDraft = JSON.parse(storedDraft);
         return {
           rooms: parsedDraft.rooms || {},
-          budgetPlan: parsedDraft.budgetPlan || 'premium',
           selectedRoomForDimensions: parsedDraft.selectedRoomForDimensions || '',
           roomDimensionsByRoom: migrateRoomDimensions(parsedDraft.roomDimensionsByRoom),
           extraAddons: parsedDraft.extraAddons || [],
@@ -85,13 +61,41 @@ const Estimator = () => {
 
     return {
       rooms: {},
-      budgetPlan: 'premium',
       selectedRoomForDimensions: '',
       roomDimensionsByRoom: {},
       extraAddons: [],
       leadData: { name: '', email: '', phone: '', location: '', message: '' },
     };
   });
+
+  const [roomsCatalog, setRoomsCatalog] = useState([]);
+  const [globalAddonsOptions, setGlobalAddonsOptions] = useState([]);
+  const [loadingEstimatorData, setLoadingEstimatorData] = useState(true);
+  const [loadConfigError, setLoadConfigError] = useState('');
+
+  useEffect(() => {
+    const loadEstimatorData = async () => {
+      try {
+        const [roomsResponse, addonsResponse] = await Promise.all([
+          fetchEstimatorRooms(),
+          fetchGlobalAddons(),
+        ]);
+
+        setRoomsCatalog((roomsResponse.data || []).map(normalizeEstimatorRoom));
+        setGlobalAddonsOptions(addonsResponse.data || []);
+        setLoadConfigError('');
+      } catch (error) {
+        console.error(error);
+        setRoomsCatalog([]);
+        setGlobalAddonsOptions([]);
+        setLoadConfigError('Unable to load estimator data. Please refresh and try again.');
+      } finally {
+        setLoadingEstimatorData(false);
+      }
+    };
+
+    loadEstimatorData();
+  }, []);
 
   useEffect(() => {
     const roomInstances = buildRoomInstances(formData.rooms);
@@ -203,7 +207,7 @@ const Estimator = () => {
       [key]: value,
     }));
 
-    if (key === 'rooms' || key === 'budgetPlan') {
+    if (key === 'rooms') {
       setQuoteSummary(null);
     }
   };
@@ -227,8 +231,6 @@ const Estimator = () => {
               layout: '',
               addons: [],
               room: '',
-              roomType: '',
-              planTier: '',
             },
           }),
           [key]: value,
@@ -256,16 +258,12 @@ const Estimator = () => {
               layout: '',
               addons: [],
               room: '',
-              roomType: '',
-              planTier: '',
             },
           }),
           selectedDesignIdea: {
             layout: idea?.layout || '',
             addons: idea?.addons || [],
             room: idea?.room || '',
-            roomType: idea?.roomType || '',
-            planTier: idea?.planTier || '',
           },
         },
       },
@@ -358,6 +356,8 @@ const Estimator = () => {
       case 1:
         return (
           <RoomSelection
+            rooms={roomsCatalog}
+            loading={loadingEstimatorData}
             selectedRooms={formData.rooms}
             isStepCompleted={completedSteps.has(1)}
             onUpdateRoomCount={(room, count) => {
@@ -374,9 +374,8 @@ const Estimator = () => {
         );
       case 2:
         return (
-                    <DimensionsSelection
+          <DimensionsSelection
             selectedRooms={formData.rooms}
-            selectedBudget={formData.budgetPlan}
             selectedRoom={formData.selectedRoomForDimensions}
             isStepCompleted={completedSteps.has(2)}
             onSelectRoom={(roomId) => {
@@ -385,10 +384,10 @@ const Estimator = () => {
             roomDimensions={formData.roomDimensionsByRoom}
             onUpdateRoomDimensions={updateRoomDimensions}
             onSelectDesignIdea={updateRoomDesignIdea}
+            roomsCatalog={roomsCatalog}
             onNext={handleDimensionsNext}
             onPrev={handlePrevStep}
           />
-          
         );
       case 3:
         return (
@@ -398,6 +397,8 @@ const Estimator = () => {
             onToggleAddon={toggleAddon}
             onPrev={handlePrevStep}
             onNext={handleNextStep}
+            addonsOptions={globalAddonsOptions}
+            loading={loadingEstimatorData}
           />
         );
       case 4:
@@ -476,19 +477,19 @@ const Estimator = () => {
                       <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', fontWeight: '600', color: 'var(--color-charcoal-dark)' }}>Cost Breakdown</p>
                       {quoteSummary.lineItems.map((item) => (
                         <div key={item.roomId} style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(212, 175, 55, 0.15)' }}>
-                          {item.roomId === 'extra-addons' ? (
+                          {item.roomId === 'global-addons' || item.roomId === 'extra-addons' ? (
                             // Extra Add-ons Display - Show each with individual cost
                             <>
                               <p style={{ margin: '0 0 0.75rem 0', fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.95rem' }}>Premium Add-ons</p>
-                              {Array.isArray(item.addons) && item.addons.length > 0 && (
+                              {Array.isArray(item.addonDetails) && item.addonDetails.length > 0 ? (
                                 <div style={{ marginTop: '0.25rem' }}>
-                                  {item.addons.map((addon, idx) => (
-                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', paddingLeft: '1rem' }}>
+                                  {item.addonDetails.map((addon) => (
+                                    <div key={addon.id || addon.name} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', paddingLeft: '1rem' }}>
                                       <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-gold-dark)' }}>
-                                        • {EXTRA_ADDONS_LABELS[addon] || addon}
+                                        • {addon.name}
                                       </p>
                                       <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.85rem' }}>
-                                        ₹{(EXTRA_ADDONS_COSTS[addon] || 0).toLocaleString('en-IN')}
+                                        ₹{(addon.price || 0).toLocaleString('en-IN')}
                                       </p>
                                     </div>
                                   ))}
@@ -497,7 +498,34 @@ const Estimator = () => {
                                     <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '0.9rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
                                   </div>
                                 </div>
-                              )}
+                              ) : Array.isArray(item.addons) && item.addons.length > 0 ? (
+                                <div style={{ marginTop: '0.25rem' }}>
+                                  {item.addons.map((addonId, idx) => {
+                                    const addonMeta = globalAddonsOptions
+                                      .map(formatGlobalAddonForCard)
+                                      .find(
+                                        (addon) =>
+                                          addon._id?.toString() === addonId ||
+                                          addon.id === addonId ||
+                                          addon.name === addonId
+                                      );
+                                    return (
+                                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', paddingLeft: '1rem' }}>
+                                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-gold-dark)' }}>
+                                          • {addonMeta?.name || addonId}
+                                        </p>
+                                        <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.85rem' }}>
+                                          ₹{(addonMeta?.price || 0).toLocaleString('en-IN')}
+                                        </p>
+                                      </div>
+                                    );
+                                  })}
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                                    <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.9rem' }}>Total Add-ons</p>
+                                    <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '0.9rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
+                                  </div>
+                                </div>
+                              ) : null}
                             </>
                           ) : (
                             // Room Items Display
@@ -507,7 +535,7 @@ const Estimator = () => {
                                 <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '1rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
                               </div>
                               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-gray)' }}>
-                                {item.areaSqFt} sq. ft × ₹{item.ratePerSqFt}/sq. ft = ₹{(item.areaSqFt * item.ratePerSqFt).toLocaleString('en-IN')}
+                                {item.areaSqFt} sq. ft × ₹{item.ratePerSqFt}/sq. ft = ₹{(item.baseCost ?? item.areaSqFt * item.ratePerSqFt).toLocaleString('en-IN')}
                               </p>
                               {item.layoutCost > 0 && (
                                 <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
@@ -640,6 +668,11 @@ const Estimator = () => {
             </button>
           </div>
 
+          {loadConfigError && (
+            <div style={{ marginBottom: '1rem', padding: '1rem', borderRadius: '12px', backgroundColor: '#fff4f4', color: '#8b1f1f', border: '1px solid #f5a5a5' }}>
+              {loadConfigError}
+            </div>
+          )}
           <div className="estimator-step-container">
             {currentStep === 5 && isCalculating && (
               <div className="selected-summary" style={{ marginBottom: 16 }}>

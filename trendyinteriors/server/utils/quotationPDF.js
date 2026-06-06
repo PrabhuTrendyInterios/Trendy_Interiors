@@ -187,10 +187,17 @@ const drawSelectedItemsSection = (doc, lineItems, roomsObject, currentY) => {
     doc.font("Helvetica").fontSize(7.5).fillColor(COLORS.muted);
     
     let detailText = "";
-    if (item.roomId === "extra-addons" && Array.isArray(item.addons)) {
+    if ((item.roomId === "global-addons" || item.roomId === "extra-addons") && Array.isArray(item.addons)) {
       detailText = `Add-ons: ${item.addons.map(titleCase).join(", ")}`;
     } else if (safeNumber(item.areaSqFt) > 0) {
-      detailText = `Area: ${safeNumber(item.areaSqFt)} sq.ft | Design: ${item.layout || 'Standard'} | Rate: ${formatCurrency(item.ratePerSqFt)}/sq.ft`;
+      const baseCost = safeNumber(item.baseCost, safeNumber(item.areaSqFt) * safeNumber(item.ratePerSqFt));
+      detailText = `Area: ${safeNumber(item.areaSqFt)} sq.ft | Base: ${formatCurrency(baseCost)}`;
+      if (safeNumber(item.layoutCost) > 0) {
+        detailText += ` | Layout: ${formatCurrency(item.layoutCost)}`;
+      }
+      if (safeNumber(item.addonsCost) > 0) {
+        detailText += ` | Add-ons: ${formatCurrency(item.addonsCost)}`;
+      }
     }
     
     if (detailText) {
@@ -236,7 +243,6 @@ const generateQuotationPDF = (estimator, res) => {
   const {
     quoteSummary = {},
     customerInfo = {},
-    budgetPlan = "standard",
     rooms,
   } = estimator;
 
@@ -290,10 +296,6 @@ const generateQuotationPDF = (estimator, res) => {
     { width: 370 }
   );
 
-  doc.roundedRect(455, y + 22, 75, 24, 12).fillAndStroke(COLORS.lightGold, COLORS.gold);
-  doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.navy);
-  txt(doc, titleCase(budgetPlan), 455, y + 30, { width: 75, align: "center" });
-
   y = 225;
 
   const colW = 247;
@@ -307,7 +309,7 @@ const generateQuotationPDF = (estimator, res) => {
 
   sectionTitle(doc, "Project Details", 326, y + 16);
   labelValue(doc, "Location", customerInfo.location, 326, y + 45, 190);
-  labelValue(doc, "Selected Plan", titleCase(budgetPlan), 326, y + 70, 190);
+  labelValue(doc, "Quote Type", "Custom Interior Estimate", 326, y + 70, 190);
   labelValue(doc, "Quote Validity", "30 days from issue date", 326, y + 95, 190);
 
   y = 370;
@@ -349,11 +351,18 @@ const generateQuotationPDF = (estimator, res) => {
     let title = item.label || "Item";
     let sub = "";
 
-    if (item.roomId === "extra-addons" && Array.isArray(item.addons)) {
+    if ((item.roomId === "global-addons" || item.roomId === "extra-addons") && Array.isArray(item.addons)) {
       title = "Extra Add-ons";
       sub = item.addons.map(titleCase).join(", ");
     } else if (safeNumber(item.areaSqFt) > 0) {
-      sub = `${safeNumber(item.areaSqFt)} sq.ft x ${formatCurrency(item.ratePerSqFt)}/sq.ft`;
+      const baseCost = safeNumber(item.baseCost, safeNumber(item.areaSqFt) * safeNumber(item.ratePerSqFt));
+      sub = `${safeNumber(item.areaSqFt)} sq.ft x ${formatCurrency(item.ratePerSqFt)}/sq.ft = ${formatCurrency(baseCost)}`;
+      if (safeNumber(item.layoutCost) > 0) {
+        sub += ` + Layout ${formatCurrency(item.layoutCost)}`;
+      }
+      if (safeNumber(item.addonsCost) > 0) {
+        sub += ` + Add-ons ${formatCurrency(item.addonsCost)}`;
+      }
     }
 
     doc.font("Helvetica-Bold").fontSize(8.5).fillColor(COLORS.text);

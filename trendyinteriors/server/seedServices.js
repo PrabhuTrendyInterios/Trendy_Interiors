@@ -4,10 +4,30 @@ const Service = require('./models/Service');
 const seedServices = async () => {
     try {
         // Connect to MongoDB
-        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/trendyinteriors', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
+        const uri = process.env.MONGODB_URI;
+        const localUri = process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/trendydev';
+        const fallbackToLocal = process.env.MONGODB_FALLBACK_LOCAL === 'true';
+
+        try {
+          if (uri) {
+            await mongoose.connect(uri, {
+              useNewUrlParser: true,
+              useUnifiedTopology: true,
+            });
+          } else {
+            throw new Error('No MongoDB URI configured');
+          }
+        } catch (error) {
+          if (fallbackToLocal) {
+            console.log('Attempting fallback to local MongoDB at', localUri);
+            await mongoose.connect(localUri, {
+              useNewUrlParser: true,
+              useUnifiedTopology: true,
+            });
+          } else {
+            throw error;
+          }
+        }
 
         console.log('Connected to MongoDB');
 

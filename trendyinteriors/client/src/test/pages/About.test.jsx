@@ -8,8 +8,9 @@ const About = require('../../pages/About').default;
 describe('client/pages/About', () => {
   beforeEach(() => {
     global.fetch = jest.fn((url) => {
-      if (url.includes('/api/team-members')) return Promise.resolve({ json: async () => ({ success: true, data: [] }) });
-      if (url.includes('/api/designs')) return Promise.resolve({ json: async () => ({ success: true, data: [] }) });
+      const okResponse = (data) => Promise.resolve({ ok: true, json: async () => data });
+      if (url.includes('/api/team-members')) return okResponse({ success: true, data: [] });
+      if (url.includes('/api/designs')) return okResponse({ success: true, data: [] });
       return Promise.reject(new Error('unexpected'));
     });
   });

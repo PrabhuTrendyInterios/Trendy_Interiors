@@ -42,9 +42,38 @@ const expertiseData = [
   }
 ];
 
+const connectDB = async () => {
+  const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+  const localUri = process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/trendydev';
+  const fallbackToLocal = process.env.MONGODB_FALLBACK_LOCAL === 'true';
+
+  try {
+    if (!uri) {
+      throw new Error('No MongoDB URI configured. Set MONGO_URI or MONGODB_URI in your environment.');
+    }
+    const conn = await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log(`MongoDB connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    if (fallbackToLocal) {
+      console.log('Attempting fallback to local MongoDB at', localUri);
+      const conn = await mongoose.connect(localUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log(`Fallback MongoDB connected: ${conn.connection.host}`);
+    } else {
+      throw error;
+    }
+  }
+};
+
 const seedExpertise = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await connectDB();
     console.log('Connected to MongoDB');
 
     // Clear existing expertise

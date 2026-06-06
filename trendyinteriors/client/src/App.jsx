@@ -1,5 +1,5 @@
-import React from 'react'; // triggering refresh
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -13,20 +13,30 @@ import BuyOnline from './pages/BuyOnline';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import AdminDashboard from './pages/admin/AdminDashboard';
+import CmsLayout from './pages/admin/CmsLayout';
+import DashboardHome from './pages/admin/pages/DashboardHome';
+import ProjectsPage from './pages/admin/pages/ProjectsPage';
+import TeamMembersPage from './pages/admin/pages/TeamMembersPage';
+import RoomsPage from './pages/admin/pages/RoomsPage';
+import GlobalAddonsPage from './pages/admin/pages/GlobalAddonsPage';
+import SettingsPage from './pages/admin/pages/SettingsPage';
 import AdminRoute from './components/AdminRoute';
 import Estimator from './pages/Estimator';
 import './App.css';
 
 const Layout = () => {
   const location = useLocation();
-  // Hide footer on profile and auth pages
-  const showFooter = !['/login', '/forgot-password', '/reset-password'].some(path => location.pathname.startsWith(path));
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const showFooter =
+    !isAdminRoute &&
+    !['/login', '/forgot-password', '/reset-password'].some((path) =>
+      location.pathname.startsWith(path)
+    );
 
   return (
     <div className="app-wrapper">
-      <Header />
-      <main className="main-content">
+      {!isAdminRoute && <Header />}
+      <main className={`main-content ${isAdminRoute ? 'main-content-admin' : ''}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/abouts" element={<About />} />
@@ -37,16 +47,20 @@ const Layout = () => {
           <Route path="/buy-online" element={<BuyOnline />} />
           <Route path="/estimator" element={<Estimator />} />
 
-          {/* Auth Routes - Admin Only Login */}
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* Admin Routes - Protected */}
           <Route element={<AdminRoute />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/projects" element={<Projects />} />
+            <Route path="/admin" element={<CmsLayout />}>
+              <Route index element={<DashboardHome />} />
+              <Route path="dashboard" element={<Navigate to="/admin" replace />} />
+              <Route path="projects" element={<ProjectsPage />} />
+              <Route path="team" element={<TeamMembersPage />} />
+              <Route path="rooms" element={<RoomsPage />} />
+              <Route path="global-addons" element={<GlobalAddonsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
           </Route>
         </Routes>
       </main>

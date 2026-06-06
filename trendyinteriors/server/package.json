@@ -11,7 +11,11 @@
     "test:ci": "jest --coverage --ci",
     "seed:categories": "node seedCategories.js",
     "seed:expertise": "node seedExpertise.js",
-    "seed:services": "node seedServices.js"
+    "seed:services": "node seedServices.js",
+    "seed:rooms": "node seedRooms.js",
+    "seed:global-addons": "node seedGlobalAddons.js",
+    "seed:estimator": "node seedEstimator.js",
+    "migrate:estimator": "node scripts/migrateEstimatorData.js"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",

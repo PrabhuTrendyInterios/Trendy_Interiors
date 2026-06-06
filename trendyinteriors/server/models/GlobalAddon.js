@@ -19,11 +19,12 @@ const globalAddonSchema = new mongoose.Schema(
       type: String,
       trim: true,
       maxlength: 300,
+      default: '',
     },
-    applicableRooms: {
-      type: [String],
-      enum: ['Kitchen', 'Bedroom', 'Hall', 'Pooja Room'],
-      default: ['Hall'],
+    imageUrl: {
+      type: String,
+      trim: true,
+      default: '',
     },
     active: {
       type: Boolean,

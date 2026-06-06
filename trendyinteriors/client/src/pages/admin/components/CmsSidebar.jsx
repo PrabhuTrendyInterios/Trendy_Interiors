@@ -1,0 +1,109 @@
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import {
+  FaTachometerAlt,
+  FaProjectDiagram,
+  FaUsers,
+  FaDoorOpen,
+  FaPuzzlePiece,
+  FaCog,
+  FaChevronLeft,
+  FaChevronRight,
+  FaExternalLinkAlt,
+} from 'react-icons/fa';
+import './CmsSidebar.css';
+
+const navItems = [
+  { to: '/admin', end: true, label: 'Dashboard', icon: FaTachometerAlt },
+  { to: '/admin/projects', label: 'Projects', icon: FaProjectDiagram },
+  { to: '/admin/team', label: 'Team Members', icon: FaUsers },
+];
+
+const estimatorItems = [
+  { to: '/admin/rooms', label: 'Rooms', icon: FaDoorOpen },
+  { to: '/admin/global-addons', label: 'Global Addons', icon: FaPuzzlePiece },
+];
+
+const CmsSidebar = ({ collapsed, mobileOpen, onToggle, onMobileClose }) => {
+  return (
+    <aside className={`cms-sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
+      <div className="cms-sidebar-brand">
+        <img src="/images/logo.png" alt="Trendy Interios" className="cms-sidebar-logo" />
+        {!collapsed && (
+          <div className="cms-sidebar-brand-text">
+            <span className="cms-brand-name">
+              Trendy <span className="cms-brand-accent">Interios</span>
+            </span>
+            <span className="cms-brand-tag">Content Manager</span>
+          </div>
+        )}
+      </div>
+
+      <nav className="cms-sidebar-nav">
+        <div className="cms-nav-group">
+          {!collapsed && <span className="cms-nav-label">Main</span>}
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) => `cms-nav-link ${isActive ? 'active' : ''}`}
+                title={item.label}
+                onClick={onMobileClose}
+              >
+                <Icon className="cms-nav-icon" />
+                {!collapsed && <span>{item.label}</span>}
+              </NavLink>
+            );
+          })}
+        </div>
+
+        <div className="cms-nav-group">
+          {!collapsed && <span className="cms-nav-label">Estimator CMS</span>}
+          {estimatorItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => `cms-nav-link ${isActive ? 'active' : ''}`}
+                title={item.label}
+                onClick={onMobileClose}
+              >
+                <Icon className="cms-nav-icon" />
+                {!collapsed && <span>{item.label}</span>}
+              </NavLink>
+            );
+          })}
+        </div>
+
+        <div className="cms-nav-group">
+          {!collapsed && <span className="cms-nav-label">System</span>}
+          <NavLink
+            to="/admin/settings"
+            className={({ isActive }) => `cms-nav-link ${isActive ? 'active' : ''}`}
+            title="Settings"
+            onClick={onMobileClose}
+          >
+            <FaCog className="cms-nav-icon" />
+            {!collapsed && <span>Settings</span>}
+          </NavLink>
+        </div>
+      </nav>
+
+      <div className="cms-sidebar-footer">
+        <a href="/" className="cms-nav-link cms-external-link" target="_blank" rel="noreferrer">
+          <FaExternalLinkAlt className="cms-nav-icon" />
+          {!collapsed && <span>View Website</span>}
+        </a>
+        <button type="button" className="cms-collapse-btn" onClick={onToggle} aria-label="Toggle sidebar">
+          {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
+        </button>
+      </div>
+    </aside>
+  );
+};
+
+export default CmsSidebar;

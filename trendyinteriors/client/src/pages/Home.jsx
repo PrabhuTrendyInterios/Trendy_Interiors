@@ -4,6 +4,7 @@ import { FaHandshake, FaPalette, FaFileInvoiceDollar, FaClipboardCheck, FaTruck,
 import Carousel from '../components/Carousel';
 import PremiumSectionHeader from '../components/PremiumSectionHeader';
 import { useAuth } from '../context/AuthContext';
+import { publicGet, normalizeProjectForDisplay, getProjectCover } from '../utils/publicApi';
 import './Home.css';
 import './PremiumSectionHeader.css';
 import './HomeEnhancements.css';
@@ -11,6 +12,7 @@ import './HomeEnhancements.css';
 const Home = () => {
   const { user } = useAuth();
   const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
   const [testimonials, setTestimonials] = useState([]);
   const [loadingTestimonials, setLoadingTestimonials] = useState(true);
   const [services, setServices] = useState([]);
@@ -60,60 +62,26 @@ const Home = () => {
     },
   ];
 
-  const staticProjects = [
-    {
-      title: 'Luxury Kitchen Interior',
-      description: 'Erode, Tamil Nadu',
-      image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?q=80&w=2068&auto=format&fit=crop',
-    },
-    {
-      title: 'Contemporary Living Room',
-      description: 'Chennai, Tamil Nadu',
-      image: 'https://images.unsplash.com/photo-1600210492493-0946911123ea?q=80&w=1974&auto=format&fit=crop',
-    },
-    {
-      title: 'Master Bedroom Suite',
-      description: 'Coimbatore, Tamil Nadu',
-      image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=2070&auto=format&fit=crop',
-    },
-    {
-      title: 'Wardrobe & Dressing',
-      description: 'Erode, Tamil Nadu',
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=2069&auto=format&fit=crop',
-    },
-    {
-      title: 'TV Unit with Paneling',
-      description: 'Salem, Tamil Nadu',
-      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop',
-    },
-    {
-      title: 'Modern Office Space',
-      description: 'Bangalore, Karnataka',
-      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop',
-    },
-  ];
-
   useEffect(() => {
     const fetchLatestProjects = async () => {
       try {
-        const response = await fetch('https://trendyinteriors-1.onrender.com/api/projects?limit=6');
-        const data = await response.json();
-        if (data.success && data.data.length > 0) {
-          setProjects(data.data);
+        const data = await publicGet('/api/projects?limit=6');
+        if (data.success && Array.isArray(data.data)) {
+          setProjects(data.data.map(normalizeProjectForDisplay));
         } else {
-          // Fallback to static if no projects in DB
-          setProjects(staticProjects);
+          setProjects([]);
         }
       } catch (error) {
         console.error('Error fetching projects:', error);
-        setProjects(staticProjects);
+        setProjects([]);
+      } finally {
+        setLoadingProjects(false);
       }
     };
 
     const fetchApprovedTestimonials = async () => {
       try {
-        const response = await fetch('https://trendyinteriors-1.onrender.com/api/testimonials');
-        const data = await response.json();
+        const data = await publicGet('/api/testimonials');
         if (data.success) {
           setTestimonials(data.data);
         }
@@ -126,12 +94,10 @@ const Home = () => {
 
     const fetchServices = async () => {
       try {
-        const response = await fetch('https://trendyinteriors-1.onrender.com/api/services');
-        const data = await response.json();
+        const data = await publicGet('/api/services');
         if (data.success && data.data.length > 0) {
           setServices(data.data);
         } else {
-          // Fallback to default services if no data in DB
           setServices(defaultServices);
         }
       } catch (error) {
@@ -212,15 +178,25 @@ const Home = () => {
             subtitle="Explore our portfolio of stunning interior transformations"
           />
           <div className="projects-grid">
-            {projects.map((project, index) => (
-              <div key={index} className="project-card">
-                <img src={project.image} alt={project.title} />
-                <h3>
-                  {project.title}
-                  <span className="project-location">{project.description}</span>
-                </h3>
-              </div>
-            ))}
+            {loadingProjects ? (
+              <p className="loading-text" style={{ textAlign: 'center', color: 'var(--color-gold)', gridColumn: '1 / -1' }}>
+                Loading projects...
+              </p>
+            ) : projects.length === 0 ? (
+              <p className="empty-text" style={{ textAlign: 'center', color: 'var(--color-gray)', gridColumn: '1 / -1' }}>
+                No projects available yet.
+              </p>
+            ) : (
+              projects.map((project) => (
+                <div key={project._id || project.title} className="project-card">
+                  <img src={getProjectCover(project)} alt={project.title} />
+                  <h3>
+                    {project.title}
+                    <span className="project-location">{project.description}</span>
+                  </h3>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>

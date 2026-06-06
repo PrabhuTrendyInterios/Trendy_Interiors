@@ -9,8 +9,8 @@ describe('client/pages/Projects', () => {
   beforeEach(() => {
     window.scrollTo = jest.fn();
     global.fetch = jest.fn((url) => {
-      if (url.includes('/api/categories')) return Promise.resolve({ json: async () => ({ success: true, data: [] }) });
-      if (url.includes('/api/projects')) return Promise.resolve({ json: async () => ({ success: true, data: [] }) });
+      const okResponse = (data) => Promise.resolve({ ok: true, json: async () => data });
+      if (url.includes('/api/projects')) return okResponse({ success: true, data: [] });
       return Promise.reject(new Error('unexpected'));
     });
   });

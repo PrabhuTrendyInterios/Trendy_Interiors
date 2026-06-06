@@ -1,49 +1,53 @@
 const mongoose = require('mongoose');
 
 const teamMemberSchema = new mongoose.Schema(
-    {
-        name: {
-            type: String,
-            required: [true, 'Please provide a name'],
-            trim: true,
-            maxlength: 100,
-        },
-        role: {
-            type: String,
-            required: [true, 'Please provide a role'],
-            trim: true,
-            maxlength: 100,
-        },
-        image: {
-            type: String,
-            required: [true, 'Please provide an image URL'],
-            trim: true,
-        },
-        linkedin: {
-            type: String,
-            trim: true,
-        },
-        instagram: {
-            type: String,
-            trim: true,
-        },
-        mobilePhone: {
-            type: String,
-            required: [true, 'Please provide mobile phone number'],
-            trim: true,
-            match: [/^\d{10}$/, 'Mobile phone must be exactly 10 digits'],
-        },
-        twitter: {
-            type: String,
-            trim: true,
-            default: '',
-        },
-        order: {
-            type: Number,
-            default: 0,
-        },
+  {
+    name: {
+      type: String,
+      required: [true, 'Please provide a name'],
+      trim: true,
+      maxlength: 100,
     },
-    { timestamps: true }
+    role: {
+      type: String,
+      required: [true, 'Please provide a role'],
+      trim: true,
+      maxlength: 100,
+    },
+    contact: {
+      type: String,
+      required: [true, 'Please provide contact information'],
+      trim: true,
+      maxlength: 100,
+    },
+    imageUrl: {
+      type: String,
+      required: [true, 'Please provide an image URL'],
+      trim: true,
+    },
+    displayOrder: {
+      type: Number,
+      default: 0,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'inactive'],
+      default: 'active',
+    },
+    linkedin: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    instagram: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+  },
+  { timestamps: true }
 );
+
+teamMemberSchema.index({ status: 1, displayOrder: 1 });
 
 module.exports = mongoose.model('TeamMember', teamMemberSchema);

@@ -5,6 +5,14 @@ jest.mock('../../models/Estimator', () => ({
   findById: jest.fn(),
 }));
 
+jest.mock('../../models/Room', () => ({
+  find: jest.fn(),
+}));
+
+jest.mock('../../models/GlobalAddon', () => ({
+  find: jest.fn(),
+}));
+
 jest.mock('../../middleware/authMiddleware', () => ({
   protect: jest.fn((req, _res, next) => {
     req.user = { role: 'admin', id: 'u1' };
@@ -24,7 +32,19 @@ jest.mock('../../utils/quotationPDF', () => ({
 const express = require('express');
 const request = require('supertest');
 const Estimator = require('../../models/Estimator');
+const Room = require('../../models/Room');
+const GlobalAddon = require('../../models/GlobalAddon');
 const routes = require('../../routes/estimators');
+
+const mockRoomsCatalog = [
+  {
+    name: 'Bedroom',
+    status: 'active',
+    pricePerSqFt: 1000,
+    layouts: [],
+    addons: [],
+  },
+];
 
 describe('server/routes/estimators', () => {
   const app = express();
@@ -37,13 +57,18 @@ describe('server/routes/estimators', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Room.find.mockReturnValue({
+      sort: jest.fn().mockResolvedValue(mockRoomsCatalog),
+    });
+    GlobalAddon.find.mockReturnValue({
+      sort: jest.fn().mockResolvedValue([]),
+    });
   });
 
   describe('POST /api/estimators/calculate', () => {
     test('returns quote preview with valid data', async () => {
       const payload = {
         rooms: { Bedroom: 1 },
-        budgetPlan: 'premium',
         selectedRoomForDimensions: 'Bedroom-1',
         roomDimensionsByRoom: {
           'Bedroom-1': { length: 10, width: 10, height: 9 },
@@ -57,40 +82,8 @@ describe('server/routes/estimators', () => {
       expect(res.body.data.quoteSummary.estimatedAmount).toBeGreaterThan(0);
     });
 
-    test('handles budget plan calculation with various plans', async () => {
-      const plans = ['starter', 'budgetFriendly', 'premium', 'signature'];
-
-      for (const plan of plans) {
-        const res = await request(app).post('/api/estimators/calculate').send({
-          rooms: { Bedroom: 1 },
-          budgetPlan: plan,
-          selectedRoomForDimensions: 'Bedroom-1',
-          roomDimensionsByRoom: {
-            'Bedroom-1': { length: 10, width: 10 },
-          },
-        });
-
-        expect(res.body.success).toBe(true);
-      }
-    });
-
-    test('handles invalid budget plan', async () => {
-      const res = await request(app).post('/api/estimators/calculate').send({
-        rooms: { Bedroom: 1 },
-        budgetPlan: 'invalid',
-        selectedRoomForDimensions: 'Bedroom-1',
-        roomDimensionsByRoom: {
-          'Bedroom-1': { length: 10, width: 10 },
-        },
-      });
-
-      expect(res.body).toBeDefined();
-    });
-
     test('handles missing rooms data', async () => {
-      const res = await request(app).post('/api/estimators/calculate').send({
-        budgetPlan: 'premium',
-      });
+      const res = await request(app).post('/api/estimators/calculate').send({});
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
@@ -100,7 +93,6 @@ describe('server/routes/estimators', () => {
       // Send invalid data that would cause calculation error
       const res = await request(app).post('/api/estimators/calculate').send({
         rooms: null,
-        budgetPlan: 'premium',
       });
 
       expect(res.body).toBeDefined();
@@ -111,7 +103,6 @@ describe('server/routes/estimators', () => {
     test('creates submission with valid data', async () => {
       Estimator.create.mockResolvedValue({
         _id: 'e1',
-        budgetPlan: 'premium',
         rooms: { Bedroom: 1 },
         quoteSummary: { estimatedAmount: 2000 },
         createdAt: new Date(),
@@ -119,14 +110,13 @@ describe('server/routes/estimators', () => {
 
       const res = await request(app).post('/api/estimators').send({
         rooms: { Bedroom: 1 },
-        budgetPlan: 'premium',
         selectedRoomForDimensions: 'Bedroom-1',
         roomDimensionsByRoom: {
           'Bedroom-1': {
             length: 10,
             width: 10,
             height: 9,
-            selectedDesignIdea: { id: 'idea-1', planTier: 'premium' },
+            selectedDesignIdea: { layout: 'Sliding Wardrobe', addons: [], room: 'Bedroom' },
           },
         },
         customerInfo: { name: 'Asha', email: 'asha@example.com' },
@@ -138,10 +128,7 @@ describe('server/routes/estimators', () => {
     });
 
     test('handles validation error on submission (missing rooms)', async () => {
-      const res = await request(app).post('/api/estimators').send({
-        budgetPlan: 'premium',
-        // Missing required rooms data
-      });
+      const res = await request(app).post('/api/estimators').send({});
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
@@ -150,7 +137,6 @@ describe('server/routes/estimators', () => {
     test('handles validation error (missing dimensions)', async () => {
       const res = await request(app).post('/api/estimators').send({
         rooms: { Bedroom: 1 },
-        budgetPlan: 'premium',
         // Missing roomDimensionsByRoom
         customerInfo: { name: 'Test', email: 'test@example.com' },
       });
@@ -164,10 +150,9 @@ describe('server/routes/estimators', () => {
 
       const res = await request(app).post('/api/estimators').send({
         rooms: { Bedroom: 1 },
-        budgetPlan: 'premium',
         selectedRoomForDimensions: 'Bedroom-1',
         roomDimensionsByRoom: {
-          'Bedroom-1': { length: 10, width: 10 },
+          'Bedroom-1': { length: 10, width: 10, height: 9 },
         },
         customerInfo: { name: 'Test', email: 'test@example.com' },
       });
@@ -181,8 +166,8 @@ describe('server/routes/estimators', () => {
     test('returns list of estimators', async () => {
       Estimator.find.mockReturnValue({
         sort: jest.fn().mockResolvedValue([
-          { _id: 'e1', budgetPlan: 'premium' },
-          { _id: 'e2', budgetPlan: 'starter' }
+          { _id: 'e1', quoteSummary: { estimatedAmount: 1000 } },
+          { _id: 'e2', quoteSummary: { estimatedAmount: 2000 } },
         ])
       });
 
@@ -216,8 +201,7 @@ describe('server/routes/estimators', () => {
     test('returns single estimator', async () => {
       Estimator.findById.mockResolvedValue({
         _id: 'e1',
-        budgetPlan: 'premium',
-        quoteSummary: { estimatedAmount: 2000 }
+        quoteSummary: { estimatedAmount: 2000 },
       });
 
       const res = await request(app).get('/api/estimators/e1');
