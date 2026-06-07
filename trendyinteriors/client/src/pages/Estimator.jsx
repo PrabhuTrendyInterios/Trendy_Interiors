@@ -164,7 +164,17 @@ const Estimator = () => {
       case 1: // Room Selection
         return Object.keys(formData.rooms).length > 0;
       case 2: // Dimensions
-        return formData.selectedRoomForDimensions && Object.keys(formData.roomDimensionsByRoom).length > 0;
+        {
+          const roomInstances = buildRoomInstances(formData.rooms);
+          return roomInstances.length > 0 && roomInstances.every((room) => {
+            const dimensions = formData.roomDimensionsByRoom[room.id] || {};
+            return (
+              Number(dimensions.length) > 0 &&
+              Number(dimensions.width) > 0 &&
+              Number(dimensions.height) > 0
+            );
+          });
+        }
       case 3: // Extra Add-ons
         return true; // This is optional
       case 4: // Lead Capture
@@ -546,20 +556,18 @@ const Estimator = () => {
               <div className="estimator-actions">
                 {submissionResult ? (
                   <>
-                    <button 
-                      className="btn-secondary" 
+                    <button
+                      className="btn-primary"
                       onClick={() => {
-                        // Download PDF
                         window.open(`${ESTIMATOR_API_URL}/${submissionResult._id}/pdf/download`, '_blank');
                       }}
                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                     >
                       📥 Download PDF
                     </button>
-                    <button 
-                      className="btn-secondary" 
+                    <button
+                      className="btn-secondary"
                       onClick={() => {
-                        // Reset form
                         localStorage.removeItem(ESTIMATOR_DRAFT_KEY);
                         window.location.reload();
                       }}

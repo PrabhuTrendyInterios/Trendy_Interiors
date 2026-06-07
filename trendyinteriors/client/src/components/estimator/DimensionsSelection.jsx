@@ -756,7 +756,7 @@ const DimensionsSelection = ({
           type="button"
           className="btn-primary"
           onClick={onNext}
-          disabled={(!selectedRoomDimensions.length || !selectedRoomDimensions.width || !selectedRoomDimensions.height) && !isStepCompleted}
+          disabled={completedRoomCount < roomEntries.length}
         >
           Next
         </button>
