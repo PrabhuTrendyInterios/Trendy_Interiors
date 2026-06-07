@@ -1,10 +1,21 @@
 jest.mock('axios', () => ({ post: jest.fn() }));
 jest.mock('pdf-parse', () => jest.fn());
 jest.mock('../../utils/mail', () => ({ sendAdminEmail: jest.fn() }));
+jest.mock('../../services/chatbotContextService', () => jest.fn());
+jest.mock('../../services/chatbotApiService', () => ({
+  fetchChatbotConfig: jest.fn(),
+  fetchChatbotContextData: jest.fn(),
+}));
+jest.mock('../../models/Settings', () => ({
+  findOne: jest.fn(),
+}));
 
 const axios = require('axios');
 const pdfParse = require('pdf-parse');
 const { sendAdminEmail } = require('../../utils/mail');
+const buildChatbotContext = require('../../services/chatbotContextService');
+const { fetchChatbotConfig, fetchChatbotContextData } = require('../../services/chatbotApiService');
+const Settings = require('../../models/Settings');
 const { createMockRes } = require('../helpers/mockExpress');
 const { sendMessage } = require('../../controllers/chatbotController');
 
@@ -12,6 +23,34 @@ describe('server/controllers/chatbotController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.GROQ_API_KEY = 'groq-key';
+    
+    // Mock API service responses
+    fetchChatbotConfig.mockResolvedValue({
+      enabled: true,
+      creativeMode: true,
+      model: 'llama-3.1-8b-instant',
+      temperature: 0.7,
+      maxTokens: 256,
+      meetingEmailTo: 'admin@test.com',
+      allowFileUpload: true,
+      maxFileSize: 10 * 1024 * 1024,
+      cacheContextTTL: 300,
+    });
+
+    fetchChatbotContextData.mockResolvedValue({
+      rooms: [],
+      addons: [],
+      projects: [],
+      team: []
+    });
+
+    // Mock Settings model
+    Settings.findOne.mockResolvedValue({
+      companyName: 'TrendyInterios',
+      contactPhone: 'Contact us for details',
+      contactEmail: 'info@trendyinterios.com',
+      contactAddress: 'Erode, Tamil Nadu'
+    });
   });
 
   test('returns 400 when message and attachment are both missing', async () => {

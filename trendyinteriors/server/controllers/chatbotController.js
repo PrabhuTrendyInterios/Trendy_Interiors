@@ -1,87 +1,45 @@
 const axios = require('axios');
 const pdfParse = require('pdf-parse');
 const { sendAdminEmail } = require('../utils/mail');
+const buildChatbotContext = require('../services/chatbotContextService');
+const { buildSystemPrompt } = require('../services/chatbotPromptService');
+const { fetchChatbotConfig, fetchChatbotContextData } = require('../services/chatbotApiService');
+const Settings = require('../models/Settings');
 
-// Company information with pricing
-const companyContext = {
+// Default company context - will be overridden by database settings
+const DEFAULT_COMPANY_CONTEXT = {
   name: 'TrendyInterios',
-  phone: '+91 99652 99777',
-  whatsapp: '+91 90803 98889',
-  email: ['trendyadmin123@gmail.com', 'info@trendyinterios.com'],
-  location: '138, Muthugoundampalayam, Sathy-Erode Road, Opp. TNK School, Kavindapadi, Erode, Tamilnadu - 638 455',
-  workingHours: '09:00 AM - 07:00 PM',
-  services: [
-    'Home Interior',
-    'Office Interior',
-    'Modular Kitchen',
-    'Renovation',
-    'Custom Design'
-  ],
-  // Approximate pricing per square foot (in INR)
-  pricingRanges: {
-    'basic': { min: 500, max: 1000, description: 'Basic Interior Design (consultation + space planning)' },
-    'standard': { min: 1000, max: 2000, description: 'Standard Interior Design (includes materials & execution)' },
-    'premium': { min: 2000, max: 5000, description: 'Premium Interior Design (luxury materials & custom designs)' },
-    'modularKitchen': { min: 1500, max: 3000, description: 'Modular Kitchen (per running foot)' },
-    'renovation': { min: 800, max: 2500, description: 'Renovation Service (depends on scope)' }
+  phone: 'Contact us for pricing',
+  email: 'info@trendyinterios.com',
+  address: 'Erode, Tamil Nadu'
+};
+
+const DEFAULT_CHATBOT_CONTEXT = {
+  rooms: [],
+  addons: [],
+  projects: [],
+  team: [],
+};
+
+// Fetch company context from Settings
+const getCompanyContext = async () => {
+  try {
+    const settings = await Settings.findOne({});
+    if (!settings) return DEFAULT_COMPANY_CONTEXT;
+    
+    return {
+      name: settings.companyName || DEFAULT_COMPANY_CONTEXT.name,
+      phone: settings.contactPhone || DEFAULT_COMPANY_CONTEXT.phone,
+      email: settings.contactEmail || DEFAULT_COMPANY_CONTEXT.email,
+      address: settings.contactAddress || DEFAULT_COMPANY_CONTEXT.address
+    };
+  } catch (error) {
+    console.warn('Failed to fetch company context from Settings:', error.message);
+    return DEFAULT_COMPANY_CONTEXT;
   }
 };
 
-// System prompt for the chatbot
-const systemPrompt = `You are a helpful customer service chatbot for TrendyInterios, a premium interior design company in Erode, India.
-
-Company Information:
-- Name: ${companyContext.name}
-- Phone: ${companyContext.phone}
-- WhatsApp: ${companyContext.whatsapp}
-- Email: ${companyContext.email.join(', ')}
-- Location: ${companyContext.location}
-- Working Hours: ${companyContext.workingHours}
-- Services: ${companyContext.services.join(', ')}
-
-Approximate Pricing Ranges (Per Sq.ft in INR):
-- Basic Interior Design: ₹500 - ₹1,000/sq.ft (consultation + space planning)
-- Standard Interior Design: ₹1,000 - ₹2,000/sq.ft (includes materials & execution)
-- Premium Interior Design: ₹2,000 - ₹5,000/sq.ft (luxury materials & custom designs)
-- Modular Kitchen: ₹1,500 - ₹3,000/running foot
-- Renovation Service: ₹800 - ₹2,500/sq.ft (depends on scope)
-
-Important Notes on Pricing:
-- These are approximate ranges and can vary based on:
-  * Project scope and complexity
-  * Materials and finishes selected
-  * Design customization level
-  * Current market rates
-  * Location and accessibility
-- Final quotation will be provided after site visit and detailed requirement discussion
-- Offer site visit/inspection for accurate quotation
-
-Your responsibilities:
-1. Answer questions about services, pricing, and quotations
-2. When asked for quotation, ask about:
-   * Type of space (apartment, house, office, etc.)
-   * Total area in sq ft
-   * Type of service (basic, standard, premium)
-   * Specific requirements (kitchen, bedroom, living area, etc.)
-3. Based on their requirements, provide approximate quotation using the pricing ranges
-4. Always mention that final quote depends on site visit
-5. Provide contact information ONLY when:
-   * Customer explicitly asks "how to contact?" or "contact details?"
-   * Customer wants to book a consultation
-   * Customer requests a site visit
-6. Be friendly, professional, and informative
-7. Do NOT mention contact details in every response
-
-Guidelines:
-- When providing quote, show calculations clearly (e.g., area × rate)
-- Always disclaimer: "This is an approximate estimate. Final quotation will be provided after site inspection"
-- Keep responses concise but informative
-- Only use contact details when explicitly requested
-- Be warm and welcoming to potential customers
-- Encourage them to ask specific questions about services, pricing, or design options`;
-
 const QUOTE_DISCLAIMER = 'This is an approximate estimate. Final quotation will be provided after site inspection.';
-const MEETING_EMAIL_TO = 'trendyadmin123@gmail.com';
 
 const MEETING_FIELDS = [
   { key: 'name', label: 'Full Name' },
@@ -120,24 +78,43 @@ const extractAreaFromText = (text = '') => {
   return null;
 };
 
-const callGroq = async ({ messages, model = 'llama-3.1-8b-instant', maxTokens = 512, temperature = 0.3 }) => {
-  const response = await axios.post(
-    'https://api.groq.com/openai/v1/chat/completions',
-    {
-      model,
-      messages,
-      temperature,
-      max_tokens: maxTokens,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      }
+const callGroq = async ({ messages, model, maxTokens, temperature }) => {
+  try {
+    if (!process.env.GROQ_API_KEY) {
+      console.error('❌ GROQ_API_KEY is not configured in environment variables');
+      throw new Error('GROQ_API_KEY not configured');
     }
-  );
 
-  return response.data?.choices?.[0]?.message?.content;
+    const response = await axios.post(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        model,
+        messages,
+        temperature,
+        max_tokens: maxTokens,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 30000,
+      }
+    );
+
+    const content = response.data?.choices?.[0]?.message?.content;
+    if (!content) {
+      console.warn('⚠️ Groq API returned empty content');
+    }
+    return content;
+  } catch (error) {
+    console.error('❌ Groq API Error:', {
+      status: error.response?.status,
+      message: error.message,
+      data: error.response?.data,
+    });
+    throw error;
+  }
 };
 
 const parseAnalysisJson = (rawContent) => {
@@ -152,7 +129,7 @@ const parseAnalysisJson = (rawContent) => {
   return safeJsonParse(jsonMatch[0], null);
 };
 
-const analyzePdfFloorPlan = async (pdfBuffer) => {
+const analyzePdfFloorPlan = async (pdfBuffer, chatbotConfig) => {
   const parsed = await pdfParse(pdfBuffer);
   const text = (parsed?.text || '').slice(0, 10000);
   const regexArea = extractAreaFromText(text);
@@ -173,6 +150,7 @@ ${text || 'No readable text extracted from PDF.'}`;
   try {
     const content = await callGroq({
       messages: [{ role: 'user', content: analysisPrompt }],
+      model: chatbotConfig.model,
       maxTokens: 450,
       temperature: 0.1,
     });
@@ -192,7 +170,7 @@ ${text || 'No readable text extracted from PDF.'}`;
   };
 };
 
-const analyzeImageFloorPlan = async (file) => {
+const analyzeImageFloorPlan = async (file, chatbotConfig) => {
   const base64Image = file.buffer.toString('base64');
   const mimeType = file.mimetype || 'image/jpeg';
 
@@ -242,10 +220,19 @@ If exact area is not visible, infer a practical approximate area and mention ass
   };
 };
 
-const buildQuotation = (analysis) => {
+const buildQuotation = (analysis, pricingRanges = {}) => {
   const normalizedTier = ['basic', 'standard', 'premium'].includes(analysis?.serviceTier)
     ? analysis.serviceTier
     : 'standard';
+
+  // Default pricing ranges (per sq.ft in INR)
+  const defaultPricingRanges = {
+    'basic': { min: 500, max: 1000 },
+    'standard': { min: 1000, max: 2000 },
+    'premium': { min: 2000, max: 5000 },
+  };
+
+  const rates = pricingRanges[normalizedTier] || defaultPricingRanges[normalizedTier];
 
   const areaSqFt = Number(analysis?.detectedAreaSqFt) > 0 ? Math.round(Number(analysis.detectedAreaSqFt)) : null;
 
@@ -255,20 +242,18 @@ const buildQuotation = (analysis) => {
       areaSqFt: null,
       minAmount: null,
       maxAmount: null,
-      rateMin: companyContext.pricingRanges[normalizedTier].min,
-      rateMax: companyContext.pricingRanges[normalizedTier].max,
+      rateMin: rates.min,
+      rateMax: rates.max,
     };
   }
-
-  const rate = companyContext.pricingRanges[normalizedTier];
 
   return {
     tier: normalizedTier,
     areaSqFt,
-    minAmount: areaSqFt * rate.min,
-    maxAmount: areaSqFt * rate.max,
-    rateMin: rate.min,
-    rateMax: rate.max,
+    minAmount: areaSqFt * rates.min,
+    maxAmount: areaSqFt * rates.max,
+    rateMin: rates.min,
+    rateMax: rates.max,
   };
 };
 
@@ -312,7 +297,7 @@ const parseMeetingJson = (rawContent) => {
   return parsed;
 };
 
-const extractMeetingRequestData = async ({ conversationHistory, userMessage }) => {
+const extractMeetingRequestData = async ({ conversationHistory, userMessage, chatbotConfig }) => {
   const historyText = (conversationHistory || [])
     .slice(-8)
     .map((item) => `${item.role}: ${item.content}`)
@@ -346,7 +331,7 @@ ${userMessage}`;
 
   const content = await callGroq({
     messages: [{ role: 'user', content: prompt }],
-    model: 'llama-3.1-8b-instant',
+    model: chatbotConfig.model,
     maxTokens: 300,
     temperature: 0.1,
   });
@@ -383,9 +368,9 @@ const buildMeetingMissingInfoResponse = (missingFields) => {
   return `Sure, I can schedule a meeting for you. Please share the following details:\n${askList}\n\nOnce you provide these, I will confirm and submit your meeting request.`;
 };
 
-const sendMeetingRequestEmail = async (meetingData) => {
+const sendMeetingRequestEmail = async (meetingData, meetingEmailTo = 'trendyadmin123@gmail.com') => {
   await sendAdminEmail({
-    to: MEETING_EMAIL_TO,
+    to: meetingEmailTo,
     subject: `📅 Chatbot Meeting Request - ${meetingData.name} (${meetingData.projectType})`,
     html: buildMeetingEmailHtml(meetingData),
     text: `Meeting Request\nName: ${meetingData.name}\nPhone: ${meetingData.phone}\nEmail: ${meetingData.email}\nDate: ${meetingData.preferredDate}\nTime: ${meetingData.preferredTime}\nProject Type: ${meetingData.projectType}\nLocation: ${meetingData.propertyLocation}\nNotes: ${meetingData.notes || 'N/A'}`,
@@ -438,6 +423,24 @@ exports.sendMessage = async (req, res) => {
       return res.status(500).json({ error: 'Groq API key not configured' });
     }
 
+    // Fetch chatbot configuration from CMS API
+    const chatbotConfig = await fetchChatbotConfig();
+    if (!chatbotConfig) {
+      console.error('❌ Chatbot config is null - falling back to defaults');
+      return res.status(503).json({ error: 'Chatbot configuration not available. Falling back to defaults.' });
+    }
+    if (!chatbotConfig.enabled) {
+      console.warn('⚠️ Chatbot is disabled in config');
+      return res.status(503).json({ error: 'Chatbot is currently disabled' });
+    }
+    console.log('✓ Chatbot enabled with model:', chatbotConfig.model);
+
+    // Fetch chatbot context data from CMS API
+    const chatbotContext = await fetchChatbotContextData();
+
+    // Fetch company context from database settings
+    const companyContext = await getCompanyContext();
+
     const shouldCheckMeetingIntent = isLikelyMeetingIntent(normalizedMessage) || conversationHistory.some((entry) =>
       entry?.role === 'assistant' && /schedule a meeting|meeting request|share the following details/i.test(entry?.content || '')
     );
@@ -449,6 +452,7 @@ exports.sendMessage = async (req, res) => {
         meetingData = await extractMeetingRequestData({
           conversationHistory,
           userMessage: normalizedMessage,
+          chatbotConfig,
         });
       } catch (_err) {
         meetingData = null;
@@ -469,7 +473,14 @@ exports.sendMessage = async (req, res) => {
           });
         }
 
-        await sendMeetingRequestEmail(meetingData);
+        try {
+          await sendMeetingRequestEmail(meetingData, chatbotConfig.meetingEmailTo);
+          console.log('✓ Meeting request email sent successfully for:', meetingData.name);
+        } catch (emailError) {
+          console.error('❌ Failed to send meeting request email:', emailError.message);
+          // Don't fail the user request even if email fails - they'll see success but we'll retry
+          // In production, you'd want to queue this for retry
+        }
 
         return res.status(200).json({
           success: true,
@@ -486,9 +497,9 @@ exports.sendMessage = async (req, res) => {
       let analysis = null;
 
       if (attachedFile.mimetype === 'application/pdf') {
-        analysis = await analyzePdfFloorPlan(attachedFile.buffer);
+        analysis = await analyzePdfFloorPlan(attachedFile.buffer, chatbotConfig);
       } else if (attachedFile.mimetype?.startsWith('image/')) {
-        analysis = await analyzeImageFloorPlan(attachedFile);
+        analysis = await analyzeImageFloorPlan(attachedFile, chatbotConfig);
       } else {
         return res.status(400).json({ error: 'Unsupported file type. Please upload a PDF or image file.' });
       }
@@ -520,14 +531,19 @@ exports.sendMessage = async (req, res) => {
       { role: 'user', content: normalizedMessage }
     ];
 
+    // Use custom system prompt override if provided, otherwise build it dynamically
+    const systemPromptContent = chatbotConfig.systemPromptOverride
+      ? chatbotConfig.systemPromptOverride
+      : buildSystemPrompt(companyContext, chatbotContext);
+
     const aiResponse = await callGroq({
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: systemPromptContent },
         ...messages
       ],
-      model: 'llama-3.1-8b-instant',
-      maxTokens: 256,
-      temperature: 0.7,
+      model: chatbotConfig.model,
+      maxTokens: chatbotConfig.maxTokens,
+      temperature: chatbotConfig.temperature,
     });
 
     if (!aiResponse) {

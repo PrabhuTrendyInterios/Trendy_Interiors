@@ -1,4 +1,4 @@
-require('dotenv').config({ path: __dirname + '/.env' });
+require('dotenv').config({ path: __dirname + '/.env', override: true });
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -14,6 +14,7 @@ const categoryRoutes = require('./routes/categories');
 const designRoutes = require('./routes/designs');
 const estimatorRoutes = require('./routes/estimators');
 const chatbotRoutes = require('./routes/chatbot');
+const settingsRoutes = require('./routes/settings');
 const cmsRoutes = require('./routes/cms');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -55,6 +56,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/designs', designRoutes);
 app.use('/api/estimators', estimatorRoutes);
+app.use('/api/settings', settingsRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/cms', cmsRoutes);
 

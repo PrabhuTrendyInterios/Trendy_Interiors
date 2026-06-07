@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { FaComments, FaTimes, FaPaperPlane, FaSpinner, FaPaperclip } from 'react-icons/fa';
+import MarkdownText from '../utils/markdownParser';
 import './ChatBot.css';
 
 const ChatBot = () => {
@@ -16,6 +17,7 @@ const ChatBot = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [contactPhone, setContactPhone] = useState('+91 99652 99777');
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -26,13 +28,35 @@ const ChatBot = () => {
     'Contact us'
   ];
 
+  // Fetch company contact info from settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const response = await axios.get(`${baseUrl}/api/settings`);
+        if (response.data?.data?.contactPhone) {
+          setContactPhone(response.data.data.contactPhone);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch settings from API (http://localhost:5000/api/settings):', err.message);
+        // Use default phone number
+      }
+    };
+    fetchSettings();
+  }, []);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Get API URL from environment or use relative URL for flexibility
+  const getApiUrl = () => {
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    return `${baseUrl}/api/chatbot/chat`;
   };
 
   const handleSendMessage = async (e) => {
@@ -61,6 +85,7 @@ const ChatBot = () => {
         }));
 
       let response;
+      const apiUrl = getApiUrl();
 
       if (selectedFile) {
         const formData = new FormData();
@@ -68,9 +93,9 @@ const ChatBot = () => {
         formData.append('conversationHistory', JSON.stringify(conversationHistory));
         formData.append('attachment', selectedFile);
 
-        response = await axios.post('https://trendyinteriors-1.onrender.com/api/chatbot/chat', formData);
+        response = await axios.post(apiUrl, formData);
       } else {
-        response = await axios.post('https://trendyinteriors-1.onrender.com/api/chatbot/chat', {
+        response = await axios.post(apiUrl, {
           message: userMessage.text,
           conversationHistory
         });
@@ -95,7 +120,7 @@ const ChatBot = () => {
       console.error('Chatbot error:', error);
       const errorMessage = {
         id: messages.length + 2,
-        text: error.response?.data?.error || error.response?.data?.message || 'Sorry, I encountered an error. Please try again or contact us directly at +91 99652 99777',
+        text: error.response?.data?.error || error.response?.data?.message || `Sorry, I encountered an error. Please try again or contact us directly at ${contactPhone}`,
         sender: 'bot',
         timestamp: new Date()
       };
@@ -104,7 +129,6 @@ const ChatBot = () => {
       setLoading(false);
     }
   };
-
   const handleFileSelect = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -178,7 +202,7 @@ const ChatBot = () => {
                   {msg.attachmentName && (
                     <div className="message-attachment-chip">📎 {msg.attachmentName}</div>
                   )}
-                  <p>{msg.text}</p>
+                  <MarkdownText>{msg.text}</MarkdownText>
                   <small className="message-time">
                     {msg.timestamp.toLocaleTimeString([], { 
                       hour: '2-digit', 
