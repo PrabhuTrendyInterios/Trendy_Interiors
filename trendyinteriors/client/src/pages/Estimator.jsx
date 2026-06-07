@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { FaDownload } from 'react-icons/fa';
 import RoomSelection from '../components/estimator/RoomSelection';
 import DimensionsSelection from '../components/estimator/DimensionsSelection';
 import ExtraAddons from '../components/estimator/ExtraAddons';
@@ -39,6 +40,7 @@ const Estimator = () => {
   const [completedSteps, setCompletedSteps] = useState(new Set());
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [apiError, setApiError] = useState('');
   const [quoteSummary, setQuoteSummary] = useState(null);
   const [submissionResult, setSubmissionResult] = useState(null);
@@ -108,6 +110,29 @@ const Estimator = () => {
       updateFormData('selectedRoomForDimensions', roomInstances[0].id);
     }
   }, [formData.rooms, formData.selectedRoomForDimensions]);
+
+  useEffect(() => {
+    if (roomsCatalog.length === 0) {
+      return;
+    }
+
+    const availableRooms = new Set(roomsCatalog.map((room) => room.name));
+    const sanitizedRooms = Object.fromEntries(
+      Object.entries(formData.rooms).filter(
+        ([roomName, count]) => availableRooms.has(roomName) && Number(count) > 0,
+      ),
+    );
+
+    const isDifferent =
+      Object.keys(sanitizedRooms).length !== Object.keys(formData.rooms).length ||
+      Object.entries(sanitizedRooms).some(
+        ([roomName, count]) => formData.rooms[roomName] !== count,
+      );
+
+    if (isDifferent) {
+      updateFormData('rooms', sanitizedRooms);
+    }
+  }, [roomsCatalog, formData.rooms]);
 
   useEffect(() => {
     try {
@@ -361,6 +386,54 @@ const Estimator = () => {
     }
   };
 
+  const downloadCurrentQuotePDF = async (estimatorId = null) => {
+    if (isDownloadingPdf) return;
+
+    setApiError('');
+    setIsDownloadingPdf(true);
+
+    try {
+      const requestUrl = estimatorId
+        ? `${ESTIMATOR_API_URL}/${estimatorId}/pdf/download`
+        : `${ESTIMATOR_API_URL}/pdf/download`;
+
+      const requestOptions = estimatorId
+        ? { method: 'GET' }
+        : {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...formData,
+              customerInfo: {
+                name: formData.leadData?.name || '',
+                email: formData.leadData?.email || '',
+                phone: formData.leadData?.phone || '',
+                location: formData.leadData?.location || '',
+              },
+            }),
+          };
+
+      const response = await fetch(requestUrl, requestOptions);
+      if (!response.ok) {
+        throw new Error(await parseApiError(response));
+      }
+
+      const blob = await response.blob();
+      const pdfUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.setAttribute('download', estimatorId ? `Trendy_Interiors_Quotation_${estimatorId}.pdf` : 'Trendy_Interiors_Quotation_Preview.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(pdfUrl);
+    } catch (error) {
+      setApiError(error.message || 'Unable to download PDF.');
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case 1:
@@ -586,12 +659,10 @@ const Estimator = () => {
                   <>
                     <button
                       className="btn-primary"
-                      onClick={() => {
-                        window.open(`${ESTIMATOR_API_URL}/${submissionResult._id}/pdf/download`, '_blank');
-                      }}
+                      onClick={() => downloadCurrentQuotePDF(submissionResult._id)}
                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                     >
-                      📥 Download PDF
+                      <FaDownload /> Download PDF
                     </button>
                     <button
                       className="btn-secondary"

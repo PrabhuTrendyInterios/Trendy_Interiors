@@ -270,4 +270,36 @@ describe('server/routes/estimators', () => {
       expect(res.body.success).toBe(false);
     });
   });
+
+  describe('POST /api/estimators/pdf/download', () => {
+    test('generates preview PDF successfully', async () => {
+      const { generateQuotationPDF } = require('../../utils/quotationPDF');
+      generateQuotationPDF.mockClear();
+      generateQuotationPDF.mockImplementation((estimator, res) => {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.end();
+      });
+
+      const res = await request(app)
+        .post('/api/estimators/pdf/download')
+        .send({
+          rooms: { Bedroom: 1 },
+          selectedRoomForDimensions: 'Bedroom-1',
+          roomDimensionsByRoom: {
+            'Bedroom-1': { length: 10, width: 10, height: 9, selectedDesignIdea: { layout: 'Modern', addons: [], room: 'Bedroom' } },
+          },
+          customerInfo: { name: 'John Doe', email: 'john@example.com', phone: '1234567890' },
+        });
+
+      expect(res.status).toBe(200);
+      expect(generateQuotationPDF).toHaveBeenCalled();
+    }, 10000);
+
+    test('returns 400 when preview data is invalid', async () => {
+      const res = await request(app).post('/api/estimators/pdf/download').send({});
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+  });
 });

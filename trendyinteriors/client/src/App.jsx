@@ -22,6 +22,7 @@ import GlobalAddonsPage from './pages/admin/pages/GlobalAddonsPage';
 import SettingsPage from './pages/admin/pages/SettingsPage';
 import AdminRoute from './components/AdminRoute';
 import Estimator from './pages/Estimator';
+import PopupCard from "./components/PopupCard";
 import './App.css';
 
 const Layout = () => {
@@ -63,6 +64,7 @@ const Layout = () => {
             </Route>
           </Route>
         </Routes>
+        <PopupCard />
       </main>
       {showFooter && <Footer />}
     </div>

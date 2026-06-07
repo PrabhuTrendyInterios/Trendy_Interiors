@@ -147,6 +147,50 @@ router.post("/calculate", async (req, res) => {
   }
 });
 
+router.post("/pdf/download", async (req, res) => {
+  try {
+    const { roomsCatalog, globalAddons } = await loadEstimatorData();
+    const validation = validateEstimatorPayload(req.body, roomsCatalog, { requireCompleteRooms: false });
+
+    if (validation.errors.length > 0) {
+      return res.status(400).json({ success: false, message: "Validation failed", errors: validation.errors });
+    }
+
+    const quoteSummary = calculateEstimate({
+      roomInstances: validation.roomInstances,
+      normalizedDimensions: validation.normalizedDimensions,
+      extraAddons: validation.extraAddons,
+      roomsCatalog,
+      globalAddons,
+    });
+
+    const estimatorPayload = {
+      _id: req.body._id || "draft",
+      rooms: validation.rooms,
+      selectedRoomForDimensions: validation.selectedRoomForDimensions,
+      roomDimensionsByRoom: validation.normalizedDimensions,
+      customerInfo: validation.customerInfo,
+      extraAddons: validation.extraAddons,
+      quoteSummary,
+      budgetPlan: req.body.budgetPlan || "premium",
+    };
+
+    await generateQuotationPDF(estimatorPayload, res, (err) => {
+      if (err) {
+        console.error("❌ PDF generation callback error:", err);
+        if (!res.headersSent) {
+          res.status(500).json({ success: false, message: "Error generating PDF: " + err.message });
+        }
+      }
+    });
+  } catch (error) {
+    console.error("❌ PDF preview download error:", error);
+    if (!res.headersSent) {
+      return res.status(500).json({ success: false, message: "Error generating PDF: " + error.message });
+    }
+  }
+});
+
 router.post("/", async (req, res) => {
   try {
     const { roomsCatalog, globalAddons } = await loadEstimatorData();

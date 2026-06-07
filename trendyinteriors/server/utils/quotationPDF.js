@@ -89,6 +89,13 @@ const fmtDate = (d) => {
   return `${dd}/${mm}/${dt.getFullYear()}`;
 };
 const fmtINR = (n) => "Rs. " + Number(n || 0).toLocaleString("en-IN");
+const cap = (str) => {
+  return String(str)
+    .replace(/[_-]/g, ' ')
+    .split(' ')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+};
 
 // ─ Drawing Helpers ──────────────────────────────────────────────────────────
 function fr(doc, x, y, w, h, c) { doc.save().fillColor(c).rect(x, y, w, h).fill().restore(); }
