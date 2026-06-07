@@ -213,7 +213,7 @@ router.get("/:id", protect, authorize("admin"), async (req, res) => {
   }
 });
 
-// Generate and download quotation as PDF
+// ── Generate & download quotation as PDF ──────────────────────────────────────
 router.get("/:id/pdf/download", async (req, res) => {
   try {
     const estimator = await Estimator.findById(req.params.id);
@@ -222,20 +222,24 @@ router.get("/:id/pdf/download", async (req, res) => {
       return res.status(404).json({ success: false, message: "Estimator not found" });
     }
 
-    // Pass error handler callback to PDF generator
-    generateQuotationPDF(estimator, res, (err) => {
+    // Convert Mongoose document to plain object
+    const plainEstimator = estimator.toObject ? estimator.toObject() : estimator;
+
+    // Generate PDF and send response
+    await generateQuotationPDF(plainEstimator, res, (err) => {
       if (err) {
-        console.error('PDF generation failed:', err);
+        console.error("❌ PDF generation callback error:", err);
         if (!res.headersSent) {
-          res.status(500).json({ success: false, message: 'Error generating PDF' });
+          res.status(500).json({ success: false, message: "Error generating PDF: " + err.message });
         }
       }
     });
   } catch (error) {
+    console.error("❌ PDF generation caught error:", error.message, error.stack);
     if (!res.headersSent) {
-      return res.status(500).json({ success: false, message: error.message });
+      return res.status(500).json({ success: false, message: "Error generating PDF: " + error.message });
     }
-    console.error('PDF route error:', error);
+    console.error("PDF route error:", error);
   }
 });
 
