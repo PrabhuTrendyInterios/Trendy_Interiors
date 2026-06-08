@@ -44,6 +44,7 @@ const Estimator = () => {
   const [apiError, setApiError] = useState('');
   const [quoteSummary, setQuoteSummary] = useState(null);
   const [submissionResult, setSubmissionResult] = useState(null);
+  const [selectedPackageComponents, setSelectedPackageComponents] = useState({}); // roomId -> [componentIds]
   const [formData, setFormData] = useState(() => {
     try {
       const storedDraft = localStorage.getItem(ESTIMATOR_DRAFT_KEY);
@@ -166,7 +167,22 @@ const Estimator = () => {
         }
 
         const result = await response.json();
-        setQuoteSummary(result?.data?.quoteSummary || null);
+        const quote = result?.data?.quoteSummary || null;
+        setQuoteSummary(quote);
+
+        // Initialize selectedPackageComponents based on fetched quote
+        if (quote && Array.isArray(quote.lineItems)) {
+          const initialComponents = {};
+          quote.lineItems.forEach((item) => {
+            if (item.roomId && item.roomId !== 'global-addons' && Array.isArray(item.packageComponents)) {
+              // Select only mandatory components by default
+              initialComponents[item.roomId] = item.packageComponents
+                .filter((comp) => comp.mandatory === true)
+                .map((comp) => comp.id);
+            }
+          });
+          setSelectedPackageComponents(initialComponents);
+        }
       } catch (error) {
         setApiError(error.message || 'Unable to calculate estimate.');
       } finally {
@@ -176,6 +192,18 @@ const Estimator = () => {
 
     calculateQuoteForReview();
   }, [currentStep, formData, quoteSummary]);
+
+  // Local recalculation on component selection - provides instant feedback
+  // This is the ONLY effect that should update quoteSummary when components are selected
+  useEffect(() => {
+    if (currentStep !== 5 || !quoteSummary) {
+      return; // Only recalculate on review step when quote exists
+    }
+
+    // Perform local recalculation immediately when components change
+    const updatedQuote = recalculateQuoteTotals(quoteSummary, selectedPackageComponents);
+    setQuoteSummary(updatedQuote);
+  }, [selectedPackageComponents]);
 
   const handleNextStep = () => {
     // Mark current step as completed
@@ -327,6 +355,77 @@ const Estimator = () => {
         [key]: value,
       },
     }));
+  };
+
+  const togglePackageComponent = (roomId, componentId) => {
+    setSelectedPackageComponents((prev) => {
+      const currentComponents = prev[roomId] || [];
+      const newComponents = currentComponents.includes(componentId)
+        ? currentComponents.filter((id) => id !== componentId)
+        : [...currentComponents, componentId];
+      
+      return {
+        ...prev,
+        [roomId]: newComponents,
+      };
+    });
+    
+    // Note: quoteSummary will be updated immediately by the useEffect that watches selectedPackageComponents
+  };
+
+  // Local recalculation function - updates totals immediately without API call
+  const recalculateQuoteTotals = (quote, selectedComponents) => {
+    if (!quote || !Array.isArray(quote.lineItems)) {
+      return quote;
+    }
+
+    // Create a deep copy to avoid mutating original
+    const updatedQuote = JSON.parse(JSON.stringify(quote));
+    let newGrandTotal = 0;
+
+    // Recalculate each lineItem with packageComponents
+    updatedQuote.lineItems = updatedQuote.lineItems.map((item) => {
+      if (item.roomId === 'global-addons' || item.roomId === 'extra-addons') {
+        // Don't modify add-ons items - they don't have selection logic
+        newGrandTotal += item.estimatedCost || 0;
+        return item;
+      }
+
+      // For room lineItems, recalculate package components total
+      if (item.roomId && Array.isArray(item.packageComponents) && item.packageComponents.length > 0) {
+        const selectedIds = selectedComponents[item.roomId] || [];
+        
+        // Calculate new packageComponentsTotal
+        const newPackageComponentsTotal = item.packageComponents.reduce((sum, component) => {
+          if (!component.id) return sum; // Skip components without IDs
+          
+          // Include if mandatory OR selected
+          const isIncluded = component.mandatory === true || selectedIds.includes(component.id);
+          return isIncluded ? sum + (component.price || 0) : sum;
+        }, 0);
+
+        // Recalculate estimatedCost: baseCost + layoutCost + addonsCost + packageComponentsTotal
+        const newEstimatedCost = (item.baseCost || 0) + (item.layoutCost || 0) + (item.addonsCost || 0) + newPackageComponentsTotal;
+
+        const updatedItem = {
+          ...item,
+          packageComponentsTotal: newPackageComponentsTotal,
+          estimatedCost: newEstimatedCost,
+        };
+
+        newGrandTotal += newEstimatedCost;
+        return updatedItem;
+      } else {
+        // For items without packageComponents, just add the estimated cost
+        newGrandTotal += item.estimatedCost || 0;
+        return item;
+      }
+    });
+
+    // Update the grand total (estimatedAmount)
+    updatedQuote.estimatedAmount = newGrandTotal;
+
+    return updatedQuote;
   };
 
   const parseApiError = async (response) => {
@@ -629,6 +728,73 @@ const Estimator = () => {
                                 <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
                                   Room Add-ons: +₹{item.addonsCost.toLocaleString('en-IN')}
                                 </p>
+                              )}
+                              
+                              {/* Package Components Section */}
+                              {item.roomId && Array.isArray(item.packageComponents) && item.packageComponents.length > 0 ? (
+                                <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', fontWeight: '600', color: 'var(--color-charcoal-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Package Components</p>
+                                  
+                                  {item.packageComponents.map((component) => {
+                                    // Skip components without valid IDs
+                                    if (!component.id) {
+                                      console.warn('[PackageComponents] Component missing ID:', component.name);
+                                      return null;
+                                    }
+                                    
+                                    const isSelected = selectedPackageComponents[item.roomId]?.includes(component.id);
+                                    
+                                    return (
+                                      <div key={component.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.5rem' }}>
+                                        {component.mandatory ? (
+                                          <span style={{ fontSize: '0.9rem', color: 'var(--color-gold-dark)' }}>🔒</span>
+                                        ) : (
+                                          <input
+                                            type="checkbox"
+                                            checked={isSelected || false}
+                                            onChange={() => item.roomId && component.id && togglePackageComponent(item.roomId, component.id)}
+                                            style={{ 
+                                              cursor: 'pointer',
+                                              width: '16px',
+                                              height: '16px'
+                                            }}
+                                          />
+                                        )}
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-charcoal-dark)', fontWeight: '500' }}>
+                                            {component.name}
+                                            {component.mandatory && (
+                                              <span style={{ marginLeft: '0.3rem', fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: '400' }}>
+                                                (Included)
+                                              </span>
+                                            )}
+                                          </p>
+                                          {component.description && (
+                                            <p style={{ margin: '2px 0 0 0', fontSize: '0.65rem', color: 'var(--color-gray)' }}>
+                                              {component.description}
+                                            </p>
+                                          )}
+                                        </div>
+                                        <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                          ₹{(component.price || 0).toLocaleString('en-IN')}
+                                        </p>
+                                      </div>
+                                    );
+                                  })}
+                                  
+                                  {(item.packageComponentsTotal ?? 0) > 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', paddingTop: '0.4rem', borderTop: '1px solid rgba(212, 175, 55, 0.15)' }}>
+                                      <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.8rem' }}>Components Total</p>
+                                      <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '0.8rem' }}>+₹{((item.packageComponentsTotal || 0)).toLocaleString('en-IN')}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                Array.isArray(item.packageComponents) && (
+                                  <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: 'var(--color-gray)', fontStyle: 'italic' }}>
+                                    No package components available
+                                  </p>
+                                )
                               )}
                             </>
                           )}

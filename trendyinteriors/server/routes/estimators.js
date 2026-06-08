@@ -83,11 +83,13 @@ const validateEstimatorPayload = (payload, roomsCatalog = [], options = {}) => {
     const height = toPositiveNumber(dimensions.height);
 
     const selectedDesignIdea = normalizeSelectedDesign(dimensions.selectedDesignIdea, room);
+    const sizeCategory = typeof dimensions.sizeCategory === "string" ? dimensions.sizeCategory.trim() : "";
 
     normalizedDimensions[room.id] = {
       length: length || 0,
       width: width || 0,
       height: height || 0,
+      sizeCategory,
       selectedDesignIdea,
     };
 
@@ -129,13 +131,35 @@ router.post("/calculate", async (req, res) => {
       return res.status(400).json({ success: false, message: "Validation failed", errors: validation.errors });
     }
 
+    const selectedPackageComponents = req.body?.selectedPackageComponents || {};
+
     const quoteSummary = calculateEstimate({
       roomInstances: validation.roomInstances,
       normalizedDimensions: validation.normalizedDimensions,
       extraAddons: validation.extraAddons,
       roomsCatalog,
       globalAddons,
+      selectedPackageComponents,
     });
+
+    // Debug: Log API response structure
+    console.log('[POST /calculate] API Response Structure:');
+    console.log(`  Total Area: ${quoteSummary.totalAreaSqFt} sqft`);
+    console.log(`  Line Items: ${quoteSummary.lineItems.length}`);
+    quoteSummary.lineItems.forEach((item, idx) => {
+      if (item.roomId !== 'global-addons') {
+        console.log(`    [${idx}] ${item.roomName}:`);
+        console.log(`      - Base Cost: ₹${item.baseCost}`);
+        console.log(`      - Package Components: ${item.packageComponents?.length || 0}`);
+        console.log(`      - Package Components Total: ₹${item.packageComponentsTotal}`);
+        console.log(`      - Layout Cost: ₹${item.layoutCost}`);
+        console.log(`      - Addons Cost: ₹${item.addonsCost}`);
+        console.log(`      - Estimated Cost: ₹${item.estimatedCost}`);
+      }
+    });
+    console.log(`  Room Totals: ₹${quoteSummary.roomTotals}`);
+    console.log(`  Global Addons Total: ₹${quoteSummary.globalAddonsTotal}`);
+    console.log(`  Estimated Amount: ₹${quoteSummary.estimatedAmount}`);
 
     return res.status(200).json({
       success: true,
@@ -156,12 +180,28 @@ router.post("/pdf/download", async (req, res) => {
       return res.status(400).json({ success: false, message: "Validation failed", errors: validation.errors });
     }
 
+    const selectedPackageComponents = req.body?.selectedPackageComponents || {};
+
     const quoteSummary = calculateEstimate({
       roomInstances: validation.roomInstances,
       normalizedDimensions: validation.normalizedDimensions,
       extraAddons: validation.extraAddons,
       roomsCatalog,
       globalAddons,
+      selectedPackageComponents,
+    });
+
+    // Debug: Verify packageComponents for PDF
+    console.log('[POST /pdf/download] Generating PDF with quoteSummary:');
+    console.log(`  Total Amount: ₹${quoteSummary.estimatedAmount}`);
+    console.log(`  Rooms: ${quoteSummary.lineItems.filter(item => item.roomId !== 'global-addons').length}`);
+    quoteSummary.lineItems.forEach((item) => {
+      if (item.roomId !== 'global-addons' && item.packageComponents?.length > 0) {
+        console.log(`    - ${item.roomName}: ${item.packageComponents.length} package components included`);
+        item.packageComponents.forEach((comp) => {
+          console.log(`      • ${comp.name}: ₹${comp.price} ${comp.mandatory ? '(mandatory)' : '(optional)'}`);
+        });
+      }
     });
 
     const estimatorPayload = {
@@ -200,12 +240,25 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ success: false, message: "Validation failed", errors: validation.errors });
     }
 
+    const selectedPackageComponents = req.body?.selectedPackageComponents || {};
+
     const quoteSummary = calculateEstimate({
       roomInstances: validation.roomInstances,
       normalizedDimensions: validation.normalizedDimensions,
       extraAddons: validation.extraAddons,
       roomsCatalog,
       globalAddons,
+      selectedPackageComponents,
+    });
+
+    // Debug: Verify packageComponents in response
+    console.log('[POST /estimators] Creating estimator with quoteSummary:');
+    console.log(`  Total Amount: ₹${quoteSummary.estimatedAmount}`);
+    console.log(`  Line Items with packageComponents:`);
+    quoteSummary.lineItems.forEach((item) => {
+      if (item.roomId !== 'global-addons') {
+        console.log(`    - ${item.roomName}: ${item.packageComponents?.length || 0} components (Total: ₹${item.packageComponentsTotal})`);
+      }
     });
 
     const estimator = await Estimator.create({

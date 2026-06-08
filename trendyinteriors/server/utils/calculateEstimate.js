@@ -22,6 +22,102 @@ const getRoomAddonsTotal = (roomDoc, addonNames = []) => {
   }, 0);
 };
 
+const getPackageComponentsTotal = (packageComponents = [], selectedComponentIds = []) => {
+  if (!Array.isArray(packageComponents) || packageComponents.length === 0) return 0;
+
+  // If selectedComponentIds is empty, include all mandatory components and assume optional ones are selected
+  if (selectedComponentIds.length === 0) {
+    return packageComponents.reduce((sum, component) => {
+      return sum + (Number(component.price) || 0);
+    }, 0);
+  }
+
+  // Otherwise, only sum components that are in the selectedComponentIds array
+  return packageComponents.reduce((sum, component) => {
+    const componentId = component._id?.toString() || component.id;
+    if (selectedComponentIds.includes(componentId)) {
+      return sum + (Number(component.price) || 0);
+    }
+    return sum;
+  }, 0);
+};
+
+const getPackageComponentsForDimension = (roomDoc, sizeCategory = '') => {
+  if (!roomDoc?.dimensions || !Array.isArray(roomDoc.dimensions)) {
+    console.warn('[getPackageComponentsForDimension] Room has no dimensions array');
+    return [];
+  }
+  
+  // Debug: Log room info
+  console.log('================================ DEBUG: getPackageComponentsForDimension ================================');
+  console.log('Room:', roomDoc.name || 'UNKNOWN');
+  console.log('Size Category:', sizeCategory);
+  console.log('Dimensions available:', roomDoc.dimensions.length);
+  console.log('Dimensions:', JSON.stringify(
+    roomDoc.dimensions.map(d => ({
+      id: d._id?.toString(),
+      name: d.name,
+      componentCount: d.packageComponents?.length || 0
+    })),
+    null,
+    2
+  ));
+  
+  // Enhanced matching: _id, id, name (case-insensitive)
+  const matchedDimension = roomDoc.dimensions.find((dim) => {
+    const dimIdString = dim._id?.toString();
+    const dimIdField = dim.id;
+    const dimNameNormalized = dim.name?.toLowerCase().trim();
+    const sizeCategoryNormalized = sizeCategory?.toLowerCase().trim();
+    
+    const isMatch = 
+      dimIdString === sizeCategory || 
+      dimIdField === sizeCategory || 
+      dim.name === sizeCategory || 
+      dimNameNormalized === sizeCategoryNormalized;
+    
+    if (isMatch) {
+      console.log(`✓ Matched dimension: name="${dim.name}", id="${dimIdString}", componentCount=${dim.packageComponents?.length || 0}`);
+    }
+    
+    return isMatch;
+  });
+
+  // Debug: Log matched dimension
+  if (!matchedDimension) {
+    console.warn(`✗ No dimension matched for sizeCategory: "${sizeCategory}"`);
+  } else {
+    console.log(`Matched Dimension: ${matchedDimension.name}`);
+    console.log(`Package Components Count: ${matchedDimension.packageComponents?.length || 0}`);
+    if (matchedDimension.packageComponents?.length > 0) {
+      console.log('Package Components:', JSON.stringify(
+        matchedDimension.packageComponents.map(c => ({
+          id: c._id?.toString(),
+          name: c.name,
+          price: c.price,
+          mandatory: c.mandatory
+        })),
+        null,
+        2
+      ));
+    }
+  }
+  console.log('================================ END DEBUG ================================');
+  
+  const packageComponents = matchedDimension?.packageComponents || [];
+  return packageComponents;
+};
+
+const formatPackageComponents = (packageComponents = []) => {
+  return packageComponents.map((component) => ({
+    id: component._id?.toString() || component.id || '',
+    name: component.name || '',
+    description: component.description || '',
+    price: Number(component.price) || 0,
+    mandatory: Boolean(component.mandatory),
+  }));
+};
+
 const resolveGlobalAddon = (globalAddons = [], addonId) =>
   globalAddons.find(
     (addon) =>
@@ -33,7 +129,8 @@ const resolveGlobalAddon = (globalAddons = [], addonId) =>
  * Pricing rules:
  * - Area = Length × Width (height is informational only)
  * - Room Base Cost = Area × Room pricePerSqFt
- * - Room Total = Base Cost + Layout Price + Room Addons Total
+ * - Package Components Total = Sum of selected component prices
+ * - Room Total = Base Cost + Package Components Total + Layout Price + Room Addons Total
  * - Grand Total = Sum of all Room Totals + Global Addons Total
  */
 const calculateEstimate = ({
@@ -42,6 +139,7 @@ const calculateEstimate = ({
   extraAddons = [],
   roomsCatalog = [],
   globalAddons = [],
+  selectedPackageComponents = {}, // Maps roomId -> [componentIds]
 }) => {
   const lineItems = [];
   let totalAreaSqFt = 0;
@@ -57,12 +155,26 @@ const calculateEstimate = ({
     if (areaSqFt <= 0) return;
 
     const selectedDesignIdea = dimensions.selectedDesignIdea || {};
+    const sizeCategory = dimensions.sizeCategory || '';
     const roomDoc = findRoomCatalogEntry(roomsCatalog, room.roomName);
     const ratePerSqFt = Number(roomDoc?.pricePerSqFt) || 0;
     const baseCost = roundMoney(areaSqFt * ratePerSqFt);
     const layoutCost = roundMoney(getLayoutPrice(roomDoc, selectedDesignIdea.layout));
     const addonsCost = roundMoney(getRoomAddonsTotal(roomDoc, selectedDesignIdea.addons));
-    const estimatedCost = roundMoney(baseCost + layoutCost + addonsCost);
+    
+    // Get package components for this dimension
+    const packageComponentsArray = getPackageComponentsForDimension(roomDoc, sizeCategory);
+    const selectedIds = (selectedPackageComponents[room.id] || []);
+    const packageComponentsTotal = roundMoney(getPackageComponentsTotal(packageComponentsArray, selectedIds));
+    
+    // Debug: Log calculation flow
+    console.log(`[calculateEstimate] Room: ${room.roomName}, SizeCategory: ${sizeCategory}`);
+    console.log(`  Package Components Retrieved: ${packageComponentsArray.length}`);
+    console.log(`  Selected Component IDs: ${selectedIds.length}`, selectedIds);
+    console.log(`  Package Components Total: ₹${packageComponentsTotal}`);
+    
+    // New calculation: baseCost + packageComponentsTotal + layoutCost + addonsCost
+    const estimatedCost = roundMoney(baseCost + packageComponentsTotal + layoutCost + addonsCost);
 
     totalAreaSqFt = roundMoney(totalAreaSqFt + areaSqFt);
     roomTotals = roundMoney(roomTotals + estimatedCost);
@@ -81,6 +193,8 @@ const calculateEstimate = ({
       layoutCost,
       addons: selectedDesignIdea.addons || [],
       addonsCost,
+      packageComponents: formatPackageComponents(packageComponentsArray),
+      packageComponentsTotal,
       estimatedCost,
     });
   });
@@ -136,4 +250,7 @@ module.exports = {
   findRoomCatalogEntry,
   getLayoutPrice,
   getRoomAddonsTotal,
+  getPackageComponentsTotal,
+  getPackageComponentsForDimension,
+  formatPackageComponents,
 };

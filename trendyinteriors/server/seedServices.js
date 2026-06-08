@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 const Service = require('./models/Service');
 
 const seedServices = async () => {

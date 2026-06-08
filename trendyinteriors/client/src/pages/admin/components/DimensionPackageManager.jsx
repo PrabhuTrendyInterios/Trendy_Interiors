@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaTimes, FaChevronDown, FaChevronRight } from 'react-icons/fa';
+import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import RoomNestedManager from './RoomNestedManager';
-
-const DIMENSION_FIELDS = [
-  { key: 'name', label: 'Name', required: true, placeholder: 'e.g. Standard' },
-  { key: 'length', label: 'Length (ft)', type: 'number', step: '0.1', min: 0 },
-  { key: 'width', label: 'Width (ft)', type: 'number', step: '0.1', min: 0 },
-  { key: 'height', label: 'Height (ft)', type: 'number', step: '0.1', min: 0 },
-];
 
 const PACKAGE_COMPONENT_FIELDS = [
   { key: 'name', label: 'Name', required: true, fullWidth: true },
@@ -19,17 +12,11 @@ const PACKAGE_COMPONENT_FIELDS = [
 
 const DimensionPackageManager = ({ dimensions, onChange }) => {
   const [expandedDimIndex, setExpandedDimIndex] = useState(null);
-  const [dimensionDraft, setDimensionDraft] = useState(null);
-  const [dimensionEditIndex, setDimensionEditIndex] = useState(null);
   const [dimensionFormOpen, setDimensionFormOpen] = useState(false);
 
   const toggleExpandedDimension = (index) => {
     setExpandedDimIndex(expandedDimIndex === index ? null : index);
     setDimensionFormOpen(false);
-  };
-
-  const handleDimensionChange = (updatedDimensions) => {
-    onChange(updatedDimensions);
   };
 
   const handlePackageComponentsChange = (dimensionIndex, updatedComponents) => {

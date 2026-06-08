@@ -37,14 +37,6 @@ const ADDON_FIELDS = [
   { key: 'price', label: 'Price (₹)', type: 'number', min: 0 },
 ];
 
-const PACKAGE_COMPONENT_FIELDS = [
-  { key: 'name', label: 'Name', required: true, fullWidth: true },
-  { key: 'description', label: 'Description', type: 'textarea', fullWidth: true, rows: 2 },
-  { key: 'price', label: 'Price (₹)', type: 'number', min: 0 },
-  { key: 'mandatory', label: 'Mandatory', type: 'checkbox', fullWidth: false },
-  { key: 'displayOrder', label: 'Display Order', type: 'number', min: 0, fullWidth: false },
-];
-
 export const normalizeRoomFromApi = (room = {}) => ({
   name: room.name || '',
   description: room.description || '',

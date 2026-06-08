@@ -126,6 +126,23 @@ const roomLineItemSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    packageComponents: {
+      type: [
+        {
+          id: String,
+          name: String,
+          description: String,
+          price: Number,
+          mandatory: Boolean,
+        },
+      ],
+      default: [],
+    },
+    packageComponentsTotal: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
     estimatedCost: {
       type: Number,
       required: true,
