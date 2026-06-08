@@ -117,6 +117,34 @@ const DimensionsSelection = ({
 
   const completedRoomCount = roomEntries.filter((room) => roomIsComplete(room.id)).length;
 
+  const isRoomFullyConfigured = (roomId) => {
+    // Check if room has dimensions
+    const dimensions = roomDimensions?.[roomId] || {};
+    const hasDimensions =
+      Number(dimensions.length) > 0 &&
+      Number(dimensions.width) > 0 &&
+      Number(dimensions.height) > 0;
+
+    if (!hasDimensions) return false;
+
+    // Get room info to check if layout is required
+    const roomEntry = roomEntries.find((room) => room.id === roomId);
+    if (!roomEntry) return false;
+
+    const roomOptions = getRoomOptions(roomEntry.roomName, roomsCatalog);
+    
+    // If layout is required, check if it's selected
+    if (roomOptions.showLayout) {
+      const selectedLayout = dimensions.selectedDesignIdea?.layout || '';
+      return selectedLayout !== '';
+    }
+
+    // If layout is not required, room is complete with just dimensions
+    return true;
+  };
+
+  const allRoomsConfigured = roomEntries.length > 0 && roomEntries.every((room) => isRoomFullyConfigured(room.id));
+
   const handleRoomMove = (direction) => {
     if (!roomEntries.length) return;
 
@@ -539,12 +567,7 @@ const DimensionsSelection = ({
           type="button"
           className="btn-primary"
           onClick={onNext}
-          disabled={
-            (!selectedRoomDimensions.length ||
-              !selectedRoomDimensions.width ||
-              !selectedRoomDimensions.height) &&
-            !isStepCompleted
-          }
+          disabled={!allRoomsConfigured || isCalculating}
         >
           Next
         </button>

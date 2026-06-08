@@ -143,23 +143,22 @@ router.post("/calculate", async (req, res) => {
     });
 
     // Debug: Log API response structure
-    console.log('[POST /calculate] API Response Structure:');
+    console.log('\n[POST /calculate] API Response Structure:');
     console.log(`  Total Area: ${quoteSummary.totalAreaSqFt} sqft`);
     console.log(`  Line Items: ${quoteSummary.lineItems.length}`);
     quoteSummary.lineItems.forEach((item, idx) => {
       if (item.roomId !== 'global-addons') {
         console.log(`    [${idx}] ${item.roomName}:`);
-        console.log(`      - Base Cost: ₹${item.baseCost}`);
-        console.log(`      - Package Components: ${item.packageComponents?.length || 0}`);
+        console.log(`      - Package Components Count: ${item.packageComponents?.length || 0}`);
+        if (item.packageComponents?.length > 0) {
+          const compNames = item.packageComponents.map(c => `${c.name}(${c.mandatory ? 'M' : 'O'})`).join(', ');
+          console.log(`      - Components: ${compNames}`);
+        }
         console.log(`      - Package Components Total: ₹${item.packageComponentsTotal}`);
-        console.log(`      - Layout Cost: ₹${item.layoutCost}`);
-        console.log(`      - Addons Cost: ₹${item.addonsCost}`);
         console.log(`      - Estimated Cost: ₹${item.estimatedCost}`);
       }
     });
-    console.log(`  Room Totals: ₹${quoteSummary.roomTotals}`);
-    console.log(`  Global Addons Total: ₹${quoteSummary.globalAddonsTotal}`);
-    console.log(`  Estimated Amount: ₹${quoteSummary.estimatedAmount}`);
+    console.log(`  Estimated Amount: ₹${quoteSummary.estimatedAmount}\n`);
 
     return res.status(200).json({
       success: true,

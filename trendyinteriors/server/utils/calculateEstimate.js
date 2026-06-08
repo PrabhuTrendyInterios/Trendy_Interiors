@@ -25,17 +25,16 @@ const getRoomAddonsTotal = (roomDoc, addonNames = []) => {
 const getPackageComponentsTotal = (packageComponents = [], selectedComponentIds = []) => {
   if (!Array.isArray(packageComponents) || packageComponents.length === 0) return 0;
 
-  // If selectedComponentIds is empty, include all mandatory components and assume optional ones are selected
-  if (selectedComponentIds.length === 0) {
-    return packageComponents.reduce((sum, component) => {
-      return sum + (Number(component.price) || 0);
-    }, 0);
-  }
-
-  // Otherwise, only sum components that are in the selectedComponentIds array
+  // Sum components that are either:
+  // 1. Mandatory (always included), OR
+  // 2. In the selectedComponentIds array (explicitly selected by user)
   return packageComponents.reduce((sum, component) => {
-    const componentId = component._id?.toString() || component.id;
-    if (selectedComponentIds.includes(componentId)) {
+    const componentId = component._id?.toString() || component.id || '';
+    const isMandatory = Boolean(component.mandatory);
+    const isSelected = selectedComponentIds.includes(componentId);
+    
+    // Include if mandatory OR explicitly selected
+    if (isMandatory || isSelected) {
       return sum + (Number(component.price) || 0);
     }
     return sum;
@@ -47,21 +46,6 @@ const getPackageComponentsForDimension = (roomDoc, sizeCategory = '') => {
     console.warn('[getPackageComponentsForDimension] Room has no dimensions array');
     return [];
   }
-  
-  // Debug: Log room info
-  console.log('================================ DEBUG: getPackageComponentsForDimension ================================');
-  console.log('Room:', roomDoc.name || 'UNKNOWN');
-  console.log('Size Category:', sizeCategory);
-  console.log('Dimensions available:', roomDoc.dimensions.length);
-  console.log('Dimensions:', JSON.stringify(
-    roomDoc.dimensions.map(d => ({
-      id: d._id?.toString(),
-      name: d.name,
-      componentCount: d.packageComponents?.length || 0
-    })),
-    null,
-    2
-  ));
   
   // Enhanced matching: _id, id, name (case-insensitive)
   const matchedDimension = roomDoc.dimensions.find((dim) => {
@@ -76,35 +60,17 @@ const getPackageComponentsForDimension = (roomDoc, sizeCategory = '') => {
       dim.name === sizeCategory || 
       dimNameNormalized === sizeCategoryNormalized;
     
-    if (isMatch) {
-      console.log(`✓ Matched dimension: name="${dim.name}", id="${dimIdString}", componentCount=${dim.packageComponents?.length || 0}`);
-    }
-    
     return isMatch;
   });
 
-  // Debug: Log matched dimension
   if (!matchedDimension) {
-    console.warn(`✗ No dimension matched for sizeCategory: "${sizeCategory}"`);
-  } else {
-    console.log(`Matched Dimension: ${matchedDimension.name}`);
-    console.log(`Package Components Count: ${matchedDimension.packageComponents?.length || 0}`);
-    if (matchedDimension.packageComponents?.length > 0) {
-      console.log('Package Components:', JSON.stringify(
-        matchedDimension.packageComponents.map(c => ({
-          id: c._id?.toString(),
-          name: c.name,
-          price: c.price,
-          mandatory: c.mandatory
-        })),
-        null,
-        2
-      ));
-    }
+    console.warn(`[getPackageComponentsForDimension] No dimension matched for sizeCategory: "${sizeCategory}" in room: "${roomDoc.name}"`);
+    return [];
   }
-  console.log('================================ END DEBUG ================================');
   
   const packageComponents = matchedDimension?.packageComponents || [];
+  console.log(`[getPackageComponentsForDimension] Found ${packageComponents.length} components for room "${roomDoc.name}" size "${sizeCategory}"`);
+  
   return packageComponents;
 };
 

@@ -44,7 +44,15 @@ const Estimator = () => {
   const [apiError, setApiError] = useState('');
   const [quoteSummary, setQuoteSummary] = useState(null);
   const [submissionResult, setSubmissionResult] = useState(null);
-  const [selectedPackageComponents, setSelectedPackageComponents] = useState({}); // roomId -> [componentIds]
+  const [selectedPackageComponents, setSelectedPackageComponents] = useState(() => {
+    try {
+      const storedPackageComponents = localStorage.getItem('estimatorSelectedPackageComponents');
+      return storedPackageComponents ? JSON.parse(storedPackageComponents) : {};
+    } catch (error) {
+      console.error('Unable to load package components', error);
+      return {};
+    }
+  }); // roomId -> [componentIds]
   const [formData, setFormData] = useState(() => {
     try {
       const storedDraft = localStorage.getItem(ESTIMATOR_DRAFT_KEY);
@@ -143,6 +151,15 @@ const Estimator = () => {
     }
   }, [formData]);
 
+  // Save selectedPackageComponents to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('estimatorSelectedPackageComponents', JSON.stringify(selectedPackageComponents));
+    } catch (error) {
+      console.error('Unable to save selected package components', error);
+    }
+  }, [selectedPackageComponents]);
+
   // Calculate quote when reaching review step
   useEffect(() => {
     const calculateQuoteForReview = async () => {
@@ -171,14 +188,14 @@ const Estimator = () => {
         setQuoteSummary(quote);
 
         // Initialize selectedPackageComponents based on fetched quote
+        // Only mandatory components are auto-included; optional ones start unselected
         if (quote && Array.isArray(quote.lineItems)) {
           const initialComponents = {};
           quote.lineItems.forEach((item) => {
             if (item.roomId && item.roomId !== 'global-addons' && Array.isArray(item.packageComponents)) {
-              // Select only mandatory components by default
-              initialComponents[item.roomId] = item.packageComponents
-                .filter((comp) => comp.mandatory === true)
-                .map((comp) => comp.id);
+              // Start with empty selection - mandatory components are always included
+              // in the calculation regardless of selection state
+              initialComponents[item.roomId] = [];
             }
           });
           setSelectedPackageComponents(initialComponents);
@@ -203,7 +220,7 @@ const Estimator = () => {
     // Perform local recalculation immediately when components change
     const updatedQuote = recalculateQuoteTotals(quoteSummary, selectedPackageComponents);
     setQuoteSummary(updatedQuote);
-  }, [selectedPackageComponents]);
+  }, [currentStep, quoteSummary, selectedPackageComponents]);
 
   const handleNextStep = () => {
     // Mark current step as completed
@@ -462,6 +479,7 @@ const Estimator = () => {
         },
         body: JSON.stringify({
           ...formData,
+          selectedPackageComponents,
           customerInfo: {
             name: formData.leadData?.name || '',
             email: formData.leadData?.email || '',
@@ -503,6 +521,7 @@ const Estimator = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               ...formData,
+              selectedPackageComponents,
               customerInfo: {
                 name: formData.leadData?.name || '',
                 email: formData.leadData?.email || '',
@@ -749,16 +768,35 @@ const Estimator = () => {
                                         {component.mandatory ? (
                                           <span style={{ fontSize: '0.9rem', color: 'var(--color-gold-dark)' }}>🔒</span>
                                         ) : (
-                                          <input
-                                            type="checkbox"
-                                            checked={isSelected || false}
-                                            onChange={() => item.roomId && component.id && togglePackageComponent(item.roomId, component.id)}
+                                          <button
+                                            onClick={() => item.roomId && component.id && togglePackageComponent(item.roomId, component.id)}
                                             style={{ 
                                               cursor: 'pointer',
-                                              width: '16px',
-                                              height: '16px'
+                                              width: '20px',
+                                              height: '20px',
+                                              minWidth: '20px',
+                                              minHeight: '20px',
+                                              borderRadius: '50%',
+                                              border: `2px solid ${isSelected ? 'var(--color-gold)' : '#ccc'}`,
+                                              backgroundColor: isSelected ? 'var(--color-gold)' : 'white',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              padding: 0,
+                                              transition: 'all 0.3s ease',
+                                              boxShadow: isSelected ? '0 0 0 3px rgba(212, 175, 55, 0.1)' : 'none',
                                             }}
-                                          />
+                                            title={isSelected ? 'Click to deselect' : 'Click to select'}
+                                          >
+                                            {isSelected && (
+                                              <span style={{ 
+                                                fontSize: '12px', 
+                                                color: 'white', 
+                                                fontWeight: 'bold',
+                                                lineHeight: 1
+                                              }}>✓</span>
+                                            )}
+                                          </button>
                                         )}
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                           <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-charcoal-dark)', fontWeight: '500' }}>
@@ -834,6 +872,7 @@ const Estimator = () => {
                       className="btn-secondary"
                       onClick={() => {
                         localStorage.removeItem(ESTIMATOR_DRAFT_KEY);
+                        localStorage.removeItem('estimatorSelectedPackageComponents');
                         window.location.reload();
                       }}
                     >
