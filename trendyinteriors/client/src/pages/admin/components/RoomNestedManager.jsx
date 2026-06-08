@@ -36,6 +36,8 @@ const RoomNestedManager = ({ title, items = [], emptyItem, fields, onChange, ren
     fields.forEach((field) => {
       if (field.type === 'number') {
         payload[field.key] = Number(draft[field.key]) || 0;
+      } else if (field.type === 'checkbox') {
+        payload[field.key] = Boolean(draft[field.key]);
       }
     });
 
@@ -110,6 +112,19 @@ const RoomNestedManager = ({ title, items = [], emptyItem, fields, onChange, ren
                     className="form-textarea"
                     rows={field.rows || 2}
                     placeholder={field.placeholder}
+                  />
+                ) : field.type === 'checkbox' ? (
+                  <input
+                    id={`${title}-${field.key}`}
+                    type="checkbox"
+                    checked={Boolean(draft[field.key])}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        [field.key]: e.target.checked,
+                      })
+                    }
+                    className="form-checkbox"
                   />
                 ) : (
                   <input

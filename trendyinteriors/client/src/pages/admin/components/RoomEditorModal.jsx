@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FaTimes, FaSave } from 'react-icons/fa';
 import DragDropUpload from './DragDropUpload';
 import RoomNestedManager from './RoomNestedManager';
+import DimensionPackageManager from './DimensionPackageManager';
 import './RoomEditorModal.css';
 
 export const emptyRoom = {
@@ -36,6 +37,14 @@ const ADDON_FIELDS = [
   { key: 'price', label: 'Price (₹)', type: 'number', min: 0 },
 ];
 
+const PACKAGE_COMPONENT_FIELDS = [
+  { key: 'name', label: 'Name', required: true, fullWidth: true },
+  { key: 'description', label: 'Description', type: 'textarea', fullWidth: true, rows: 2 },
+  { key: 'price', label: 'Price (₹)', type: 'number', min: 0 },
+  { key: 'mandatory', label: 'Mandatory', type: 'checkbox', fullWidth: false },
+  { key: 'displayOrder', label: 'Display Order', type: 'number', min: 0, fullWidth: false },
+];
+
 export const normalizeRoomFromApi = (room = {}) => ({
   name: room.name || '',
   description: room.description || '',
@@ -45,6 +54,14 @@ export const normalizeRoomFromApi = (room = {}) => ({
   dimensions: (room.dimensions || []).map((d) => ({
     ...d,
     name: d.name || d.label || '',
+    packageComponents: (d.packageComponents || []).map((pc) => ({
+      ...pc,
+      name: pc.name || '',
+      description: pc.description || '',
+      price: pc.price ?? 0,
+      mandatory: pc.mandatory ?? false,
+      displayOrder: pc.displayOrder ?? 0,
+    })),
   })),
   layouts: (room.layouts || []).map((l) => ({
     ...l,
@@ -186,6 +203,13 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
                   </p>
                 </>
               )}
+            />
+          </section>
+
+          <section className="room-editor-section">
+            <DimensionPackageManager
+              dimensions={form.dimensions}
+              onChange={(dimensions) => setForm({ ...form, dimensions })}
             />
           </section>
 

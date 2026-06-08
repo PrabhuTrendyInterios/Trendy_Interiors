@@ -28,6 +28,16 @@ const normalizeRoomPayload = (body = {}) => ({
         length: Number(item.length) || 0,
         width: Number(item.width) || 0,
         height: Number(item.height) || 0,
+        packageComponents: Array.isArray(item.packageComponents)
+          ? item.packageComponents.map((component) => ({
+              ...(component._id ? { _id: component._id } : {}),
+              name: String(component.name || '').trim(),
+              description: String(component.description || '').trim(),
+              price: Number(component.price) || 0,
+              mandatory: Boolean(component.mandatory),
+              displayOrder: Number(component.displayOrder) || 0,
+            }))
+          : [],
       }))
     : [],
   layouts: Array.isArray(body.layouts)
