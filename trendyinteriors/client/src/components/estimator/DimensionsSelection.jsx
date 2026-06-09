@@ -80,6 +80,10 @@ const DimensionsSelection = ({
   const currentOptions = getRoomOptions(selectedRoomEntry?.roomName, roomsCatalog);
   const dimensionPresets = getDimensionPresets(selectedRoomEntry?.roomName, roomsCatalog);
   const presetEntries = Object.entries(dimensionPresets);
+  const selectedRoomData = selectedRoomEntry
+    ? findRoomByName(roomsCatalog, selectedRoomEntry.roomName)
+    : null;
+  const allowCustomDimensions = Boolean(selectedRoomData?.allowCustomDimensions);
 
   useEffect(() => {
     if (!selectedRoom && roomEntries.length > 0) {
@@ -87,6 +91,12 @@ const DimensionsSelection = ({
       setShowCustomDimensions(false);
     }
   }, [selectedRoom, roomEntries, onSelectRoom]);
+
+  useEffect(() => {
+    if (!allowCustomDimensions && showCustomDimensions) {
+      setShowCustomDimensions(false);
+    }
+  }, [allowCustomDimensions, showCustomDimensions]);
 
   useEffect(() => {
     if (
@@ -365,7 +375,11 @@ const DimensionsSelection = ({
             <h3>Room Size</h3>
 
             <div className="size-buttons-container">
-              <label>Select a preset size or enter custom dimensions:</label>
+              <label>
+                {allowCustomDimensions
+                  ? 'Select a preset size or enter custom dimensions:'
+                  : 'Select a preset size:'}
+              </label>
               <div className="size-button-group">
                 {presetEntries.map(([key, preset]) => (
                   <button
@@ -385,17 +399,19 @@ const DimensionsSelection = ({
                     {preset.label}
                   </button>
                 ))}
-                <button
-                  type="button"
-                  className={`size-button ${showCustomDimensions ? 'selected' : ''}`}
-                  onClick={() => setShowCustomDimensions(!showCustomDimensions)}
-                >
-                  Custom
-                </button>
+                {allowCustomDimensions && (
+                  <button
+                    type="button"
+                    className={`size-button ${showCustomDimensions ? 'selected' : ''}`}
+                    onClick={() => setShowCustomDimensions(!showCustomDimensions)}
+                  >
+                    Custom
+                  </button>
+                )}
               </div>
             </div>
 
-            {showCustomDimensions && (
+            {allowCustomDimensions && showCustomDimensions && (
               <>
                 <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>Enter Custom Dimensions</h4>
 

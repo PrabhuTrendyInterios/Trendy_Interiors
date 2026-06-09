@@ -292,19 +292,17 @@ const SettingsPage = () => {
 
                 <div className="form-group checkbox-group">
 
-                  <label htmlFor="estimator-enabled">Estimator Enabled</label>
+                  <label>Estimator Enabled</label>
 
-                  <input
-
-                    id="estimator-enabled"
-
-                    type="checkbox"
-
-                    checked={form.estimatorEnabled}
-
-                    onChange={(e) => setForm({ ...form, estimatorEnabled: e.target.checked })}
-
-                  />
+                  <button
+                    type="button"
+                    className={`form-toggle ${form.estimatorEnabled ? 'checked' : ''}`}
+                    onClick={() => setForm({ ...form, estimatorEnabled: !form.estimatorEnabled })}
+                    aria-pressed={form.estimatorEnabled}
+                    title={form.estimatorEnabled ? 'Disable estimator' : 'Enable estimator'}
+                  >
+                    {form.estimatorEnabled && <span aria-hidden="true">✓</span>}
+                  </button>
 
                 </div>
 

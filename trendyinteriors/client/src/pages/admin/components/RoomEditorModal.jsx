@@ -13,6 +13,7 @@ export const emptyRoom = {
   imageUrl: '',
   pricePerSqFt: '',
   status: 'active',
+  allowCustomDimensions: false,
   dimensions: [],
   layouts: [],
   addons: [],
@@ -51,6 +52,7 @@ export const normalizeRoomFromApi = (room = {}) => ({
   imageUrl: room.imageUrl || room.image || '',
   pricePerSqFt: room.pricePerSqFt ?? '',
   status: room.status || (room.active === false ? 'inactive' : 'active'),
+  allowCustomDimensions: room.allowCustomDimensions ?? false,
   dimensions: (room.dimensions || []).map((d) => ({
     ...d,
     name: d.name || d.label || '',
@@ -190,6 +192,23 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group small">
+                <label>Allow Custom Dimensions</label>
+                <div className="checkbox-row">
+                  <button
+                    type="button"
+                    className={`form-toggle ${form.allowCustomDimensions ? 'checked' : ''}`}
+                    onClick={() => setForm({ ...form, allowCustomDimensions: !form.allowCustomDimensions })}
+                    aria-pressed={form.allowCustomDimensions}
+                    title={form.allowCustomDimensions ? 'Disable custom room sizing' : 'Enable custom room sizing'}
+                  >
+                    {form.allowCustomDimensions && <span aria-hidden="true">✓</span>}
+                  </button>
+                  <span>Enable custom room sizing</span>
+                </div>
               </div>
             </div>
             <div className="form-group">

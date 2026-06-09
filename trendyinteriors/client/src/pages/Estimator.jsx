@@ -15,6 +15,7 @@ import {
   getLayoutMaterialsForRoom,
   getLayoutMaterialsTotal,
   isLayoutMaterialSelected,
+  normalizeLayoutMaterialSelection,
   normalizeEstimatorRoom,
   reloadLayoutMaterialSelection,
   toggleLayoutMaterialSelection,
@@ -60,6 +61,17 @@ const Estimator = () => {
       return {};
     }
   }); // roomId -> [componentIds]
+  const [selectedLayoutMaterials, setSelectedLayoutMaterials] = useState(() => {
+    try {
+      const storedLayoutMaterials = localStorage.getItem('estimatorSelectedLayoutMaterials');
+      return storedLayoutMaterials
+        ? normalizeLayoutMaterialSelection(JSON.parse(storedLayoutMaterials))
+        : {};
+    } catch (error) {
+      console.error('Unable to load layout materials', error);
+      return {};
+    }
+  }); // roomId -> { materialId: true }
   const [formData, setFormData] = useState(() => {
     try {
       const storedDraft = localStorage.getItem(ESTIMATOR_DRAFT_KEY);
@@ -167,6 +179,18 @@ const Estimator = () => {
     }
   }, [selectedPackageComponents]);
 
+  // Save selectedLayoutMaterials to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'estimatorSelectedLayoutMaterials',
+        JSON.stringify(normalizeLayoutMaterialSelection(selectedLayoutMaterials)),
+      );
+    } catch (error) {
+      console.error('Unable to save selected layout materials', error);
+    }
+  }, [selectedLayoutMaterials]);
+
   // Calculate quote when reaching review step
   useEffect(() => {
     const calculateQuoteForReview = async () => {
@@ -186,7 +210,7 @@ const Estimator = () => {
           body: JSON.stringify({
             ...formData,
             selectedPackageComponents,
-            selectedLayoutMaterials,
+            selectedLayoutMaterials: normalizeLayoutMaterialSelection(selectedLayoutMaterials),
           }),
         });
 
@@ -206,9 +230,11 @@ const Estimator = () => {
 
           quote.lineItems.forEach((item) => {
             if (item.roomId && item.roomId !== 'global-addons' && Array.isArray(item.packageComponents)) {
-              // Start with empty selection - mandatory components are always included
-              // in the calculation regardless of selection state
-              initialComponents[item.roomId] = [];
+              // Start with all package components selected by default.
+              // Users can deselect optional items if they don't need them.
+              initialComponents[item.roomId] = item.packageComponents
+                .filter((component) => component?.id)
+                .map((component) => component.id);
             }
           });
           setSelectedPackageComponents(initialComponents);
@@ -222,7 +248,7 @@ const Estimator = () => {
     };
 
     calculateQuoteForReview();
-  }, [currentStep, formData, quoteSummary, roomsCatalog]);
+  }, [currentStep, formData, quoteSummary, roomsCatalog, selectedPackageComponents, selectedLayoutMaterials]);
 
   useEffect(() => {
     if (currentStep !== 5 || !quoteSummary || roomsCatalog.length === 0) {
@@ -268,16 +294,24 @@ const Estimator = () => {
       selectedLayoutMaterials,
     );
     setQuoteSummary(updatedQuote);
-  }, [currentStep, quoteSummary, selectedPackageComponents]);
+  }, [currentStep, quoteSummary, selectedPackageComponents, selectedLayoutMaterials]);
+
+  const scrollToTop = () => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const handleNextStep = () => {
     // Mark current step as completed
     setCompletedSteps(prev => new Set([...prev, currentStep]));
     setCurrentStep((prev) => prev + 1);
+    scrollToTop();
   };
 
   const handlePrevStep = () => {
     setCurrentStep((prev) => prev - 1);
+    scrollToTop();
   };
 
   // Check if current step is complete
@@ -582,6 +616,7 @@ const Estimator = () => {
     // Just move to the next step without calculating yet
     // Calculation will happen on the review step
     setCurrentStep((prev) => prev + 1);
+    scrollToTop();
   };
 
   const handleSubmitEstimator = async () => {
@@ -601,6 +636,7 @@ const Estimator = () => {
         body: JSON.stringify({
           ...formData,
           selectedPackageComponents,
+          selectedLayoutMaterials: normalizeLayoutMaterialSelection(selectedLayoutMaterials),
           customerInfo: {
             name: formData.leadData?.name || '',
             email: formData.leadData?.email || '',
@@ -643,6 +679,7 @@ const Estimator = () => {
             body: JSON.stringify({
               ...formData,
               selectedPackageComponents,
+              selectedLayoutMaterials: normalizeLayoutMaterialSelection(selectedLayoutMaterials),
               customerInfo: {
                 name: formData.leadData?.name || '',
                 email: formData.leadData?.email || '',

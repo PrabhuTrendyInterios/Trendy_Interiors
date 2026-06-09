@@ -116,6 +116,84 @@
     transition: all 0.3s ease;
 }
 
+.form-checkbox,
+input[type="radio"],
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    padding: 0;
+    box-sizing: border-box;
+    border: 2px solid rgba(212, 175, 55, 0.75);
+    border-radius: 50%;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: none;
+    outline: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+    margin: 0;
+}
+
+.form-checkbox::before,
+input[type="radio"]::before,
+input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    transform: scale(0);
+    transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+
+.form-checkbox:hover,
+input[type="radio"]:hover,
+input[type="checkbox"]:hover {
+    border-color: #d4af37;
+}
+
+.form-checkbox:checked,
+input[type="radio"]:checked,
+input[type="checkbox"]:checked {
+    background: #d4af37;
+    border-color: #d4af37;
+}
+
+.form-checkbox::after,
+input[type="radio"]::after,
+input[type="checkbox"]::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: transparent;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.form-checkbox:checked::after,
+input[type="radio"]:checked::after,
+input[type="checkbox"]:checked::after {
+    background: #fff;
+    opacity: 1;
+    transform: scale(1);
+}
+
+.form-checkbox:focus-visible,
+input[type="radio"]:focus-visible,
+input[type="checkbox"]:focus-visible {
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+}
+
 .form-input::placeholder,
 .form-textarea::placeholder {
     color: rgba(255, 255, 255, 0.4);
@@ -171,6 +249,41 @@
 
 .checkbox-group label {
     margin-bottom: 0;
+}
+
+.form-toggle {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    background-color: #fff;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-toggle.checked {
+    border-color: var(--color-gold);
+    background-color: var(--color-gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
+}
+
+.form-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+}
+
+.form-toggle span {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .multiplier-grid {

@@ -114,18 +114,22 @@ const RoomNestedManager = ({ title, items = [], emptyItem, fields, onChange, ren
                     placeholder={field.placeholder}
                   />
                 ) : field.type === 'checkbox' ? (
-                  <input
-                    id={`${title}-${field.key}`}
-                    type="checkbox"
-                    checked={Boolean(draft[field.key])}
-                    onChange={(e) =>
+                  <button
+                    type="button"
+                    className={`form-toggle ${draft[field.key] ? 'checked' : ''}`}
+                    onClick={() =>
                       setDraft({
                         ...draft,
-                        [field.key]: e.target.checked,
+                        [field.key]: !draft[field.key],
                       })
                     }
-                    className="form-checkbox"
-                  />
+                    aria-pressed={Boolean(draft[field.key])}
+                    title={draft[field.key] ? 'Deselect option' : 'Select option'}
+                  >
+                    {draft[field.key] && (
+                      <span aria-hidden="true">✓</span>
+                    )}
+                  </button>
                 ) : (
                   <input
                     id={`${title}-${field.key}`}

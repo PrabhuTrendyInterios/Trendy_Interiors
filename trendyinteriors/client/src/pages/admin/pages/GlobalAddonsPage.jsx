@@ -316,19 +316,17 @@ const GlobalAddonsPage = () => {
 
                 <div className="form-group small checkbox-group">
 
-                  <label htmlFor="addon-active">Active</label>
+                  <label>Active</label>
 
-                  <input
-
-                    id="addon-active"
-
-                    type="checkbox"
-
-                    checked={form.active}
-
-                    onChange={(e) => setForm({ ...form, active: e.target.checked })}
-
-                  />
+                  <button
+                    type="button"
+                    className={`form-toggle ${form.active ? 'checked' : ''}`}
+                    onClick={() => setForm({ ...form, active: !form.active })}
+                    aria-pressed={form.active}
+                    title={form.active ? 'Deactivate addon' : 'Activate addon'}
+                  >
+                    {form.active && <span aria-hidden="true">✓</span>}
+                  </button>
 
                 </div>
 

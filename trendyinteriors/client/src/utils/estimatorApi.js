@@ -140,12 +140,16 @@ export const buildDefaultLayoutMaterialSelection = (materials = []) =>
     return selection;
   }, {});
 
+export const normalizeLayoutMaterialSelection = (roomSelection = {}) =>
+  Object.entries(roomSelection).reduce((selection, [materialId, selected]) => {
+    if (selected === true) {
+      selection[materialId] = true;
+    }
+    return selection;
+  }, {});
+
 export const isLayoutMaterialSelected = (roomSelection = {}, materialId, mandatory = false) => {
   if (mandatory) {
-    return true;
-  }
-
-  if (roomSelection[materialId] === undefined) {
     return true;
   }
 
@@ -153,12 +157,15 @@ export const isLayoutMaterialSelected = (roomSelection = {}, materialId, mandato
 };
 
 export const toggleLayoutMaterialSelection = (roomSelection = {}, materialId) => {
-  const currentValue = roomSelection[materialId] !== undefined ? roomSelection[materialId] : true;
+  const nextSelection = { ...roomSelection };
 
-  return {
-    ...roomSelection,
-    [materialId]: !currentValue,
-  };
+  if (nextSelection[materialId]) {
+    delete nextSelection[materialId];
+  } else {
+    nextSelection[materialId] = true;
+  }
+
+  return nextSelection;
 };
 
 export const reloadLayoutMaterialSelection = ({
@@ -188,8 +195,7 @@ export const getLayoutMaterialsTotal = (materials = [], roomSelection = {}) =>
     }
 
     const isMandatory = Boolean(material.mandatory);
-    const isSelected =
-      roomSelection[material.id] === undefined ? true : Boolean(roomSelection[material.id]);
+    const isSelected = Boolean(roomSelection[material.id]);
 
     if (isMandatory || isSelected) {
       return sum + (Number(material.price) || 0);
