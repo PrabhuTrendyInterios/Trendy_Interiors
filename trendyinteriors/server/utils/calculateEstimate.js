@@ -1,3 +1,9 @@
+const {
+  formatLayoutMaterials,
+  getLayoutMaterialsTotal,
+  resolveLayoutMaterials,
+} = require('./layoutMaterials');
+
 const roundMoney = (value) => Number(Number(value || 0).toFixed(2));
 
 const calcArea = (length, width) =>
@@ -106,6 +112,7 @@ const calculateEstimate = ({
   roomsCatalog = [],
   globalAddons = [],
   selectedPackageComponents = {}, // Maps roomId -> [componentIds]
+  selectedLayoutMaterials = {}, // Maps roomId -> { materialId: boolean }
 }) => {
   const lineItems = [];
   let totalAreaSqFt = 0;
@@ -139,8 +146,27 @@ const calculateEstimate = ({
     console.log(`  Selected Component IDs: ${selectedIds.length}`, selectedIds);
     console.log(`  Package Components Total: ₹${packageComponentsTotal}`);
     
+    const layoutMaterialsResult = resolveLayoutMaterials(
+      roomDoc,
+      selectedDesignIdea.layout,
+      sizeCategory
+    );
+    const layoutMaterialsArray = layoutMaterialsResult.materials;
+
+    if (layoutMaterialsResult.skipped && layoutMaterialsResult.validationError) {
+      console.warn(
+        `[calculateEstimate] Layout materials skipped for ${room.label}: ${layoutMaterialsResult.validationError}`
+      );
+    }
+
+    const layoutMaterialsCost = roundMoney(
+      getLayoutMaterialsTotal(layoutMaterialsArray, selectedLayoutMaterials[room.id] || {})
+    );
+
     // New calculation: baseCost + packageComponentsTotal + layoutCost + addonsCost
-    const estimatedCost = roundMoney(baseCost + packageComponentsTotal + layoutCost + addonsCost);
+    const estimatedCost = roundMoney(
+      baseCost + packageComponentsTotal + layoutCost + addonsCost + layoutMaterialsCost
+    );
 
     totalAreaSqFt = roundMoney(totalAreaSqFt + areaSqFt);
     roomTotals = roundMoney(roomTotals + estimatedCost);
@@ -161,6 +187,8 @@ const calculateEstimate = ({
       addonsCost,
       packageComponents: formatPackageComponents(packageComponentsArray),
       packageComponentsTotal,
+      layoutMaterials: formatLayoutMaterials(layoutMaterialsArray),
+      layoutMaterialsCost,
       estimatedCost,
     });
   });

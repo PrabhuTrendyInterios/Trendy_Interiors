@@ -4,7 +4,8 @@ const Room = require("../models/Room");
 const GlobalAddon = require("../models/GlobalAddon");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const { generateQuotationPDF } = require("../utils/quotationPDF");
-const { calculateEstimate } = require("../utils/calculateEstimate");
+const { calculateEstimate, findRoomCatalogEntry } = require("../utils/calculateEstimate");
+const { findLayoutByName, resolveLayoutMaterials } = require("../utils/layoutMaterials");
 
 const router = express.Router();
 
@@ -96,6 +97,29 @@ const validateEstimatorPayload = (payload, roomsCatalog = [], options = {}) => {
     if (requireCompleteRooms && (!length || !width || !height)) {
       errors.push(`Missing or invalid dimensions for room: ${room.label}.`);
     }
+
+    if (selectedDesignIdea.layout) {
+      const roomDoc = findRoomCatalogEntry(roomsCatalog, room.roomName);
+      const layout = findLayoutByName(roomDoc, selectedDesignIdea.layout);
+
+      if (!layout) {
+        if (requireCompleteRooms) {
+          errors.push(
+            `${room.label}: Layout "${selectedDesignIdea.layout}" is not available for this room.`
+          );
+        }
+      } else if (layout.hasLayoutMaterials) {
+        const resolved = resolveLayoutMaterials(
+          roomDoc,
+          selectedDesignIdea.layout,
+          sizeCategory
+        );
+
+        if (resolved.validationError && requireCompleteRooms) {
+          errors.push(`${room.label}: ${resolved.validationError}`);
+        }
+      }
+    }
   });
 
   const normalizedSelectedRoom = roomInstances.some((room) => room.id === selectedRoomForDimensions)
@@ -132,6 +156,7 @@ router.post("/calculate", async (req, res) => {
     }
 
     const selectedPackageComponents = req.body?.selectedPackageComponents || {};
+    const selectedLayoutMaterials = req.body?.selectedLayoutMaterials || {};
 
     const quoteSummary = calculateEstimate({
       roomInstances: validation.roomInstances,
@@ -140,6 +165,7 @@ router.post("/calculate", async (req, res) => {
       roomsCatalog,
       globalAddons,
       selectedPackageComponents,
+      selectedLayoutMaterials,
     });
 
     // Debug: Log API response structure
@@ -180,6 +206,7 @@ router.post("/pdf/download", async (req, res) => {
     }
 
     const selectedPackageComponents = req.body?.selectedPackageComponents || {};
+    const selectedLayoutMaterials = req.body?.selectedLayoutMaterials || {};
 
     const quoteSummary = calculateEstimate({
       roomInstances: validation.roomInstances,
@@ -188,6 +215,7 @@ router.post("/pdf/download", async (req, res) => {
       roomsCatalog,
       globalAddons,
       selectedPackageComponents,
+      selectedLayoutMaterials,
     });
 
     // Debug: Verify packageComponents for PDF
@@ -240,6 +268,7 @@ router.post("/", async (req, res) => {
     }
 
     const selectedPackageComponents = req.body?.selectedPackageComponents || {};
+    const selectedLayoutMaterials = req.body?.selectedLayoutMaterials || {};
 
     const quoteSummary = calculateEstimate({
       roomInstances: validation.roomInstances,
@@ -248,6 +277,7 @@ router.post("/", async (req, res) => {
       roomsCatalog,
       globalAddons,
       selectedPackageComponents,
+      selectedLayoutMaterials,
     });
 
     // Debug: Verify packageComponents in response

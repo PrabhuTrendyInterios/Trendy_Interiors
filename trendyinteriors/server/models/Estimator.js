@@ -143,6 +143,22 @@ const roomLineItemSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    layoutMaterials: {
+      type: [
+        {
+          id: String,
+          name: String,
+          price: Number,
+          mandatory: Boolean,
+        },
+      ],
+      default: [],
+    },
+    layoutMaterialsCost: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
     estimatedCost: {
       type: Number,
       required: true,

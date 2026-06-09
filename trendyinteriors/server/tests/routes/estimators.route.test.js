@@ -97,6 +97,50 @@ describe('server/routes/estimators', () => {
 
       expect(res.body).toBeDefined();
     });
+
+    test('calculate preview skips invalid layout materials without validation error', async () => {
+      Room.find.mockReturnValue({
+        sort: jest.fn().mockResolvedValue([
+          {
+            name: 'Bedroom',
+            status: 'active',
+            pricePerSqFt: 1000,
+            dimensions: [{ _id: 'dim-low', name: 'Low' }],
+            layouts: [
+              {
+                name: 'Sliding Wardrobe',
+                fixedPrice: 0,
+                hasLayoutMaterials: true,
+                configurations: [
+                  {
+                    dimensionId: 'dim-low',
+                    materials: [{ _id: 'mat-1', name: 'Laminate', price: 5000, mandatory: true }],
+                  },
+                ],
+              },
+            ],
+            addons: [],
+          },
+        ]),
+      });
+
+      const res = await request(app).post('/api/estimators/calculate').send({
+        rooms: { Bedroom: 1 },
+        selectedRoomForDimensions: 'Bedroom-1',
+        roomDimensionsByRoom: {
+          'Bedroom-1': {
+            length: 10,
+            width: 10,
+            height: 9,
+            sizeCategory: 'dim-mid',
+            selectedDesignIdea: { layout: 'Sliding Wardrobe', addons: [], room: 'Bedroom' },
+          },
+        },
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.quoteSummary.lineItems[0].layoutMaterialsCost).toBe(0);
+    });
   });
 
   describe('POST /api/estimators', () => {
@@ -116,7 +160,7 @@ describe('server/routes/estimators', () => {
             length: 10,
             width: 10,
             height: 9,
-            selectedDesignIdea: { layout: 'Sliding Wardrobe', addons: [], room: 'Bedroom' },
+            selectedDesignIdea: { layout: '', addons: [], room: 'Bedroom' },
           },
         },
         customerInfo: { name: 'Asha', email: 'asha@example.com' },
@@ -143,6 +187,48 @@ describe('server/routes/estimators', () => {
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
+    });
+
+    test('returns validation error when layout materials dimension does not match on submit', async () => {
+      Room.find.mockReturnValue({
+        sort: jest.fn().mockResolvedValue([
+          {
+            name: 'Bedroom',
+            status: 'active',
+            pricePerSqFt: 1000,
+            dimensions: [{ _id: 'dim-low', name: 'Low' }],
+            layouts: [
+              {
+                name: 'Sliding Wardrobe',
+                fixedPrice: 0,
+                hasLayoutMaterials: true,
+                configurations: [{ dimensionId: 'dim-low', materials: [] }],
+              },
+            ],
+            addons: [],
+          },
+        ]),
+      });
+
+      const res = await request(app).post('/api/estimators').send({
+        rooms: { Bedroom: 1 },
+        selectedRoomForDimensions: 'Bedroom-1',
+        roomDimensionsByRoom: {
+          'Bedroom-1': {
+            length: 10,
+            width: 10,
+            height: 9,
+            sizeCategory: 'dim-mid',
+            selectedDesignIdea: { layout: 'Sliding Wardrobe', addons: [], room: 'Bedroom' },
+          },
+        },
+        customerInfo: { name: 'Asha', email: 'asha@example.com' },
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toEqual(
+        expect.arrayContaining([expect.stringContaining('No layout materials are configured')])
+      );
     });
 
     test('handles database error during creation', async () => {

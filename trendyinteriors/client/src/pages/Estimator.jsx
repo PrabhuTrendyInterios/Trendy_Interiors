@@ -9,8 +9,15 @@ import {
   buildRoomInstances,
   fetchEstimatorRooms,
   fetchGlobalAddons,
+  findRoomByName,
   formatGlobalAddonForCard,
+  buildDefaultLayoutMaterialSelection,
+  getLayoutMaterialsForRoom,
+  getLayoutMaterialsTotal,
+  isLayoutMaterialSelected,
   normalizeEstimatorRoom,
+  reloadLayoutMaterialSelection,
+  toggleLayoutMaterialSelection,
 } from '../utils/estimatorApi';
 import './Estimator.css';
 
@@ -176,7 +183,11 @@ const Estimator = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            ...formData,
+            selectedPackageComponents,
+            selectedLayoutMaterials,
+          }),
         });
 
         if (!response.ok) {
@@ -191,6 +202,8 @@ const Estimator = () => {
         // Only mandatory components are auto-included; optional ones start unselected
         if (quote && Array.isArray(quote.lineItems)) {
           const initialComponents = {};
+          const initialLayoutMaterials = {};
+
           quote.lineItems.forEach((item) => {
             if (item.roomId && item.roomId !== 'global-addons' && Array.isArray(item.packageComponents)) {
               // Start with empty selection - mandatory components are always included
@@ -199,6 +212,7 @@ const Estimator = () => {
             }
           });
           setSelectedPackageComponents(initialComponents);
+          setSelectedLayoutMaterials(initialLayoutMaterials);
         }
       } catch (error) {
         setApiError(error.message || 'Unable to calculate estimate.');
@@ -208,17 +222,51 @@ const Estimator = () => {
     };
 
     calculateQuoteForReview();
-  }, [currentStep, formData, quoteSummary]);
+  }, [currentStep, formData, quoteSummary, roomsCatalog]);
 
-  // Local recalculation on component selection - provides instant feedback
-  // This is the ONLY effect that should update quoteSummary when components are selected
+  useEffect(() => {
+    if (currentStep !== 5 || !quoteSummary || roomsCatalog.length === 0) {
+      return;
+    }
+
+    setSelectedLayoutMaterials((prev) => {
+      const next = { ...prev };
+      let changed = false;
+
+      quoteSummary.lineItems.forEach((item) => {
+        if (!item.roomId || item.roomId === 'global-addons' || !item.layout || next[item.roomId]) {
+          return;
+        }
+
+        const room = findRoomByName(roomsCatalog, item.roomName);
+        const sizeCategory = formData.roomDimensionsByRoom[item.roomId]?.sizeCategory || '';
+        const layoutData = getLayoutMaterialsForRoom({
+          room,
+          layoutName: item.layout,
+          sizeCategory,
+        });
+
+        if (layoutData.materials.length > 0) {
+          next[item.roomId] = buildDefaultLayoutMaterialSelection(layoutData.materials);
+          changed = true;
+        }
+      });
+
+      return changed ? next : prev;
+    });
+  }, [currentStep, quoteSummary, roomsCatalog, formData.roomDimensionsByRoom]);
+
+  // Local recalculation on component/material selection - provides instant feedback
   useEffect(() => {
     if (currentStep !== 5 || !quoteSummary) {
       return; // Only recalculate on review step when quote exists
     }
 
-    // Perform local recalculation immediately when components change
-    const updatedQuote = recalculateQuoteTotals(quoteSummary, selectedPackageComponents);
+    const updatedQuote = recalculateQuoteTotals(
+      quoteSummary,
+      selectedPackageComponents,
+      selectedLayoutMaterials,
+    );
     setQuoteSummary(updatedQuote);
   }, [currentStep, quoteSummary, selectedPackageComponents]);
 
@@ -292,10 +340,40 @@ const Estimator = () => {
     }
   };
 
+  const getRoomNameForInstance = (roomId, rooms = formData.rooms) =>
+    buildRoomInstances(rooms).find((room) => room.id === roomId)?.roomName || '';
+
+  const applyLayoutMaterialReset = (roomId, layoutName, sizeCategory, roomName) => {
+    setSelectedLayoutMaterials((prev) => {
+      const next = { ...prev };
+      delete next[roomId];
+
+      const reloaded = reloadLayoutMaterialSelection({
+        roomsCatalog,
+        roomName,
+        layoutName,
+        sizeCategory,
+      });
+
+      if (reloaded) {
+        next[roomId] = reloaded;
+      }
+
+      return next;
+    });
+  };
+
   const updateRoomDimensions = (roomId, key, value) => {
     setApiError('');
     setSubmissionResult(null);
     setQuoteSummary(null);
+
+    const prevRoom = formData.roomDimensionsByRoom[roomId] || {};
+    const dimensionChanged =
+      key === 'sizeCategory'
+        ? (prevRoom.sizeCategory || '') !== (value || '')
+        : ['length', 'width', 'height'].includes(key) &&
+          String(prevRoom[key] ?? '') !== String(value ?? '');
 
     setFormData((prev) => ({
       ...prev,
@@ -317,12 +395,29 @@ const Estimator = () => {
         },
       },
     }));
+
+    if (dimensionChanged) {
+      const roomName = getRoomNameForInstance(roomId);
+      const layoutName = prevRoom.selectedDesignIdea?.layout || '';
+      const sizeCategory =
+        key === 'sizeCategory'
+          ? value || ''
+          : ['length', 'width', 'height'].includes(key)
+            ? ''
+            : prevRoom.sizeCategory || '';
+
+      applyLayoutMaterialReset(roomId, layoutName, sizeCategory, roomName);
+    }
   };
 
   const updateRoomDesignIdea = (roomId, idea) => {
     setApiError('');
     setSubmissionResult(null);
     setQuoteSummary(null);
+
+    const prevRoom = formData.roomDimensionsByRoom[roomId] || {};
+    const layoutChanged =
+      (prevRoom.selectedDesignIdea?.layout || '') !== (idea?.layout || '');
 
     setFormData((prev) => ({
       ...prev,
@@ -348,6 +443,16 @@ const Estimator = () => {
         },
       },
     }));
+
+    if (layoutChanged) {
+      const roomName = idea?.room || getRoomNameForInstance(roomId);
+      applyLayoutMaterialReset(
+        roomId,
+        idea?.layout || '',
+        prevRoom.sizeCategory || '',
+        roomName,
+      );
+    }
   };
 
   const toggleAddon = (addonId) => {
@@ -374,6 +479,13 @@ const Estimator = () => {
     }));
   };
 
+  const toggleLayoutMaterial = (roomId, materialId) => {
+    setSelectedLayoutMaterials((prev) => ({
+      ...prev,
+      [roomId]: toggleLayoutMaterialSelection(prev[roomId], materialId),
+    }));
+  };
+
   const togglePackageComponent = (roomId, componentId) => {
     setSelectedPackageComponents((prev) => {
       const currentComponents = prev[roomId] || [];
@@ -391,55 +503,64 @@ const Estimator = () => {
   };
 
   // Local recalculation function - updates totals immediately without API call
-  const recalculateQuoteTotals = (quote, selectedComponents) => {
+  const recalculateQuoteTotals = (quote, selectedComponents, selectedMaterials) => {
     if (!quote || !Array.isArray(quote.lineItems)) {
       return quote;
     }
 
-    // Create a deep copy to avoid mutating original
     const updatedQuote = JSON.parse(JSON.stringify(quote));
     let newGrandTotal = 0;
+    let newRoomTotals = 0;
 
-    // Recalculate each lineItem with packageComponents
     updatedQuote.lineItems = updatedQuote.lineItems.map((item) => {
       if (item.roomId === 'global-addons' || item.roomId === 'extra-addons') {
-        // Don't modify add-ons items - they don't have selection logic
         newGrandTotal += item.estimatedCost || 0;
         return item;
       }
 
-      // For room lineItems, recalculate package components total
-      if (item.roomId && Array.isArray(item.packageComponents) && item.packageComponents.length > 0) {
+      if (!item.roomId) {
+        newGrandTotal += item.estimatedCost || 0;
+        return item;
+      }
+
+      let packageComponentsTotal = item.packageComponentsTotal || 0;
+      if (Array.isArray(item.packageComponents) && item.packageComponents.length > 0) {
         const selectedIds = selectedComponents[item.roomId] || [];
-        
-        // Calculate new packageComponentsTotal
-        const newPackageComponentsTotal = item.packageComponents.reduce((sum, component) => {
-          if (!component.id) return sum; // Skip components without IDs
-          
-          // Include if mandatory OR selected
+        packageComponentsTotal = item.packageComponents.reduce((sum, component) => {
+          if (!component.id) return sum;
           const isIncluded = component.mandatory === true || selectedIds.includes(component.id);
           return isIncluded ? sum + (component.price || 0) : sum;
         }, 0);
-
-        // Recalculate estimatedCost: baseCost + layoutCost + addonsCost + packageComponentsTotal
-        const newEstimatedCost = (item.baseCost || 0) + (item.layoutCost || 0) + (item.addonsCost || 0) + newPackageComponentsTotal;
-
-        const updatedItem = {
-          ...item,
-          packageComponentsTotal: newPackageComponentsTotal,
-          estimatedCost: newEstimatedCost,
-        };
-
-        newGrandTotal += newEstimatedCost;
-        return updatedItem;
-      } else {
-        // For items without packageComponents, just add the estimated cost
-        newGrandTotal += item.estimatedCost || 0;
-        return item;
       }
+
+      let layoutMaterialsCost = item.layoutMaterialsCost || 0;
+      if (Array.isArray(item.layoutMaterials) && item.layoutMaterials.length > 0) {
+        layoutMaterialsCost = getLayoutMaterialsTotal(
+          item.layoutMaterials,
+          selectedMaterials[item.roomId] || {},
+        );
+      }
+
+      const newEstimatedCost =
+        (item.baseCost || 0) +
+        (item.layoutCost || 0) +
+        (item.addonsCost || 0) +
+        packageComponentsTotal +
+        layoutMaterialsCost;
+
+      const updatedItem = {
+        ...item,
+        packageComponentsTotal,
+        layoutMaterialsCost,
+        estimatedCost: newEstimatedCost,
+      };
+
+      newGrandTotal += newEstimatedCost;
+      newRoomTotals += newEstimatedCost;
+      return updatedItem;
     });
 
-    // Update the grand total (estimatedAmount)
+    updatedQuote.roomTotals = newRoomTotals;
     updatedQuote.estimatedAmount = newGrandTotal;
 
     return updatedQuote;
@@ -743,6 +864,11 @@ const Estimator = () => {
                                   {item.layout} Layout: +₹{item.layoutCost.toLocaleString('en-IN')}
                                 </p>
                               )}
+                              {(item.layoutMaterialsCost ?? 0) > 0 && (
+                                <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
+                                  Layout Materials: +₹{item.layoutMaterialsCost.toLocaleString('en-IN')}
+                                </p>
+                              )}
                               {item.addonsCost > 0 && (
                                 <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
                                   Room Add-ons: +₹{item.addonsCost.toLocaleString('en-IN')}
@@ -834,6 +960,80 @@ const Estimator = () => {
                                   </p>
                                 )
                               )}
+
+                              {item.layout && (() => {
+                                const room = findRoomByName(roomsCatalog, item.roomName);
+                                const sizeCategory = formData.roomDimensionsByRoom[item.roomId]?.sizeCategory || '';
+                                const layoutData = getLayoutMaterialsForRoom({
+                                  room,
+                                  layoutName: item.layout,
+                                  sizeCategory,
+                                });
+
+                                return (
+                                  <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', fontWeight: '600', color: 'var(--color-charcoal-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                      {layoutData.layoutName}
+                                    </p>
+
+                                    {layoutData.hasLayoutMaterials && layoutData.materials.length > 0 && (
+                                      <>
+                                        {layoutData.materials.map((material) => {
+                                          const roomSelection = selectedLayoutMaterials[item.roomId] || {};
+                                          const isSelected = isLayoutMaterialSelected(
+                                            roomSelection,
+                                            material.id,
+                                            material.mandatory,
+                                          );
+
+                                          return (
+                                            <div key={material.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.5rem' }}>
+                                              <input
+                                                type="checkbox"
+                                                checked={isSelected}
+                                                disabled={material.mandatory}
+                                                onChange={() =>
+                                                  item.roomId &&
+                                                  material.id &&
+                                                  !material.mandatory &&
+                                                  toggleLayoutMaterial(item.roomId, material.id)
+                                                }
+                                                style={{
+                                                  cursor: material.mandatory ? 'not-allowed' : 'pointer',
+                                                  width: '16px',
+                                                  height: '16px',
+                                                }}
+                                              />
+                                              <div style={{ flex: 1, minWidth: 0 }}>
+                                                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-charcoal-dark)', fontWeight: '500' }}>
+                                                  {material.name}
+                                                  {material.mandatory && (
+                                                    <span style={{ marginLeft: '0.3rem', fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: '400' }}>
+                                                      (Included)
+                                                    </span>
+                                                  )}
+                                                </p>
+                                              </div>
+                                              <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                                ₹{(material.price || 0).toLocaleString('en-IN')}
+                                              </p>
+                                            </div>
+                                          );
+                                        })}
+
+                                        {(item.layoutMaterialsCost ?? 0) > 0 && (
+                                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', paddingTop: '0.4rem', borderTop: '1px solid rgba(212, 175, 55, 0.15)' }}>
+                                            <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.8rem' }}>Materials Total</p>
+                                            <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '0.8rem' }}>
+                                              +₹{(item.layoutMaterialsCost || 0).toLocaleString('en-IN')}
+                                            </p>
+                                          </div>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </>
                           )}
                         </div>

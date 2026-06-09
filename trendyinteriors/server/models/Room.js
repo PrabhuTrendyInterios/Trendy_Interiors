@@ -64,6 +64,40 @@ const dimensionSchema = new mongoose.Schema(
   { _id: true }
 );
 
+const layoutMaterialSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+    },
+    price: {
+      type: Number,
+      min: [0, 'Price cannot be negative'],
+      default: 0,
+    },
+    mandatory: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: true }
+);
+
+const layoutConfigurationSchema = new mongoose.Schema(
+  {
+    dimensionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+    },
+    materials: {
+      type: [layoutMaterialSchema],
+      default: [],
+    },
+  },
+  { _id: true }
+);
+
 const layoutSchema = new mongoose.Schema(
   {
     name: {
@@ -88,6 +122,14 @@ const layoutSchema = new mongoose.Schema(
       required: [true, 'Please provide a fixed price'],
       min: [0, 'Fixed price cannot be negative'],
       default: 0,
+    },
+    hasLayoutMaterials: {
+      type: Boolean,
+      default: false,
+    },
+    configurations: {
+      type: [layoutConfigurationSchema],
+      default: [],
     },
   },
   { _id: true }
