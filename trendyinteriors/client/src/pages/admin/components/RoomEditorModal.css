@@ -162,8 +162,15 @@
 }
 
 /* Dimension Package Manager Styles */
-.dimension-package-manager {
+.dimension-package-manager,
+.layout-dimension-materials-manager {
   margin-top: 0.5rem;
+}
+
+.layout-dimension-materials-manager {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.12);
 }
 
 .dimension-item-container {

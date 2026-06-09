@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaEdit, FaTrash, FaPlus, FaTimes } from 'react-icons/fa';
 
-const RoomNestedManager = ({ title, items = [], emptyItem, fields, onChange, renderSummary }) => {
+const RoomNestedManager = ({ title, items = [], emptyItem, fields, onChange, renderSummary, renderFormExtras }) => {
   const [draft, setDraft] = useState(emptyItem);
   const [editIndex, setEditIndex] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -147,6 +147,7 @@ const RoomNestedManager = ({ title, items = [], emptyItem, fields, onChange, ren
               </div>
             ))}
           </div>
+          {typeof renderFormExtras === 'function' ? renderFormExtras(draft, setDraft) : null}
           <div className="form-actions-footer">
             <button type="button" className="btn-publish" onClick={handleSave}>
               {editIndex !== null ? 'Update' : 'Add'}

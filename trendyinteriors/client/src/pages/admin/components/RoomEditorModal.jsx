@@ -3,6 +3,8 @@ import { FaTimes, FaSave } from 'react-icons/fa';
 import DragDropUpload from './DragDropUpload';
 import RoomNestedManager from './RoomNestedManager';
 import DimensionPackageManager from './DimensionPackageManager';
+import LayoutDimensionMaterialsManager from './LayoutDimensionMaterialsManager';
+import generateObjectId from '../utils/generateObjectId';
 import './RoomEditorModal.css';
 
 export const emptyRoom = {
@@ -28,6 +30,12 @@ const LAYOUT_FIELDS = [
   { key: 'imageUrl', label: 'Image URL', fullWidth: true, placeholder: 'https://...' },
   { key: 'description', label: 'Description', type: 'textarea', fullWidth: true, rows: 2 },
   { key: 'fixedPrice', label: 'Fixed Price (₹)', type: 'number', min: 0 },
+  {
+    key: 'hasLayoutMaterials',
+    label: 'Enable Layout-Specific Materials',
+    type: 'checkbox',
+    fullWidth: true,
+  },
 ];
 
 const ADDON_FIELDS = [
@@ -59,6 +67,19 @@ export const normalizeRoomFromApi = (room = {}) => ({
     ...l,
     imageUrl: l.imageUrl || l.image || '',
     fixedPrice: l.fixedPrice ?? l.price ?? 0,
+    hasLayoutMaterials: l.hasLayoutMaterials ?? false,
+    configurations: Array.isArray(l.configurations)
+      ? l.configurations.map((config) => ({
+          ...config,
+          dimensionId: config.dimensionId,
+          materials: (config.materials || []).map((material) => ({
+            ...material,
+            name: material.name || '',
+            price: material.price ?? 0,
+            mandatory: material.mandatory ?? false,
+          })),
+        }))
+      : [],
   })),
   addons: (room.addons || []).map((a) => ({
     ...a,
@@ -83,6 +104,18 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
       ...form,
       pricePerSqFt: Number(form.pricePerSqFt) || 0,
     });
+  };
+
+  const ensureDimensionId = (dimensionIndex) => {
+    const dimension = form.dimensions[dimensionIndex];
+    if (!dimension) return null;
+    if (dimension._id) return String(dimension._id);
+
+    const newId = generateObjectId();
+    const dimensions = [...form.dimensions];
+    dimensions[dimensionIndex] = { ...dimension, _id: newId };
+    setForm({ ...form, dimensions });
+    return newId;
   };
 
   return (
@@ -209,9 +242,26 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
             <RoomNestedManager
               title="Layouts"
               items={form.layouts}
-              emptyItem={{ name: '', imageUrl: '', description: '', fixedPrice: '' }}
+              emptyItem={{
+                name: '',
+                imageUrl: '',
+                description: '',
+                fixedPrice: '',
+                hasLayoutMaterials: false,
+                configurations: [],
+              }}
               fields={LAYOUT_FIELDS}
               onChange={(layouts) => setForm({ ...form, layouts })}
+              renderFormExtras={(draft, setDraft) =>
+                draft.hasLayoutMaterials ? (
+                  <LayoutDimensionMaterialsManager
+                    dimensions={form.dimensions}
+                    configurations={draft.configurations || []}
+                    onChange={(configurations) => setDraft({ ...draft, configurations })}
+                    onEnsureDimensionId={ensureDimensionId}
+                  />
+                ) : null
+              }
               renderSummary={(item) => (
                 <>
                   <h5>{item.name}</h5>

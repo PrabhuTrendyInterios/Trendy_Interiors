@@ -1,5 +1,7 @@
 const Room = require('../models/Room');
 const { formatValidationError, sendError, sendSuccess } = require('../utils/controllerHelpers');
+const { formatRoomResponse } = require('../utils/formatRoomResponse');
+const { validateRoomLayoutConfigurations } = require('../utils/layoutMaterials');
 
 const buildRoomFilter = (query) => {
   if (query.includeInactive === 'true') {
@@ -79,12 +81,31 @@ const normalizeDimension = (item = {}) => ({
 /**
  * Normalizes and validates layout data
  */
+const normalizeLayoutMaterial = (material = {}) => ({
+  ...(material._id ? { _id: material._id } : {}),
+  name: String(material.name || '').trim(),
+  price: Number(material.price) || 0,
+  mandatory: Boolean(material.mandatory),
+});
+
+const normalizeLayoutConfiguration = (config = {}) => ({
+  ...(config._id ? { _id: config._id } : {}),
+  dimensionId: config.dimensionId,
+  materials: Array.isArray(config.materials)
+    ? config.materials.map(normalizeLayoutMaterial)
+    : [],
+});
+
 const normalizeLayout = (item = {}) => ({
   ...(item._id ? { _id: item._id } : {}),
   name: String(item.name || '').trim(),
   imageUrl: String(item.imageUrl || item.image || '').trim(),
   description: String(item.description || '').trim(),
   fixedPrice: Number(item.fixedPrice ?? item.price) || 0,
+  hasLayoutMaterials: Boolean(item.hasLayoutMaterials),
+  configurations: Array.isArray(item.configurations)
+    ? item.configurations.map(normalizeLayoutConfiguration)
+    : [],
 });
 
 /**
@@ -121,7 +142,7 @@ exports.getRooms = async (req, res) => {
 
     sendSuccess(res, 200, {
       count: rooms.length,
-      data: rooms,
+      data: rooms.map(formatRoomResponse),
     });
   } catch (err) {
     sendError(res, 500, formatValidationError(err));
@@ -148,15 +169,22 @@ exports.getRoom = async (req, res) => {
       }
     });
 
-    sendSuccess(res, 200, { data: room });
+    sendSuccess(res, 200, { data: formatRoomResponse(room) });
   } catch (err) {
     sendError(res, 500, formatValidationError(err));
   }
 };
 
+const toPlainNestedDoc = (item) => (item?.toObject ? item.toObject() : item);
+
 exports.createRoom = async (req, res) => {
   try {
     const payload = normalizeRoomPayload(req.body);
+
+    const layoutErrors = validateRoomLayoutConfigurations(payload.dimensions, payload.layouts);
+    if (layoutErrors.length > 0) {
+      return sendError(res, 400, layoutErrors.join(' '));
+    }
     
     // Debug: Log packageComponents structure
     console.log(`[createRoom] Creating room: ${payload.name}`);
@@ -173,7 +201,7 @@ exports.createRoom = async (req, res) => {
     const room = await Room.create(payload);
     
     console.log(`✓ Room created successfully: ${room.name}`);
-    sendSuccess(res, 201, { data: room });
+    sendSuccess(res, 201, { data: formatRoomResponse(room) });
   } catch (err) {
     sendError(res, err.name === 'ValidationError' || err.code === 11000 ? 400 : 500, formatValidationError(err));
   }
@@ -227,6 +255,21 @@ exports.updateRoom = async (req, res) => {
       console.log(`[updateRoom] Addons: merged ${updates.addons.length} items (${existingRoom.addons.length} existing + updates)`);
     }
 
+    const dimensionsForValidation = Array.isArray(updates.dimensions)
+      ? updates.dimensions
+      : existingRoom.dimensions;
+    const layoutsForValidation = Array.isArray(updates.layouts)
+      ? updates.layouts
+      : existingRoom.layouts;
+
+    const layoutErrors = validateRoomLayoutConfigurations(
+      dimensionsForValidation.map(toPlainNestedDoc),
+      layoutsForValidation.map(toPlainNestedDoc)
+    );
+    if (layoutErrors.length > 0) {
+      return sendError(res, 400, layoutErrors.join(' '));
+    }
+
     // Perform update
     const room = await Room.findByIdAndUpdate(roomId, updates, {
       new: true,
@@ -236,7 +279,7 @@ exports.updateRoom = async (req, res) => {
     console.log(`[updateRoom] Room "${room.name}" updated successfully`);
     console.log(`  - Dimensions with packageComponents: ${room.dimensions.filter(d => d.packageComponents?.length > 0).length}`);
 
-    sendSuccess(res, 200, { data: room });
+    sendSuccess(res, 200, { data: formatRoomResponse(room) });
   } catch (err) {
     sendError(res, err.name === 'ValidationError' || err.code === 11000 ? 400 : 500, formatValidationError(err));
   }

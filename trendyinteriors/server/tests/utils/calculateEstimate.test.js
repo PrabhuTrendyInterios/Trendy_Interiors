@@ -102,4 +102,132 @@ describe('server/utils/calculateEstimate', () => {
 
     expect(withHeight.estimatedAmount).toBe(withoutHeight.estimatedAmount);
   });
+
+  test('adds layoutMaterialsCost for selected layout materials', () => {
+    const roomsWithLayoutMaterials = [
+      {
+        name: 'Bedroom',
+        pricePerSqFt: 1000,
+        dimensions: [
+          {
+            _id: 'dim-low',
+            name: 'Low',
+            packageComponents: [],
+          },
+        ],
+        layouts: [
+          {
+            name: 'Sliding Wardrobe',
+            fixedPrice: 18000,
+            hasLayoutMaterials: true,
+            configurations: [
+              {
+                dimensionId: 'dim-low',
+                materials: [
+                  { _id: 'mat-1', name: 'Laminate', price: 5000, mandatory: true },
+                  { _id: 'mat-2', name: 'Handles', price: 1200, mandatory: false },
+                ],
+              },
+            ],
+          },
+        ],
+        addons: [],
+      },
+    ];
+
+    const quoteAllSelected = calculateEstimate({
+      roomInstances: [{ id: 'Bedroom-1', roomName: 'Bedroom', label: 'Bedroom' }],
+      normalizedDimensions: {
+        'Bedroom-1': {
+          length: 10,
+          width: 10,
+          height: 9,
+          sizeCategory: 'dim-low',
+          selectedDesignIdea: {
+            layout: 'Sliding Wardrobe',
+            addons: [],
+          },
+        },
+      },
+      roomsCatalog: roomsWithLayoutMaterials,
+      extraAddons: [],
+      globalAddons: [],
+    });
+
+    expect(quoteAllSelected.lineItems[0].layoutMaterialsCost).toBe(6200);
+    expect(quoteAllSelected.lineItems[0].estimatedCost).toBe(124200);
+
+    const quotePartialSelection = calculateEstimate({
+      roomInstances: [{ id: 'Bedroom-1', roomName: 'Bedroom', label: 'Bedroom' }],
+      normalizedDimensions: {
+        'Bedroom-1': {
+          length: 10,
+          width: 10,
+          height: 9,
+          sizeCategory: 'dim-low',
+          selectedDesignIdea: {
+            layout: 'Sliding Wardrobe',
+            addons: [],
+          },
+        },
+      },
+      roomsCatalog: roomsWithLayoutMaterials,
+      extraAddons: [],
+      globalAddons: [],
+      selectedLayoutMaterials: {
+        'Bedroom-1': {
+          'mat-1': true,
+          'mat-2': false,
+        },
+      },
+    });
+
+    expect(quotePartialSelection.lineItems[0].layoutMaterialsCost).toBe(5000);
+    expect(quotePartialSelection.lineItems[0].estimatedCost).toBe(123000);
+  });
+
+  test('skips layout materials safely when dimension configuration is missing', () => {
+    const quote = calculateEstimate({
+      roomInstances: [{ id: 'Bedroom-1', roomName: 'Bedroom', label: 'Bedroom' }],
+      normalizedDimensions: {
+        'Bedroom-1': {
+          length: 10,
+          width: 10,
+          height: 9,
+          sizeCategory: 'dim-mid',
+          selectedDesignIdea: {
+            layout: 'Sliding Wardrobe',
+            addons: [],
+          },
+        },
+      },
+      roomsCatalog: [
+        {
+          name: 'Bedroom',
+          pricePerSqFt: 1000,
+          dimensions: [{ _id: 'dim-low', name: 'Low' }],
+          layouts: [
+            {
+              name: 'Sliding Wardrobe',
+              fixedPrice: 0,
+              hasLayoutMaterials: true,
+              configurations: [
+                {
+                  dimensionId: 'dim-low',
+                  materials: [{ _id: 'mat-1', name: 'Laminate', price: 5000, mandatory: true }],
+                },
+              ],
+            },
+          ],
+          addons: [],
+        },
+      ],
+      extraAddons: [],
+      globalAddons: [],
+    });
+
+    expect(quote.lineItems[0].layoutMaterialsCost).toBe(0);
+    expect(quote.lineItems[0].layoutMaterials).toEqual([]);
+    expect(quote.lineItems[0].estimatedCost).toBe(100000);
+  });
 });
