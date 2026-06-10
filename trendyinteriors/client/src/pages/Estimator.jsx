@@ -323,6 +323,13 @@ const Estimator = () => {
         {
           const roomInstances = buildRoomInstances(formData.rooms);
           return roomInstances.length > 0 && roomInstances.every((room) => {
+            const roomData = findRoomByName(roomsCatalog, room.roomName);
+            const requiresDims = roomData?.requiresDimensions !== false;
+
+            if (!requiresDims) {
+              return true; // Room doesn't require dimensions, so it's complete
+            }
+
             const dimensions = formData.roomDimensionsByRoom[room.id] || {};
             return (
               Number(dimensions.length) > 0 &&
@@ -896,14 +903,19 @@ const Estimator = () => {
                               <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-gray)' }}>
                                 {item.areaSqFt} sq. ft × ₹{item.ratePerSqFt}/sq. ft = ₹{(item.baseCost ?? item.areaSqFt * item.ratePerSqFt).toLocaleString('en-IN')}
                               </p>
-                              {item.layoutCost > 0 && (
+                              {item.layout && (
                                 <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
-                                  {item.layout} Layout: +₹{item.layoutCost.toLocaleString('en-IN')}
+                                  {item.layout} Layout{item.layoutCost > 0 ? `: +₹${item.layoutCost.toLocaleString('en-IN')}` : ''}
                                 </p>
                               )}
                               {(item.layoutMaterialsCost ?? 0) > 0 && (
                                 <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
                                   Layout Materials: +₹{item.layoutMaterialsCost.toLocaleString('en-IN')}
+                                </p>
+                              )}
+                              {item.areaSqFt === 0 && item.layout && (
+                                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gray)' }}>
+                                  This room is priced by selected layout only because dimensions are optional for this room.
                                 </p>
                               )}
                               {item.addonsCost > 0 && (

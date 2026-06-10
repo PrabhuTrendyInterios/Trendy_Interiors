@@ -199,6 +199,10 @@ const roomSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    requiresDimensions: {
+      type: Boolean,
+      default: true,
+    },
     dimensions: {
       type: [dimensionSchema],
       default: [],

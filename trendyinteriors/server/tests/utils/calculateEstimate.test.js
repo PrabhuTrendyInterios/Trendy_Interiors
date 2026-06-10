@@ -56,6 +56,66 @@ describe('server/utils/calculateEstimate', () => {
     expect(quote.estimatedAmount).toBe(158000);
   });
 
+  test('uses layout.price when fixedPrice is unavailable', () => {
+    const quote = calculateEstimate({
+      roomInstances: [{ id: 'Bedroom-1', roomName: 'Bedroom', label: 'Bedroom' }],
+      normalizedDimensions: {
+        'Bedroom-1': {
+          length: 10,
+          width: 10,
+          height: 9,
+          selectedDesignIdea: {
+            layout: 'Sliding Wardrobe',
+            addons: [],
+          },
+        },
+      },
+      roomsCatalog: [
+        {
+          name: 'Bedroom',
+          pricePerSqFt: 1000,
+          layouts: [{ name: 'Sliding Wardrobe', price: 18000 }],
+          addons: [],
+        },
+      ],
+      extraAddons: [],
+      globalAddons: [],
+    });
+
+    expect(quote.lineItems[0].layoutCost).toBe(18000);
+    expect(quote.lineItems[0].estimatedCost).toBe(118000);
+  });
+
+  test('includes non-required room layout cost even when no dimensions are provided', () => {
+    const quote = calculateEstimate({
+      roomInstances: [{ id: 'Pooja-1', roomName: 'Pooja Room', label: 'Pooja Room' }],
+      normalizedDimensions: {
+        'Pooja-1': {
+          length: 0,
+          width: 0,
+          height: 0,
+          selectedDesignIdea: { layout: 'Pooja Unit', addons: [] },
+        },
+      },
+      roomsCatalog: [
+        {
+          name: 'Pooja Room',
+          pricePerSqFt: 1200,
+          requiresDimensions: false,
+          layouts: [{ name: 'Pooja Unit', fixedPrice: 45000 }],
+          addons: [],
+        },
+      ],
+      extraAddons: [],
+      globalAddons: [],
+    });
+
+    expect(quote.totalAreaSqFt).toBe(0);
+    expect(quote.lineItems[0].layoutCost).toBe(45000);
+    expect(quote.lineItems[0].estimatedCost).toBe(45000);
+    expect(quote.estimatedAmount).toBe(45000);
+  });
+
   test('adds global addons to grand total', () => {
     const quote = calculateEstimate({
       roomInstances: [{ id: 'Kitchen-1', roomName: 'Kitchen', label: 'Kitchen' }],

@@ -14,6 +14,7 @@ export const emptyRoom = {
   pricePerSqFt: '',
   status: 'active',
   allowCustomDimensions: false,
+  requiresDimensions: true,
   dimensions: [],
   layouts: [],
   addons: [],
@@ -53,6 +54,7 @@ export const normalizeRoomFromApi = (room = {}) => ({
   pricePerSqFt: room.pricePerSqFt ?? '',
   status: room.status || (room.active === false ? 'inactive' : 'active'),
   allowCustomDimensions: room.allowCustomDimensions ?? false,
+  requiresDimensions: room.requiresDimensions ?? true,
   dimensions: (room.dimensions || []).map((d) => ({
     ...d,
     name: d.name || d.label || '',
@@ -196,6 +198,21 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
             </div>
             <div className="form-row">
               <div className="form-group small">
+                <label>Require Dimensions</label>
+                <div className="checkbox-row">
+                  <button
+                    type="button"
+                    className={`form-toggle ${form.requiresDimensions ? 'checked' : ''}`}
+                    onClick={() => setForm({ ...form, requiresDimensions: !form.requiresDimensions })}
+                    aria-pressed={form.requiresDimensions}
+                    title={form.requiresDimensions ? 'Disable dimension requirement' : 'Require dimensions'}
+                  >
+                    {form.requiresDimensions && <span aria-hidden="true">✓</span>}
+                  </button>
+                  <span>Room must have dimensions</span>
+                </div>
+              </div>
+              <div className="form-group small">
                 <label>Allow Custom Dimensions</label>
                 <div className="checkbox-row">
                   <button
@@ -203,7 +220,8 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
                     className={`form-toggle ${form.allowCustomDimensions ? 'checked' : ''}`}
                     onClick={() => setForm({ ...form, allowCustomDimensions: !form.allowCustomDimensions })}
                     aria-pressed={form.allowCustomDimensions}
-                    title={form.allowCustomDimensions ? 'Disable custom room sizing' : 'Enable custom room sizing'}
+                    disabled={!form.requiresDimensions}
+                    title={!form.requiresDimensions ? 'Enable "Require Dimensions" first' : (form.allowCustomDimensions ? 'Disable custom room sizing' : 'Enable custom room sizing')}
                   >
                     {form.allowCustomDimensions && <span aria-hidden="true">✓</span>}
                   </button>

@@ -30,6 +30,8 @@ const formatRoomResponse = (room) => {
 
   return {
     ...doc,
+    allowCustomDimensions: doc.allowCustomDimensions ?? false,
+    requiresDimensions: doc.requiresDimensions ?? true,
     layouts: (doc.layouts || []).map(formatLayoutResponse),
   };
 };

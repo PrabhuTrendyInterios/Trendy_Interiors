@@ -119,22 +119,33 @@ const normalizeAddon = (item = {}) => ({
   price: Number(item.price) || 0,
 });
 
-const normalizeRoomPayload = (body = {}) => ({
-  name: body.name?.trim(),
-  description: body.description?.trim() || '',
-  imageUrl: body.imageUrl?.trim() || '',
-  pricePerSqFt: Number(body.pricePerSqFt) || 0,
-  status: body.status === 'inactive' ? 'inactive' : 'active',
-  dimensions: Array.isArray(body.dimensions)
-    ? body.dimensions.map(normalizeDimension)
-    : [],
-  layouts: Array.isArray(body.layouts)
-    ? body.layouts.map(normalizeLayout)
-    : [],
-  addons: Array.isArray(body.addons)
-    ? body.addons.map(normalizeAddon)
-    : [],
-});
+// Helper to convert various falsy representations to boolean
+const toBoolean = (value) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.toLowerCase() !== 'false' && value !== '0' && value !== '';
+  return Boolean(value);
+};
+
+const normalizeRoomPayload = (body = {}) => {
+  return {
+    name: body.name?.trim(),
+    description: body.description?.trim() || '',
+    imageUrl: body.imageUrl?.trim() || '',
+    pricePerSqFt: Number(body.pricePerSqFt) || 0,
+    status: body.status === 'inactive' ? 'inactive' : 'active',
+    allowCustomDimensions: toBoolean(body.allowCustomDimensions),
+    requiresDimensions: body.requiresDimensions !== undefined ? toBoolean(body.requiresDimensions) : true,
+    dimensions: Array.isArray(body.dimensions)
+      ? body.dimensions.map(normalizeDimension)
+      : [],
+    layouts: Array.isArray(body.layouts)
+      ? body.layouts.map(normalizeLayout)
+      : [],
+    addons: Array.isArray(body.addons)
+      ? body.addons.map(normalizeAddon)
+      : [],
+  };
+};
 
 exports.getRooms = async (req, res) => {
   try {
@@ -224,7 +235,16 @@ exports.updateRoom = async (req, res) => {
       imageUrl: req.body.imageUrl !== undefined ? req.body.imageUrl?.trim() || '' : existingRoom.imageUrl,
       pricePerSqFt: req.body.pricePerSqFt !== undefined ? Number(req.body.pricePerSqFt) || 0 : existingRoom.pricePerSqFt,
       status: req.body.status !== undefined ? (req.body.status === 'inactive' ? 'inactive' : 'active') : existingRoom.status,
+      allowCustomDimensions: req.body.allowCustomDimensions !== undefined ? toBoolean(req.body.allowCustomDimensions) : existingRoom.allowCustomDimensions,
+      requiresDimensions: req.body.requiresDimensions !== undefined ? toBoolean(req.body.requiresDimensions) : existingRoom.requiresDimensions,
     };
+
+    console.log(`[updateRoom] Processing updates for "${req.body.name}":`, {
+      'req.body.requiresDimensions': req.body.requiresDimensions,
+      'typeof': typeof req.body.requiresDimensions,
+      'toBoolean(req.body.requiresDimensions)': toBoolean(req.body.requiresDimensions),
+      'updates.requiresDimensions': updates.requiresDimensions,
+    });
 
     // Intelligently merge nested arrays
     // If dimensions/layouts/addons are provided in request, use them; otherwise preserve existing
@@ -277,6 +297,8 @@ exports.updateRoom = async (req, res) => {
     });
 
     console.log(`[updateRoom] Room "${room.name}" updated successfully`);
+    console.log(`  - Actual saved requiresDimensions: ${room.requiresDimensions} (type: ${typeof room.requiresDimensions})`);
+    console.log(`  - Actual saved allowCustomDimensions: ${room.allowCustomDimensions} (type: ${typeof room.allowCustomDimensions})`);
     console.log(`  - Dimensions with packageComponents: ${room.dimensions.filter(d => d.packageComponents?.length > 0).length}`);
 
     sendSuccess(res, 200, { data: formatRoomResponse(room) });

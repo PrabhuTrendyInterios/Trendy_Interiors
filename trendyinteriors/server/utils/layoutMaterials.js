@@ -23,7 +23,22 @@ const findLayoutByName = (roomDoc, layoutName = '') => {
     return null;
   }
 
-  return roomDoc.layouts.find((entry) => entry?.name === layoutName) || null;
+  const normalized = String(layoutName).trim().toLowerCase();
+
+  return (
+    roomDoc.layouts.find((entry) => {
+      if (!entry) return false;
+
+      // direct id match
+      if (String(entry._id) === String(layoutName)) return true;
+
+      // name / label (case-insensitive, trimmed)
+      const entryName = entry.name ? String(entry.name).trim().toLowerCase() : '';
+      const entryLabel = entry.label ? String(entry.label).trim().toLowerCase() : '';
+
+      return entryName === normalized || entryLabel === normalized;
+    }) || null
+  );
 };
 
 const findLayoutConfiguration = (layout, dimension, sizeCategory = '') => {

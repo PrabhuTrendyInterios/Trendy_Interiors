@@ -33,6 +33,8 @@ export const normalizeEstimatorRoom = (room) => ({
   description: room.description || '',
   image: room.imageUrl || DEFAULT_ROOM_IMAGE,
   pricePerSqFt: Number(room.pricePerSqFt) || 0,
+  allowCustomDimensions: room.allowCustomDimensions ?? false,
+  requiresDimensions: room.requiresDimensions ?? true,
   dimensions: (room.dimensions || []).map((dim) => ({
     _id: dim._id,
     id: dim._id || dim.name,

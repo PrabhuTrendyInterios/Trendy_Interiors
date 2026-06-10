@@ -84,6 +84,13 @@ const DimensionsSelection = ({
     ? findRoomByName(roomsCatalog, selectedRoomEntry.roomName)
     : null;
   const allowCustomDimensions = Boolean(selectedRoomData?.allowCustomDimensions);
+  const requiresDimensions = selectedRoomData?.requiresDimensions !== false;
+
+  useEffect(() => {
+    if (selectedRoomData) {
+      console.log(`Room: ${selectedRoomData.name}, requiresDimensions:`, selectedRoomData.requiresDimensions);
+    }
+  }, [selectedRoomData]);
 
   useEffect(() => {
     if (!selectedRoom && roomEntries.length > 0) {
@@ -117,6 +124,16 @@ const DimensionsSelection = ({
   const currentRoomLabel = selectedRoomEntry?.label || 'your selected room';
 
   const roomIsComplete = (roomId) => {
+    const roomEntry = roomEntries.find((room) => room.id === roomId);
+    if (!roomEntry) return false;
+
+    const roomData = findRoomByName(roomsCatalog, roomEntry.roomName);
+    const requiresDims = roomData?.requiresDimensions !== false;
+
+    if (!requiresDims) {
+      return true; // Room doesn't require dimensions
+    }
+
     const dimensions = roomDimensions?.[roomId] || {};
     return (
       Number(dimensions.length) > 0 &&
@@ -128,19 +145,24 @@ const DimensionsSelection = ({
   const completedRoomCount = roomEntries.filter((room) => roomIsComplete(room.id)).length;
 
   const isRoomFullyConfigured = (roomId) => {
-    // Check if room has dimensions
+    // Get room info
+    const roomEntry = roomEntries.find((room) => room.id === roomId);
+    if (!roomEntry) return false;
+
+    const roomData = findRoomByName(roomsCatalog, roomEntry.roomName);
+    const requiresDims = roomData?.requiresDimensions !== false;
+
+    // Check if room has dimensions (only if required)
     const dimensions = roomDimensions?.[roomId] || {};
     const hasDimensions =
       Number(dimensions.length) > 0 &&
       Number(dimensions.width) > 0 &&
       Number(dimensions.height) > 0;
 
-    if (!hasDimensions) return false;
+    // If dimensions are required but not provided, room is not configured
+    if (requiresDims && !hasDimensions) return false;
 
-    // Get room info to check if layout is required
-    const roomEntry = roomEntries.find((room) => room.id === roomId);
-    if (!roomEntry) return false;
-
+    // Get room options to check if layout is required
     const roomOptions = getRoomOptions(roomEntry.roomName, roomsCatalog);
     
     // If layout is required, check if it's selected
@@ -149,7 +171,7 @@ const DimensionsSelection = ({
       return selectedLayout !== '';
     }
 
-    // If layout is not required, room is complete with just dimensions
+    // Room is complete (dimensions provided if required, no layout required)
     return true;
   };
 
@@ -265,7 +287,15 @@ const DimensionsSelection = ({
       return 'No add-ons selected yet.';
     }
 
-    const layoutText = selectedDesign.layout ? selectedDesign.layout : '';
+    let layoutText = '';
+    if (selectedDesign.layout) {
+      const matchedLayout = (currentOptions.layouts || []).find((l) =>
+        (l.name && l.name === selectedDesign.layout) ||
+        (l.label && l.label === selectedDesign.layout) ||
+        String(l._id) === selectedDesign.layout
+      );
+      layoutText = matchedLayout ? (matchedLayout.label || matchedLayout.name) : selectedDesign.layout;
+    }
     const addonsText =
       selectedDesign.addons && selectedDesign.addons.length > 0
         ? selectedDesign.addons.join(', ')
@@ -371,8 +401,36 @@ const DimensionsSelection = ({
             </p>
           )}
 
-          <div className="dimension-input-card">
-            <h3>Room Size</h3>
+          {!requiresDimensions && (
+            <div style={{
+              margin: '1rem 0',
+              padding: '1rem',
+              borderRadius: '12px',
+              backgroundColor: '#fff9e6',
+              border: '1px solid rgba(212, 175, 55, 0.25)',
+              color: 'var(--color-charcoal-dark)',
+              fontSize: '0.9rem',
+            }}>
+              {selectedDesign.layout ? (
+                <>
+                  This room does not require dimensions. Your selected layout <strong>{(() => {
+                    const matched = (currentOptions.layouts || []).find((l) =>
+                      (l.name && l.name === selectedDesign.layout) ||
+                      (l.label && l.label === selectedDesign.layout) ||
+                      String(l._id) === selectedDesign.layout
+                    );
+                    return matched ? (matched.label || matched.name) : selectedDesign.layout;
+                  })()}</strong> will be used for pricing.
+                </>
+              ) : (
+                <>This room does not require dimensions. Choose a layout below to calculate the quote for this space.</>
+              )}
+            </div>
+          )}
+
+          {requiresDimensions && (
+            <div className="dimension-input-card">
+              <h3>Room Size</h3>
 
             <div className="size-buttons-container">
               <label>
@@ -482,6 +540,7 @@ const DimensionsSelection = ({
               </div>
             )}
           </div>
+          )}
 
           {currentOptions.showLayout && (
             <div className="premium-design-section">
@@ -490,17 +549,18 @@ const DimensionsSelection = ({
               <div className="premium-image-option-grid">
                 {currentOptions.layouts.map((layout) => {
                   const layoutLabel = layout.label || layout.name;
+                  const layoutKey = layout.name || String(layout._id || '');
                   const layoutCost = Number(layout.price) || 0;
 
                   return (
                     <button
                       type="button"
-                      key={layoutLabel}
+                      key={layoutKey}
                       className={`premium-image-option ${
-                        selectedDesign.layout === layoutLabel ? 'selected' : ''
+                        selectedDesign.layout === layoutKey ? 'selected' : ''
                       }`}
                       style={{ backgroundImage: layout.image ? `url(${layout.image})` : undefined }}
-                      onClick={() => handleLayoutSelect(layoutLabel)}
+                      onClick={() => handleLayoutSelect(layoutKey)}
                     >
                       <div className="premium-image-option-overlay"></div>
                       <span>{layoutLabel}</span>

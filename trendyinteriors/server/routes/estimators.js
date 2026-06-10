@@ -94,7 +94,10 @@ const validateEstimatorPayload = (payload, roomsCatalog = [], options = {}) => {
       selectedDesignIdea,
     };
 
-    if (requireCompleteRooms && (!length || !width || !height)) {
+    const roomDoc = findRoomCatalogEntry(roomsCatalog, room.roomName);
+    const roomRequiresDimensions = roomDoc?.requiresDimensions !== false;
+
+    if (requireCompleteRooms && roomRequiresDimensions && (!length || !width || !height)) {
       errors.push(`Missing or invalid dimensions for room: ${room.label}.`);
     }
 

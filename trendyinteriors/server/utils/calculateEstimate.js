@@ -15,8 +15,22 @@ const findRoomCatalogEntry = (roomsCatalog = [], roomName = '') =>
 const getLayoutPrice = (roomDoc, layoutName = '') => {
   if (!layoutName || !roomDoc?.layouts?.length) return 0;
 
-  const layout = roomDoc.layouts.find((item) => item.name === layoutName);
-  return layout ? Number(layout.fixedPrice) || 0 : 0;
+  const normalized = String(layoutName).trim().toLowerCase();
+
+  const layout = roomDoc.layouts.find((item) => {
+    if (!item) return false;
+    // id match
+    if (String(item._id) === String(layoutName)) return true;
+
+    const itemName = item.name ? String(item.name).trim().toLowerCase() : '';
+    const itemLabel = item.label ? String(item.label).trim().toLowerCase() : '';
+
+    return itemName === normalized || itemLabel === normalized;
+  });
+
+  if (!layout) return 0;
+
+  return Number(layout.fixedPrice ?? layout.price) || 0;
 };
 
 const getRoomAddonsTotal = (roomDoc, addonNames = []) => {
@@ -124,9 +138,6 @@ const calculateEstimate = ({
     const width = Number(dimensions.width) || 0;
     const height = Number(dimensions.height) || 0;
     const areaSqFt = calcArea(length, width);
-
-    if (areaSqFt <= 0) return;
-
     const selectedDesignIdea = dimensions.selectedDesignIdea || {};
     const sizeCategory = dimensions.sizeCategory || '';
     const roomDoc = findRoomCatalogEntry(roomsCatalog, room.roomName);
@@ -134,11 +145,36 @@ const calculateEstimate = ({
     const baseCost = roundMoney(areaSqFt * ratePerSqFt);
     const layoutCost = roundMoney(getLayoutPrice(roomDoc, selectedDesignIdea.layout));
     const addonsCost = roundMoney(getRoomAddonsTotal(roomDoc, selectedDesignIdea.addons));
+
+      // Warn when a selected layout exists but didn't resolve to a price
+      if (selectedDesignIdea.layout && layoutCost === 0) {
+        console.warn(
+          `[calculateEstimate] Selected layout "${selectedDesignIdea.layout}" not found or priced as 0 for room "${roomDoc?.name || room.roomName}"`
+        );
+        try {
+          const available = (roomDoc?.layouts || []).map((l) => l.label || l.name || String(l._id));
+          console.warn(`[calculateEstimate] Available layouts for ${roomDoc?.name || room.roomName}: ${available.join(', ')}`);
+        } catch (err) {
+          // ignore
+        }
+      }
     
     // Get package components for this dimension
     const packageComponentsArray = getPackageComponentsForDimension(roomDoc, sizeCategory);
     const selectedIds = (selectedPackageComponents[room.id] || []);
     const packageComponentsTotal = roundMoney(getPackageComponentsTotal(packageComponentsArray, selectedIds));
+
+    const roomRequiresDimensions = roomDoc?.requiresDimensions !== false;
+    const hasSelectedLayout = Boolean(selectedDesignIdea.layout);
+    const hasSelectedAddons = Array.isArray(selectedDesignIdea.addons) && selectedDesignIdea.addons.length > 0;
+    const hasSelectedPackageComponents = Array.isArray(selectedIds) && selectedIds.length > 0;
+
+    if (
+      areaSqFt <= 0 &&
+      (roomRequiresDimensions || (!hasSelectedLayout && !hasSelectedAddons && !hasSelectedPackageComponents))
+    ) {
+      return;
+    }
     
     // Debug: Log calculation flow
     console.log(`[calculateEstimate] Room: ${room.roomName}, SizeCategory: ${sizeCategory}`);
