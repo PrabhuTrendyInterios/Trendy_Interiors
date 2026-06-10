@@ -1,10 +1,12 @@
 const axios = require('axios');
 const pdfParse = require('pdf-parse');
-const { sendAdminEmail } = require('../utils/mail');
+const { sendAdminEmail, sendUserEmail, sendEmailWithAttachment } = require('../utils/mail');
 const buildChatbotContext = require('../services/chatbotContextService');
 const { buildSystemPrompt } = require('../services/chatbotPromptService');
 const { fetchChatbotConfig, fetchChatbotContextData } = require('../services/chatbotApiService');
 const Settings = require('../models/Settings');
+const { generateMeetingRequestAdminHTML, generateMeetingRequestConfirmationHTML } = require('../utils/emailTemplates');
+const { buildCalendarInvite } = require('../utils/calendarInvite');
 
 // Default company context - will be overridden by database settings
 const DEFAULT_COMPANY_CONTEXT = {
@@ -266,6 +268,8 @@ const formatCurrency = (value) => {
   }).format(value);
 };
 
+const MeetingRequest = require('../models/MeetingRequest');
+
 const buildMeetingEmailHtml = (meeting) => {
   const safe = (value) => (value ? String(value) : 'Not provided');
 
@@ -368,13 +372,39 @@ const buildMeetingMissingInfoResponse = (missingFields) => {
   return `Sure, I can schedule a meeting for you. Please share the following details:\n${askList}\n\nOnce you provide these, I will confirm and submit your meeting request.`;
 };
 
-const sendMeetingRequestEmail = async (meetingData, meetingEmailTo = 'trendyadmin123@gmail.com') => {
-  await sendAdminEmail({
-    to: meetingEmailTo,
-    subject: `📅 Chatbot Meeting Request - ${meetingData.name} (${meetingData.projectType})`,
-    html: buildMeetingEmailHtml(meetingData),
-    text: `Meeting Request\nName: ${meetingData.name}\nPhone: ${meetingData.phone}\nEmail: ${meetingData.email}\nDate: ${meetingData.preferredDate}\nTime: ${meetingData.preferredTime}\nProject Type: ${meetingData.projectType}\nLocation: ${meetingData.propertyLocation}\nNotes: ${meetingData.notes || 'N/A'}`,
-  });
+const sendMeetingRequestEmail = async (meetingData) => {
+  try {
+    await sendAdminEmail({
+      to: process.env.ADMIN_EMAIL,
+      subject: `📅 Chatbot Meeting Request - ${meetingData.name} (${meetingData.projectType})`,
+      html: generateMeetingRequestAdminHTML(meetingData),
+      text: `Meeting Request\nName: ${meetingData.name}\nPhone: ${meetingData.phone}\nEmail: ${meetingData.email}\nDate: ${meetingData.preferredDate}\nTime: ${meetingData.preferredTime}\nProject Type: ${meetingData.projectType}\nLocation: ${meetingData.propertyLocation}\nNotes: ${meetingData.notes || 'N/A'}`,
+    });
+  } catch (error) {
+    console.error('❌ Admin meeting notification email failed:', error.message);
+    throw error;
+  }
+};
+
+const sendMeetingConfirmationEmail = async (meetingData, companyContext) => {
+  const icsBuffer = buildCalendarInvite(meetingData, companyContext);
+  const filename = `TrendyInterios_Meeting_${meetingData.preferredDate || 'requested'}.ics`;
+  try {
+    await sendEmailWithAttachment({
+      to: meetingData.email,
+      subject: 'Meeting Request Confirmation',
+      html: generateMeetingRequestConfirmationHTML(meetingData),
+      text: `Hello ${meetingData.name || 'Customer'},\n\nThank you for requesting a meeting with TrendyInterios. We have received your preferred meeting details:\n\nDate: ${meetingData.preferredDate || 'Not specified'}\nTime: ${meetingData.preferredTime || 'Not specified'}\n\nPlease find the attached calendar invite. Our team will contact you shortly to confirm the appointment.\n\nRegards,\nThe TrendyInterios Team`,
+      attachment: {
+        content: icsBuffer,
+        filename,
+        type: 'text/calendar',
+      },
+    });
+  } catch (error) {
+    console.error('❌ Confirmation email with calendar invite failed:', error.message);
+    throw error;
+  }
 };
 
 const buildAttachmentQuoteResponse = ({ fileName, analysis, quotation, userMessage }) => {
@@ -473,13 +503,43 @@ exports.sendMessage = async (req, res) => {
           });
         }
 
+        let savedMeetingRequest = null;
         try {
-          await sendMeetingRequestEmail(meetingData, chatbotConfig.meetingEmailTo);
+          savedMeetingRequest = await MeetingRequest.create({
+            name: meetingData.name || '',
+            email: meetingData.email || '',
+            phone: meetingData.phone || '',
+            preferredDate: meetingData.preferredDate || '',
+            preferredTime: meetingData.preferredTime || '',
+            message: meetingData.notes || '',
+            status: 'Pending',
+            projectType: meetingData.projectType || '',
+            propertyLocation: meetingData.propertyLocation || '',
+            source: 'chatbot',
+            rawData: meetingData,
+          });
+        } catch (dbError) {
+          console.error('❌ Failed to save meeting request to database:', dbError.message);
+          return res.status(500).json({
+            success: false,
+            error: 'Unable to save meeting request. Please try again later.',
+          });
+        }
+
+        try {
+          await sendMeetingRequestEmail(meetingData);
           console.log('✓ Meeting request email sent successfully for:', meetingData.name);
         } catch (emailError) {
           console.error('❌ Failed to send meeting request email:', emailError.message);
-          // Don't fail the user request even if email fails - they'll see success but we'll retry
-          // In production, you'd want to queue this for retry
+          // Don't fail the user request even if email fails - we'll still save the request
+        }
+
+        try {
+          await sendMeetingConfirmationEmail(meetingData, companyContext);
+          console.log('✓ Client confirmation email sent successfully to:', meetingData.email);
+        } catch (emailError) {
+          console.error('❌ Failed to send confirmation email to client:', emailError.message);
+          // Save success response even if client email fails
         }
 
         return res.status(200).json({
@@ -487,7 +547,8 @@ exports.sendMessage = async (req, res) => {
           message: `Great! Your meeting request has been scheduled and sent to our team.\n\nDetails received:\n- Name: ${meetingData.name}\n- Date: ${meetingData.preferredDate}\n- Time: ${meetingData.preferredTime}\n- Project: ${meetingData.projectType}\n\nOur team will contact you shortly on ${meetingData.phone} or ${meetingData.email}.`,
           timestamp: new Date(),
           meetingFlow: {
-            status: 'scheduled'
+            status: 'scheduled',
+            meetingRequestId: savedMeetingRequest?._id || null,
           }
         });
       }

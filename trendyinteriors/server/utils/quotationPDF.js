@@ -707,4 +707,185 @@ const generateQuotationPDF = async (estimator, res, callback) => {
   }
 };
 
-module.exports = { generateQuotationPDF };
+/**
+ * Generate quotation PDF and return as Buffer (for email attachments)
+ * @param {Object} estimator - Estimator data object
+ * @param {Function} callback - Callback(err, buffer)
+ */
+const generateQuotationPDFBuffer = async (estimator, callback) => {
+  try {
+    if (!estimator) throw new Error("Estimator data is required");
+
+    // ── Extract data ─────────────────────────────────────────────────────
+    const now = new Date();
+    const ref = mkRef(estimator._id);
+    const qs  = estimator.quoteSummary || {};
+    const ci  = estimator.customerInfo || {};
+    const rawRooms = estimator.rooms || {};
+    const rooms = rawRooms instanceof Map ? Object.fromEntries(rawRooms) : rawRooms;
+    const lineItems   = Array.isArray(qs.lineItems) ? qs.lineItems : [];
+    const extraAddons = Array.isArray(estimator.extraAddons) ? estimator.extraAddons : [];
+    const budgetPlan  = estimator.budgetPlan || "premium";
+    const pkg = PACKAGES[budgetPlan] || PACKAGES.premium;
+    const material = PLAN_MATERIAL[budgetPlan] || "BWR Ply";
+
+    // Selected rooms
+    const selectedRooms = Object.entries(rooms).filter(([, c]) => c > 0).map(([r]) => r);
+
+    // Room line items (exclude extra-addons)
+    const roomLineItems = lineItems.filter((it) => it.roomId !== "extra-addons");
+
+    // Aggregate costs by room name
+    const roomCosts = {};
+    const roomItemsByName = {};
+    roomLineItems.forEach((item) => {
+      const name = item.roomName || item.label || "Other";
+      roomCosts[name] = (roomCosts[name] || 0) + (item.estimatedCost || 0);
+      if (!roomItemsByName[name]) roomItemsByName[name] = [];
+      roomItemsByName[name].push(item);
+    });
+
+    // Financial totals
+    const roomCostTotal = roomLineItems.reduce((s, it) => s + (it.estimatedCost || 0), 0);
+    const pkgCost = pkg.cost || 0;
+    let addOnTotal = 0;
+    extraAddons.forEach((id) => { addOnTotal += ADDON_COSTS[id] || 0; });
+    const baseAmount = roomCostTotal + pkgCost + addOnTotal;
+    const gstAmount  = Math.round(baseAmount * 0.18);
+    const grandTotal = baseAmount + gstAmount;
+
+    // Build room summaries for Page 2
+    const roomSummaries = Object.entries(roomCosts).map(([name, cost]) => {
+      const items = roomItemsByName[name] || [];
+      const selectedItemsList = [];
+      items.forEach((it) => {
+        if (it.layout && it.layout !== "Standard") selectedItemsList.push(it.layout);
+        if (Array.isArray(it.addons)) it.addons.forEach((a) => selectedItemsList.push(a));
+      });
+      const selectedStr = selectedItemsList.length > 0 ? selectedItemsList.join(", ") : "Standard Items";
+      return [name, selectedStr, fmtINR(cost)];
+    });
+
+    // Build room detail rows for per-room pages
+    const roomDetails = {};
+    Object.entries(roomItemsByName).forEach(([name, items]) => {
+      const rows = [];
+      items.forEach((item) => {
+        // Base area row
+        if (item.areaSqFt > 0) {
+          const baseCost = item.baseCost || (item.areaSqFt * item.ratePerSqFt) || 0;
+          rows.push([
+            `${name} Base`,
+            `${item.areaSqFt} sq.ft`,
+            material,
+            "1",
+            fmtINR(baseCost),
+            fmtINR(baseCost),
+          ]);
+        }
+        // Layout row
+        if (item.layout && item.layout !== "") {
+          const lCost = item.layoutCost || 0;
+          rows.push([
+            `Layout (${item.layout})`,
+            "Standard",
+            material,
+            "1",
+            fmtINR(lCost),
+            fmtINR(lCost),
+          ]);
+        }
+        // Add-on rows
+        if (Array.isArray(item.addons) && item.addons.length > 0) {
+          item.addons.forEach((addon) => {
+            const perCost = item.addonsCost ? Math.round(item.addonsCost / item.addons.length) : 15000;
+            rows.push([
+              addon,
+              "Premium",
+              material,
+              "1",
+              fmtINR(perCost),
+              fmtINR(perCost),
+            ]);
+          });
+        }
+      });
+      roomDetails[name] = { rows, total: roomCosts[name] || 0 };
+    });
+
+    // Shared data
+    const shared = {
+      ref, now, ci, rooms, budgetPlan, selectedRooms, lineItems,
+      roomLineItems, extraAddons, roomCosts, roomCostTotal,
+      pkgCost, addOnTotal, gstAmount, grandTotal, roomSummaries,
+      roomDetails, material, qs
+    };
+
+    // ── Create PDF ───────────────────────────────────────────────────────
+    const doc = new PDFDocument({ size: "A4", margin: 0, autoFirstPage: true, bufferPages: true });
+    const chunks = [];
+    
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("error", (err) => { if (callback) callback(err); });
+    doc.on("end", () => {
+      try {
+        const buf = Buffer.concat(chunks);
+        console.log('[PDF] ✅ PDF buffer generated successfully. Size:', buf.length, 'bytes');
+        if (callback) callback(null, buf);
+      } catch (err) {
+        console.error('[PDF] ❌ Error creating PDF buffer:', err.message);
+        if (callback) callback(err);
+      }
+    });
+
+    // ═════════════════════════════════════════════════════════════════════
+    //  DRAW ALL PAGES
+    // ═════════════════════════════════════════════════════════════════════
+
+    // PAGE 1 — Header, Customer Details, Project Overview, Package
+    drawPage1(doc, shared);
+
+    // PAGE 2 — Room Summary
+    let y = newPage(doc, ref);
+    drawPage2(doc, y, shared);
+
+    // PAGE 3+ — Room Detail Pages (dynamically generated)
+    const uniqueRooms = Object.keys(roomDetails);
+    uniqueRooms.forEach((roomName) => {
+      y = newPage(doc, ref);
+      drawRoomDetailPage(doc, y, roomName, roomDetails[roomName].rows, roomDetails[roomName].total, ref);
+    });
+
+    // ADD-ONS PAGE (only if selected)
+    if (extraAddons.length > 0) {
+      y = newPage(doc, ref);
+      drawAddOnsPage(doc, y, shared);
+    }
+
+    // COST SUMMARY PAGE
+    y = newPage(doc, ref);
+    y = drawCostSummary(doc, y, shared);
+
+    // TERMS & CONDITIONS & SIGNATURE
+    // Check if we need a new page or if we can fit it on the cost summary page
+    y = ensureSpace(doc, y, 400, ref);
+    drawTermsAndSignature(doc, y, shared);
+
+    // ── Add footers with correct page numbers ────────────────────────────
+    const pages = doc.bufferedPageRange();
+    const total = pages.count;
+    for (let i = 0; i < total; i++) {
+      doc.switchToPage(i);
+      drawPageFooter(doc, i + 1, total);
+    }
+
+    doc.flushPages();
+    doc.end();
+  } catch (err) {
+    console.error('[PDF] ❌ Error in generateQuotationPDFBuffer:', err.message);
+    if (callback) callback(err);
+    else throw err;
+  }
+};
+
+module.exports = { generateQuotationPDF, generateQuotationPDFBuffer };

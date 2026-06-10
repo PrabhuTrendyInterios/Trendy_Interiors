@@ -10,6 +10,8 @@ const PAGE_META = {
   '/admin': { title: 'Dashboard', subtitle: 'Overview of your content' },
   '/admin/projects': { title: 'Projects', subtitle: 'Manage portfolio projects' },
   '/admin/team': { title: 'Team Members', subtitle: 'Manage your team profiles' },
+  '/admin/estimates': { title: 'Estimates', subtitle: 'Manage customer estimates and quotations' },
+  '/admin/meetings': { title: 'Meetings', subtitle: 'Review chatbot meeting requests and statuses' },
   '/admin/rooms': { title: 'Rooms', subtitle: 'Configure estimator room options' },
   '/admin/global-addons': { title: 'Global Addons', subtitle: 'Manage premium add-on packages' },
   '/admin/settings': { title: 'Settings', subtitle: 'Site and estimator configuration' },
@@ -20,7 +22,11 @@ const CmsLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const meta = PAGE_META[location.pathname] || { title: 'CMS', subtitle: '' };
+const meta =
+    PAGE_META[location.pathname] ||
+    (location.pathname.startsWith('/admin/meetings')
+      ? { title: 'Meetings', subtitle: 'Review chatbot meeting requests and statuses' }
+      : { title: 'CMS', subtitle: '' });
   const closeMobile = () => setMobileOpen(false);
 
   return (

@@ -139,10 +139,18 @@ const Home = () => {
           <h1>Filling the Heart, Not Just Space</h1>
           <p>Premium Interior Design Solutions for Modern Living</p>
           <div className="hero-cta-buttons">
-            <Link to="/projects" className="btn-primary" style={{ textDecoration: 'none' }}>
+            <Link
+              to="/projects"
+              className="btn-primary tour-view-projects-btn"
+              style={{ textDecoration: 'none' }}
+            >
               View Projects
             </Link>
-            <Link to="/estimator" className="btn-secondary" style={{ textDecoration: 'none' }}>
+            <Link
+              to="/estimator"
+              className="btn-secondary tour-estimator-btn"
+              style={{ textDecoration: 'none' }}
+            >
               Design Your Dream Interior
             </Link>
           </div>
@@ -150,7 +158,7 @@ const Home = () => {
       </section>
 
       {/* What We Do Section */}
-      <section className="services-section">
+      <section className="services-section tour-services">
         <div className="container">
           <PremiumSectionHeader
             sectionName="OUR EXPERTISE"
@@ -170,7 +178,7 @@ const Home = () => {
       </section>
 
       {/* Latest Projects Section */}
-      <section className="projects-section">
+      <section className="projects-section tour-projects">
         <div className="container">
           <PremiumSectionHeader
             sectionName="PORTFOLIO"
@@ -202,7 +210,7 @@ const Home = () => {
       </section>
 
       {/* Our Design Journey Section */}
-      <section className="design-process-section">
+      <section className="design-process-section tour-process">
         <div className="container">
           <PremiumSectionHeader
             sectionName="PROCESS"
@@ -230,7 +238,7 @@ const Home = () => {
       </section>
 
       {/* Customer Reviews Section */}
-      <section className="testimonials-section">
+      <section className="testimonials-section tour-testimonials">
         <div className="container">
           <PremiumSectionHeader
             sectionName="TESTIMONIALS"

@@ -3,7 +3,9 @@ const Estimator = require("../models/Estimator");
 const Room = require("../models/Room");
 const GlobalAddon = require("../models/GlobalAddon");
 const { protect, authorize } = require("../middleware/authMiddleware");
-const { generateQuotationPDF } = require("../utils/quotationPDF");
+const { generateQuotationPDF, generateQuotationPDFBuffer } = require("../utils/quotationPDF");
+const { sendEmailWithAttachment } = require("../utils/mail");
+const { generateQuotationDeliveryHTML } = require("../utils/emailTemplates");
 const { calculateEstimate, findRoomCatalogEntry } = require("../utils/calculateEstimate");
 const { findLayoutByName, resolveLayoutMaterials } = require("../utils/layoutMaterials");
 
@@ -301,6 +303,52 @@ router.post("/", async (req, res) => {
       extraAddons: validation.extraAddons,
       quoteSummary,
       status: "submitted",
+    });
+
+    // ✅ Generate PDF and send email automatically
+    const plainEstimator = estimator.toObject ? estimator.toObject() : estimator;
+    
+    // Generate PDF buffer for email attachment
+    generateQuotationPDFBuffer(plainEstimator, async (err, pdfBuffer) => {
+      if (err) {
+        console.error('[ESTIMATORS] ❌ PDF generation failed:', err.message);
+        // PDF generation failed but estimate is saved - don't fail the request
+      } else if (pdfBuffer) {
+        // Send quotation email with PDF attachment
+        const customerEmail = validation.customerInfo?.email;
+        if (!customerEmail) {
+          console.warn('[ESTIMATORS] ⚠️ Customer email not provided, skipping quotation email');
+        } else {
+          try {
+            const estimatorRef = plainEstimator._id.toString().substring(0, 8).toUpperCase();
+            const selectedRooms = Object.keys(validation.rooms || {})
+              .filter(room => (validation.rooms[room] || 0) > 0);
+            const totalArea = quoteSummary.totalAreaSqFt || 0;
+            
+            await sendEmailWithAttachment({
+              to: customerEmail,
+              subject: 'Your Interior Design Quotation - TrendyInterios',
+              html: generateQuotationDeliveryHTML({
+                customerName: validation.customerInfo?.name || 'Valued Customer',
+                customerEmail: customerEmail,
+                totalArea: totalArea,
+                estimatedAmount: quoteSummary.estimatedAmount,
+                referenceNumber: estimatorRef,
+                projectRooms: selectedRooms,
+              }),
+              text: `Your quotation for ₹${quoteSummary.estimatedAmount} (Reference: ${estimatorRef}) is attached.`,
+              attachment: {
+                content: pdfBuffer,
+                filename: `Trendy_Interiors_Quotation_${estimator._id}.pdf`,
+              },
+            });
+            console.log('[ESTIMATORS] ✅ Quotation email sent successfully to:', customerEmail);
+          } catch (emailErr) {
+            console.error('[ESTIMATORS] ❌ Failed to send quotation email:', emailErr.message);
+            // Email failed but estimate is saved - don't fail the request
+          }
+        }
+      }
     });
 
     req.app.get("io")?.emit("admin:newEstimator", {

@@ -5,9 +5,34 @@ import "./PopupCard.css";
 const PopupCard = () => {
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
+  const inactivityTimerRef = React.useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const resetInactivityTimer = () => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+
+    inactivityTimerRef.current = setTimeout(() => {
+      // Only show popup if not already visible and not closing
+      if (!visible && !closing) {
+        setVisible(true);
+
+        const hideTimer = setTimeout(() => {
+          setClosing(true);
+
+          setTimeout(() => {
+            setVisible(false);
+            setClosing(false);
+          }, 400);
+        }, 6000);
+
+        return () => clearTimeout(hideTimer);
+      }
+    }, 10000); // 10 seconds of inactivity
+  };
 
   useEffect(() => {
     const excludedRoutes = [
@@ -22,25 +47,39 @@ const PopupCard = () => {
       location.pathname.startsWith(route)
     );
 
-    if (isExcluded) return;
+    if (isExcluded) {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+      return;
+    }
 
-    const showTimer = setTimeout(() => {
-      setVisible(true);
+    // Track user activity
+    const handleActivity = () => {
+      resetInactivityTimer();
+    };
 
-      const hideTimer = setTimeout(() => {
-        setClosing(true);
+    // Add event listeners for user activity
+    window.addEventListener("click", handleActivity);
+    window.addEventListener("scroll", handleActivity);
+    window.addEventListener("mousemove", handleActivity);
+    window.addEventListener("keypress", handleActivity);
+    window.addEventListener("touchstart", handleActivity);
 
-        setTimeout(() => {
-          setVisible(false);
-          setClosing(false);
-        }, 400);
-      }, 6000);
+    // Initialize the inactivity timer
+    resetInactivityTimer();
 
-      return () => clearTimeout(hideTimer);
-    }, 10000);
-
-    return () => clearTimeout(showTimer);
-  }, [location.pathname]);
+    return () => {
+      window.removeEventListener("click", handleActivity);
+      window.removeEventListener("scroll", handleActivity);
+      window.removeEventListener("mousemove", handleActivity);
+      window.removeEventListener("keypress", handleActivity);
+      window.removeEventListener("touchstart", handleActivity);
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    };
+  }, [location.pathname, visible, closing, resetInactivityTimer]);
 
 
   const handleEstimate = () => {
@@ -48,6 +87,15 @@ const PopupCard = () => {
 
     setTimeout(() => {
       navigate("/estimator");
+    }, 400);
+  };
+
+  const handleCancel = () => {
+    setClosing(true);
+
+    setTimeout(() => {
+      setVisible(false);
+      setClosing(false);
     }, 400);
   };
 
@@ -69,20 +117,24 @@ const PopupCard = () => {
       </div>
 
       <div className="speech-bubble">
+        <button
+          className="popup-close"
+          onClick={handleCancel}
+          aria-label="Close popup"
+        >
+          x
+        </button>
+
         <p>
-          🐧 <strong>Hey...</strong>
+          🐧 <strong>Still thinking?</strong>
           <br />
-          You've scrolled this far.
+          Looks like you've gone quiet for a bit! 🤔
           <br />
-          At this point we're basically friends. 🤝
+          Sometimes the perfect design needs a moment to sink in. ✨
           <br />
-          So tell me...
+          Ready to see what your dream interior might cost?
           <br />
-          Have you been planning your dream interior...
-          <br />
-          or just professionally procrastinating? 👀
-          <br />
-          Either way, let's see what it might cost! ✨
+          Let's turn that inspiration into reality! 🏡
         </p>
 
         <button

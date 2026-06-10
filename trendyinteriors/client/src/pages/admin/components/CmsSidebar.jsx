@@ -10,6 +10,8 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaExternalLinkAlt,
+  FaCalculator,
+  FaCalendarAlt,
 } from 'react-icons/fa';
 import './CmsSidebar.css';
 
@@ -17,6 +19,8 @@ const navItems = [
   { to: '/admin', end: true, label: 'Dashboard', icon: FaTachometerAlt },
   { to: '/admin/projects', label: 'Projects', icon: FaProjectDiagram },
   { to: '/admin/team', label: 'Team Members', icon: FaUsers },
+  { to: '/admin/estimates', label: 'Estimates', icon: FaCalculator },
+  { to: '/admin/meetings', label: 'Meetings', icon: FaCalendarAlt },
 ];
 
 const estimatorItems = [

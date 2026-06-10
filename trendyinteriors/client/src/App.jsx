@@ -20,8 +20,13 @@ import TeamMembersPage from './pages/admin/pages/TeamMembersPage';
 import RoomsPage from './pages/admin/pages/RoomsPage';
 import GlobalAddonsPage from './pages/admin/pages/GlobalAddonsPage';
 import SettingsPage from './pages/admin/pages/SettingsPage';
+import EstimatesPage from './pages/admin/pages/EstimatesPage';
+import EstimateDetailsPage from './pages/admin/pages/EstimateDetailsPage';
+import MeetingRequestsPage from './pages/admin/pages/MeetingRequestsPage';
+import MeetingRequestDetailsPage from './pages/admin/pages/MeetingRequestDetailsPage';
 import AdminRoute from './components/AdminRoute';
 import Estimator from './pages/Estimator';
+import TourGuide from './components/TourGuide';
 import PopupCard from "./components/PopupCard";
 import './App.css';
 
@@ -37,6 +42,7 @@ const Layout = () => {
   return (
     <div className="app-wrapper">
       {!isAdminRoute && <Header />}
+      {!isAdminRoute && <TourGuide />}
       <main className={`main-content ${isAdminRoute ? 'main-content-admin' : ''}`}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -60,6 +66,10 @@ const Layout = () => {
               <Route path="team" element={<TeamMembersPage />} />
               <Route path="rooms" element={<RoomsPage />} />
               <Route path="global-addons" element={<GlobalAddonsPage />} />
+              <Route path="estimates" element={<EstimatesPage />} />
+              <Route path="estimates/:id" element={<EstimateDetailsPage />} />
+              <Route path="meetings" element={<MeetingRequestsPage />} />
+              <Route path="meetings/:id" element={<MeetingRequestDetailsPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Route>

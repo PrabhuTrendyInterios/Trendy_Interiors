@@ -5,6 +5,8 @@ const roomRoutes = require('./rooms');
 const globalAddonRoutes = require('./globalAddons');
 const settingsRoutes = require('./settings');
 const chatbotConfigRoutes = require('./chatbotConfig');
+const meetingRequestRoutes = require('./meetingRequests');
+const estimatorRoutes = require('./estimators');
 
 const router = express.Router();
 
@@ -14,5 +16,7 @@ router.use('/rooms', roomRoutes);
 router.use('/global-addons', globalAddonRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/chatbot-config', chatbotConfigRoutes);
+router.use('/meeting-requests', meetingRequestRoutes);
+router.use('/estimators', estimatorRoutes);
 
 module.exports = router;
