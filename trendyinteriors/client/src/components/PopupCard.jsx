@@ -10,30 +10,6 @@ const PopupCard = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const resetInactivityTimer = () => {
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-    }
-
-    inactivityTimerRef.current = setTimeout(() => {
-      // Only show popup if not already visible and not closing
-      if (!visible && !closing) {
-        setVisible(true);
-
-        const hideTimer = setTimeout(() => {
-          setClosing(true);
-
-          setTimeout(() => {
-            setVisible(false);
-            setClosing(false);
-          }, 400);
-        }, 6000);
-
-        return () => clearTimeout(hideTimer);
-      }
-    }, 10000); // 10 seconds of inactivity
-  };
-
   useEffect(() => {
     const excludedRoutes = [
       "/admin",
@@ -42,6 +18,30 @@ const PopupCard = () => {
       "/estimator",
       "/quotation",
     ];
+
+    const resetInactivityTimer = () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+
+      inactivityTimerRef.current = setTimeout(() => {
+        // Only show popup if not already visible and not closing
+        if (!visible && !closing) {
+          setVisible(true);
+
+          const hideTimer = setTimeout(() => {
+            setClosing(true);
+
+            setTimeout(() => {
+              setVisible(false);
+              setClosing(false);
+            }, 400);
+          }, 6000);
+
+          return () => clearTimeout(hideTimer);
+        }
+      }, 10000); // 10 seconds of inactivity
+    };
 
     const isExcluded = excludedRoutes.some((route) =>
       location.pathname.startsWith(route)
@@ -79,7 +79,7 @@ const PopupCard = () => {
         clearTimeout(inactivityTimerRef.current);
       }
     };
-  }, [location.pathname, visible, closing, resetInactivityTimer]);
+  }, [location.pathname, visible, closing]);
 
 
   const handleEstimate = () => {
