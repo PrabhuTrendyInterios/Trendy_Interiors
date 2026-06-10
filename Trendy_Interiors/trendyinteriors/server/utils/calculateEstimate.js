@@ -1,0 +1,230 @@
+const roundMoney = (value) => Number(Number(value || 0).toFixed(2));
+
+const calcArea = (length, width) =>
+  roundMoney((Number(length) || 0) * (Number(width) || 0));
+
+const findRoomCatalogEntry = (roomsCatalog = [], roomName = '') =>
+  roomsCatalog.find((room) => room.name === roomName) || null;
+
+const getLayoutPrice = (roomDoc, layoutName = '') => {
+  if (!layoutName || !roomDoc?.layouts?.length) return 0;
+
+  const layout = roomDoc.layouts.find((item) => item.name === layoutName);
+  return layout ? Number(layout.fixedPrice) || 0 : 0;
+};
+
+const getRoomAddonsTotal = (roomDoc, addonNames = []) => {
+  if (!Array.isArray(addonNames) || !roomDoc?.addons?.length) return 0;
+
+  return addonNames.reduce((sum, addonName) => {
+    const addon = roomDoc.addons.find((item) => item.name === addonName);
+    return sum + (addon ? Number(addon.price) || 0 : 0);
+  }, 0);
+};
+
+const getPackageComponentsTotal = (packageComponents = [], selectedComponentIds = []) => {
+  if (!Array.isArray(packageComponents) || packageComponents.length === 0) return 0;
+
+  // Sum components that are either:
+  // 1. Mandatory (always included), OR
+  // 2. In the selectedComponentIds array (explicitly selected by user)
+  return packageComponents.reduce((sum, component) => {
+    const componentId = component._id?.toString() || component.id || '';
+    const isMandatory = Boolean(component.mandatory);
+    const isSelected = selectedComponentIds.includes(componentId);
+    
+    // Include if mandatory OR explicitly selected
+    if (isMandatory || isSelected) {
+      return sum + (Number(component.price) || 0);
+    }
+    return sum;
+  }, 0);
+};
+
+const getPackageComponentsForDimension = (roomDoc, sizeCategory = '') => {
+  if (!roomDoc?.dimensions || !Array.isArray(roomDoc.dimensions)) {
+    console.warn('[getPackageComponentsForDimension] Room has no dimensions array');
+    return [];
+  }
+  
+  // Enhanced matching: _id, id, name (case-insensitive)
+  const matchedDimension = roomDoc.dimensions.find((dim) => {
+    const dimIdString = dim._id?.toString();
+    const dimIdField = dim.id;
+    const dimNameNormalized = dim.name?.toLowerCase().trim();
+    const sizeCategoryNormalized = sizeCategory?.toLowerCase().trim();
+    
+    const isMatch = 
+      dimIdString === sizeCategory || 
+      dimIdField === sizeCategory || 
+      dim.name === sizeCategory || 
+      dimNameNormalized === sizeCategoryNormalized;
+    
+    return isMatch;
+  });
+
+  if (!matchedDimension) {
+    console.warn(`[getPackageComponentsForDimension] No dimension matched for sizeCategory: "${sizeCategory}" in room: "${roomDoc.name}"`);
+    return [];
+  }
+  
+  const packageComponents = matchedDimension?.packageComponents || [];
+  console.log(`[getPackageComponentsForDimension] Found ${packageComponents.length} components for room "${roomDoc.name}" size "${sizeCategory}"`);
+  
+  return packageComponents;
+};
+
+const formatPackageComponents = (packageComponents = []) => {
+  return packageComponents.map((component) => ({
+    id: component._id?.toString() || component.id || '',
+    name: component.name || '',
+    description: component.description || '',
+    price: Number(component.price) || 0,
+    mandatory: Boolean(component.mandatory),
+  }));
+};
+
+const resolveGlobalAddon = (globalAddons = [], addonId) =>
+  globalAddons.find(
+    (addon) =>
+      addon._id?.toString() === String(addonId) ||
+      addon.name === addonId
+  );
+
+/**
+ * Pricing rules:
+ * - Area = Length × Width (height is informational only)
+ * - Room Base Cost = Area × Room pricePerSqFt
+ * - Package Components Total = Sum of selected component prices
+ * - Room Total = Base Cost + Package Components Total + Layout Price + Room Addons Total
+ * - Grand Total = Sum of all Room Totals + Global Addons Total
+ */
+const calculateEstimate = ({
+  roomInstances = [],
+  normalizedDimensions = {},
+  extraAddons = [],
+  roomsCatalog = [],
+  globalAddons = [],
+  selectedPackageComponents = {}, // Maps roomId -> [componentIds]
+}) => {
+  const lineItems = [];
+  let totalAreaSqFt = 0;
+  let roomTotals = 0;
+
+  roomInstances.forEach((room) => {
+    const dimensions = normalizedDimensions[room.id] || {};
+    const length = Number(dimensions.length) || 0;
+    const width = Number(dimensions.width) || 0;
+    const height = Number(dimensions.height) || 0;
+    const areaSqFt = calcArea(length, width);
+
+    if (areaSqFt <= 0) return;
+
+    const selectedDesignIdea = dimensions.selectedDesignIdea || {};
+    const sizeCategory = dimensions.sizeCategory || '';
+    const roomDoc = findRoomCatalogEntry(roomsCatalog, room.roomName);
+    const ratePerSqFt = Number(roomDoc?.pricePerSqFt) || 0;
+    const baseCost = roundMoney(areaSqFt * ratePerSqFt);
+    const layoutCost = roundMoney(getLayoutPrice(roomDoc, selectedDesignIdea.layout));
+    const addonsCost = roundMoney(getRoomAddonsTotal(roomDoc, selectedDesignIdea.addons));
+    
+    // Get package components for this dimension
+    const packageComponentsArray = getPackageComponentsForDimension(roomDoc, sizeCategory);
+    const selectedIds = (selectedPackageComponents[room.id] || []);
+    const packageComponentsTotal = roundMoney(getPackageComponentsTotal(packageComponentsArray, selectedIds));
+    
+    // Debug: Log calculation flow
+    console.log(`[calculateEstimate] Room: ${room.roomName}, SizeCategory: ${sizeCategory}`);
+    console.log(`  Package Components Retrieved: ${packageComponentsArray.length}`);
+    console.log(`  Selected Component IDs: ${selectedIds.length}`, selectedIds);
+    console.log(`  Package Components Total: ₹${packageComponentsTotal}`);
+    
+    // New calculation: baseCost + packageComponentsTotal + layoutCost + addonsCost
+    const estimatedCost = roundMoney(baseCost + packageComponentsTotal + layoutCost + addonsCost);
+
+    totalAreaSqFt = roundMoney(totalAreaSqFt + areaSqFt);
+    roomTotals = roundMoney(roomTotals + estimatedCost);
+
+    lineItems.push({
+      roomId: room.id,
+      roomName: room.roomName,
+      label: room.label,
+      length,
+      width,
+      height,
+      areaSqFt,
+      ratePerSqFt,
+      baseCost,
+      layout: selectedDesignIdea.layout || '',
+      layoutCost,
+      addons: selectedDesignIdea.addons || [],
+      addonsCost,
+      packageComponents: formatPackageComponents(packageComponentsArray),
+      packageComponentsTotal,
+      estimatedCost,
+    });
+  });
+
+  const addonDetails = [];
+  let globalAddonsTotal = 0;
+
+  if (Array.isArray(extraAddons) && extraAddons.length > 0) {
+    extraAddons.forEach((addonId) => {
+      const addon = resolveGlobalAddon(globalAddons, addonId);
+      if (addon && addon.active !== false) {
+        const price = Number(addon.price) || 0;
+        globalAddonsTotal = roundMoney(globalAddonsTotal + price);
+        addonDetails.push({
+          id: addon._id?.toString() || String(addonId),
+          name: addon.name,
+          price,
+        });
+      }
+    });
+  }
+
+  if (globalAddonsTotal > 0) {
+    lineItems.push({
+      roomId: 'global-addons',
+      roomName: 'Global Add-ons',
+      label: 'Premium Add-ons',
+      areaSqFt: 0,
+      ratePerSqFt: 0,
+      baseCost: 0,
+      layout: '',
+      layoutCost: 0,
+      addons: addonDetails.map((addon) => addon.name),
+      addonDetails,
+      addonsCost: globalAddonsTotal,
+      estimatedCost: globalAddonsTotal,
+    });
+  }
+
+  // ✅ Calculate GST and Grand Total
+  const subtotal = roundMoney(roomTotals + globalAddonsTotal);
+  const gstAmount = Math.round(subtotal * 0.18);
+  const grandTotal = roundMoney(subtotal + gstAmount);
+
+  return {
+    totalAreaSqFt,
+    roomTotals,
+    globalAddonsTotal,
+    subtotal,
+    gstAmount,
+    grandTotal,
+    estimatedAmount: grandTotal,
+    currency: 'INR',
+    lineItems,
+  };
+};
+
+module.exports = {
+  calculateEstimate,
+  calcArea,
+  findRoomCatalogEntry,
+  getLayoutPrice,
+  getRoomAddonsTotal,
+  getPackageComponentsTotal,
+  getPackageComponentsForDimension,
+  formatPackageComponents,
+};
