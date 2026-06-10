@@ -1,0 +1,210 @@
+.tour-overlay{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+}
+
+.spotlight{
+  position:fixed;
+
+  border:4px solid #d4af37;
+
+  border-radius:24px;
+
+  box-shadow:
+  0 0 0 9999px rgba(0,0,0,.75);
+
+  animation:pulse 1.8s infinite;
+}
+
+@keyframes pulse{
+  0%{
+    transform:scale(1);
+  }
+
+  50%{
+    transform:scale(1.02);
+  }
+
+  100%{
+    transform:scale(1);
+  }
+}
+
+.tour-guide{
+  position:fixed;
+  z-index:100000;
+
+  /* fixed size that matches JS guide dimensions so inner absolute
+     positioning aligns predictably with the penguin and bubble */
+  width:520px;
+  height:240px;
+
+  /* keep a predictable stacking context for absolute children */
+  display:block;
+}
+
+.tour-guide[data-layout="stacked"]{
+  flex-direction:column;
+  align-items:flex-start;
+  gap:14px;
+}
+
+.tour-guide[data-layout="stacked"] .tour-bubble{
+  width:min(320px, calc(100vw - 40px));
+}
+
+.tour-penguin{
+  position:absolute;
+  /* center over the bubble */
+  left:-23%;
+  transform: translate(-50%, -24%);
+
+  /* slightly bigger so head and feet are more visible */
+  width:400px;
+  height:auto;
+
+  /* lift the penguin more so head shows above the bubble */
+  top: -125px;
+  bottom: auto;
+
+  /* penguin sits behind the bubble */
+  z-index:1;
+
+  filter: drop-shadow(0 16px 40px rgba(0,0,0,.45));
+}
+
+.tour-penguin::after{
+  /* flipper overlay to make it look like the penguin holds the bubble */
+  content: "";
+  position: absolute;
+  right: -70px;
+  bottom: 30px;
+  width: 130px;
+  height: 68px;
+  background: linear-gradient(180deg, rgba(30,30,30,0.08), rgba(10,10,10,0.06));
+  border-radius: 30px;
+  transform: rotate(-22deg);
+  box-shadow: 0 12px 30px rgba(8,12,20,0.32);
+  z-index:4; /* keep flipper above bubble */
+  pointer-events: none;
+}
+
+.tour-bubble{
+  position:absolute;
+  /* move the bubble slightly behind and overlapping the penguin; lower vertically so it covers midsection */
+  left:140px;
+  top:70px;
+
+  width:320px;
+  padding:22px 20px;
+  border-radius:20px;
+
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.918), rgba(255,255,255,0.08));
+  border: 1px solid rgba(255,255,255,0.22);
+  box-shadow: 0 8px 30px rgba(8,12,20,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px) saturate(120%);
+
+  z-index:2;
+}
+
+.tour-bubble::after{
+  /* small rounded tail to connect the bubble to the penguin's flipper */
+  content: "";
+  position:absolute;
+  left:-18px;
+  top:110px;
+  width:36px;
+  height:36px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+  border-radius:10px;
+  transform: rotate(20deg);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 6px 18px rgba(8,12,20,0.25);
+  backdrop-filter: blur(8px) saturate(120%);
+  z-index:1;
+}
+
+.tour-bubble h3{
+  margin-bottom:10px;
+  color:#eabd4a;
+  font-size:1.28rem;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.06);
+}
+
+.tour-bubble p{
+  line-height:1.6;
+  color:rgba(20,20,20,0.9);
+  margin-bottom:18px;
+}
+
+.tour-buttons{
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:10px;
+}
+
+.tour-buttons button{
+  flex:1;
+
+  border:none;
+
+  padding:12px;
+
+  border-radius:12px;
+
+  cursor:pointer;
+
+  background:#b09611;
+
+  color:white;
+
+  font-weight:600;
+}
+
+.tour-buttons button:hover{
+  background:#b88c43;
+}
+
+.tour-skip{
+  margin-top:15px;
+
+  width:100%;
+
+  border:none;
+  font-size:1.0rem;
+  background:none;
+
+  color:#000000;
+
+  cursor:pointer;
+}
+
+@media(max-width:900px){
+  .tour-guide{
+    left:20px !important;
+    right:20px !important;
+    width:auto !important;
+    height:auto !important;
+
+    top:auto !important;
+    bottom:30px !important;
+  }
+
+  .tour-penguin{
+    position:relative;
+    left:0;
+    bottom:0;
+    width:110px;
+  }
+
+  .tour-bubble{
+    position:relative;
+    left:0;
+    top:0;
+    width:260px;
+    margin-left:8px;
+  }
+}
