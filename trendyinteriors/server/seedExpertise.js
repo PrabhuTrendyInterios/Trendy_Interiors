@@ -43,6 +43,10 @@ const expertiseData = [
 ];
 
 const connectDB = async () => {
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+    return;
+  }
+
   const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
   const localUri = process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/trendydev';
   const fallbackToLocal = process.env.MONGODB_FALLBACK_LOCAL === 'true';
@@ -71,30 +75,43 @@ const connectDB = async () => {
   }
 };
 
-const seedExpertise = async () => {
+const seedExpertise = async ({ closeConnection = true } = {}) => {
   try {
     await connectDB();
     console.log('Connected to MongoDB');
 
-    // Clear existing expertise
-    await Expertise.deleteMany({});
-    console.log('Cleared existing expertise data');
+    for (const item of expertiseData) {
+      await Expertise.findOneAndUpdate(
+        { title: item.title },
+        item,
+        {
+          upsert: true,
+          new: true,
+          runValidators: true,
+          setDefaultsOnInsert: true,
+        }
+      );
+    }
 
-    // Insert new expertise data
-    const inserted = await Expertise.insertMany(expertiseData);
-    console.log(`✅ Successfully seeded ${inserted.length} expertise items!`);
+    const count = await Expertise.countDocuments();
+    console.log(`✅ Successfully seeded ${count} expertise items!`);
 
-    // Display inserted data
-    inserted.forEach((item) => {
-      console.log(`   - ${item.title} (Order: ${item.order})`);
-    });
-
-    await mongoose.connection.close();
-    console.log('✅ Seeding completed successfully!');
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
   } catch (error) {
     console.error('❌ Error seeding expertise:', error);
-    process.exit(1);
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
+    throw error;
   }
 };
 
-seedExpertise();
+if (require.main === module) {
+  seedExpertise()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
+}
+
+module.exports = seedExpertise;

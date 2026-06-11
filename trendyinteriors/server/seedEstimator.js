@@ -6,6 +6,10 @@ const Settings = require('./models/Settings');
 const { roomsCatalog, globalAddonsCatalog } = require('./seeds/estimatorCatalog');
 
 const connectDB = async () => {
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+    return;
+  }
+
   const uri = process.env.MONGODB_URI;
   const localUri = process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/trendydev';
   const fallbackToLocal = process.env.MONGODB_FALLBACK_LOCAL === 'true';
@@ -26,7 +30,7 @@ const connectDB = async () => {
   }
 };
 
-const seedEstimator = async () => {
+const seedEstimator = async ({ closeConnection = true } = {}) => {
   try {
     await connectDB();
     console.log('Connected to MongoDB');
@@ -60,12 +64,22 @@ const seedEstimator = async () => {
     }
 
     console.log('\n✅ Estimator CMS seed complete');
-    await mongoose.connection.close();
-    process.exit(0);
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
   } catch (error) {
     console.error('❌ Error seeding estimator data:', error);
-    process.exit(1);
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
+    throw error;
   }
 };
 
-seedEstimator();
+if (require.main === module) {
+  seedEstimator()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
+}
+
+module.exports = seedEstimator;

@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+    return;
+  }
+
   const primaryUri = process.env.MONGODB_URI;
   const localUri = process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/trendydev';
   const fallbackToLocal = process.env.MONGODB_FALLBACK_LOCAL === 'true';
@@ -12,15 +16,8 @@ const connectDB = async () => {
     });
     console.log(`MongoDB connected: ${conn.connection.host}`);
 
-    // FIX FOR "Username null" ERROR
-    // Attempt to drop the legacy 'username' index if it exists
     try {
       const collection = mongoose.connection.collection('users');
-      // List indexes to debug (optional, but good for logs)
-      // const indexes = await collection.indexes();
-      // console.log('Current Indexes:', indexes);
-
-      // check if username_1 exists and drop it
       const indexExists = await collection.indexExists('username_1');
       if (indexExists) {
         console.log('Detected legacy unique index on "username". Dropping it to fix registration...');
@@ -28,7 +25,6 @@ const connectDB = async () => {
         console.log('Successfully dropped "username_1" index.');
       }
     } catch (indexErr) {
-      // It's okay if it fails (e.g., index doesn't exist), just log it
       console.log('Index cleanup check:', indexErr.message);
     }
 

@@ -2,41 +2,42 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const Service = require('./models/Service');
 
-const seedServices = async () => {
+const connectDB = async () => {
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+    return;
+  }
+
+  const uri = process.env.MONGODB_URI;
+  const localUri = process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/trendydev';
+  const fallbackToLocal = process.env.MONGODB_FALLBACK_LOCAL === 'true';
+
+  try {
+    if (uri) {
+      await mongoose.connect(uri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+    } else {
+      throw new Error('No MongoDB URI configured');
+    }
+  } catch (error) {
+    if (fallbackToLocal) {
+      console.log('Attempting fallback to local MongoDB at', localUri);
+      await mongoose.connect(localUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+    } else {
+      throw error;
+    }
+  }
+};
+
+const seedServices = async ({ closeConnection = true } = {}) => {
     try {
-        // Connect to MongoDB
-        const uri = process.env.MONGODB_URI;
-        const localUri = process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/trendydev';
-        const fallbackToLocal = process.env.MONGODB_FALLBACK_LOCAL === 'true';
-
-        try {
-          if (uri) {
-            await mongoose.connect(uri, {
-              useNewUrlParser: true,
-              useUnifiedTopology: true,
-            });
-          } else {
-            throw new Error('No MongoDB URI configured');
-          }
-        } catch (error) {
-          if (fallbackToLocal) {
-            console.log('Attempting fallback to local MongoDB at', localUri);
-            await mongoose.connect(localUri, {
-              useNewUrlParser: true,
-              useUnifiedTopology: true,
-            });
-          } else {
-            throw error;
-          }
-        }
-
+        await connectDB();
         console.log('Connected to MongoDB');
 
-        // Clear existing services
-        await Service.deleteMany({});
-        console.log('Cleared existing services');
-
-        // Services data with icons and descriptions
         const servicesData = [
             {
                 title: 'Interior Design',
@@ -58,22 +59,34 @@ const seedServices = async () => {
             },
         ];
 
-        // Insert services
-        const insertedServices = await Service.insertMany(servicesData);
-        console.log(`✅ Successfully inserted ${insertedServices.length} services`);
+        for (const serviceData of servicesData) {
+            await Service.findOneAndUpdate({ title: serviceData.title }, serviceData, {
+                upsert: true,
+                new: true,
+                runValidators: true,
+                setDefaultsOnInsert: true,
+            });
+        }
 
-        // Display inserted services
-        insertedServices.forEach((service, index) => {
-            console.log(`${index + 1}. ${service.icon} ${service.title}`);
-        });
+        const count = await Service.countDocuments();
+        console.log(`✅ Successfully seeded ${count} services`);
 
-        await mongoose.connection.close();
-        console.log('\n✅ Seed completed successfully!');
-        process.exit(0);
+        if (closeConnection && mongoose.connection.readyState === 1) {
+            await mongoose.connection.close();
+        }
     } catch (error) {
         console.error('❌ Error seeding services:', error);
-        process.exit(1);
+        if (closeConnection && mongoose.connection.readyState === 1) {
+            await mongoose.connection.close();
+        }
+        throw error;
     }
 };
 
-seedServices();
+if (require.main === module) {
+    seedServices()
+      .then(() => process.exit(0))
+      .catch(() => process.exit(1));
+}
+
+module.exports = seedServices;

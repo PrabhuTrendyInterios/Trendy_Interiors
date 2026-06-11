@@ -4,6 +4,10 @@ const Room = require('./models/Room');
 const { roomsCatalog } = require('./seeds/estimatorCatalog');
 
 const connectDB = async () => {
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+    return;
+  }
+
   const uri = process.env.MONGODB_URI;
   const localUri = process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/trendydev';
   const fallbackToLocal = process.env.MONGODB_FALLBACK_LOCAL === 'true';
@@ -24,7 +28,7 @@ const connectDB = async () => {
   }
 };
 
-const seedRooms = async () => {
+const seedRooms = async ({ closeConnection = true } = {}) => {
   try {
     await connectDB();
     console.log('Connected to MongoDB');
@@ -41,12 +45,22 @@ const seedRooms = async () => {
 
     const count = await Room.countDocuments();
     console.log(`\n✅ Rooms seed complete (${count} rooms in database)`);
-    await mongoose.connection.close();
-    process.exit(0);
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
   } catch (error) {
     console.error('❌ Error seeding rooms:', error);
-    process.exit(1);
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
+    throw error;
   }
 };
 
-seedRooms();
+if (require.main === module) {
+  seedRooms()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
+}
+
+module.exports = seedRooms;

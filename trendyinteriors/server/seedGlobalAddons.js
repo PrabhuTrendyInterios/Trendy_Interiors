@@ -3,27 +3,34 @@ const mongoose = require('mongoose');
 const GlobalAddon = require('./models/GlobalAddon');
 const { globalAddonsCatalog } = require('./seeds/estimatorCatalog');
 
-const seedGlobalAddons = async () => {
+const connectDB = async () => {
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+    return;
+  }
+
+  const uri = process.env.MONGODB_URI;
+  const localUri = process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/trendydev';
+  const fallbackToLocal = process.env.MONGODB_FALLBACK_LOCAL === 'true';
+
   try {
-    const uri = process.env.MONGODB_URI;
-    const localUri = process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/trendydev';
-    const fallbackToLocal = process.env.MONGODB_FALLBACK_LOCAL === 'true';
-
-    try {
-      if (uri) {
-        await mongoose.connect(uri);
-      } else {
-        throw new Error('No MongoDB URI configured');
-      }
-    } catch (error) {
-      if (fallbackToLocal) {
-        console.log('Attempting fallback to local MongoDB at', localUri);
-        await mongoose.connect(localUri);
-      } else {
-        throw error;
-      }
+    if (uri) {
+      await mongoose.connect(uri);
+    } else {
+      throw new Error('No MongoDB URI configured');
     }
+  } catch (error) {
+    if (fallbackToLocal) {
+      console.log('Attempting fallback to local MongoDB at', localUri);
+      await mongoose.connect(localUri);
+    } else {
+      throw error;
+    }
+  }
+};
 
+const seedGlobalAddons = async ({ closeConnection = true } = {}) => {
+  try {
+    await connectDB();
     console.log('Connected to MongoDB');
 
     for (const addonData of globalAddonsCatalog) {
@@ -38,12 +45,22 @@ const seedGlobalAddons = async () => {
 
     const count = await GlobalAddon.countDocuments();
     console.log(`\n✅ Global addons seed complete (${count} addons in database)`);
-    await mongoose.connection.close();
-    process.exit(0);
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
   } catch (error) {
     console.error('❌ Error seeding global addons:', error);
-    process.exit(1);
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
+    throw error;
   }
 };
 
-seedGlobalAddons();
+if (require.main === module) {
+  seedGlobalAddons()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
+}
+
+module.exports = seedGlobalAddons;

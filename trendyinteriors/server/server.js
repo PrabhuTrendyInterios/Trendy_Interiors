@@ -23,22 +23,16 @@ const { Server } = require('socket.io');
 
 const app = express();
 
-// Connect to MongoDB with explicit cleanup
-connectDB().then(async () => {
-  try {
-    const mongoose = require('mongoose');
-    const collection = mongoose.connection.collection('users');
-    const indexExists = await collection.indexExists('username_1');
-    if (indexExists) {
-      console.log('*** SERVER STARTUP FIX: Dropping legacy "username_1" index ***');
-      await collection.dropIndex('username_1');
-      console.log('*** Index dropped successfully. Registration should work now. ***');
-    }
-  } catch (err) {
-    // Ignore if index doesn't exist
-    // console.log('Index check clean');
-  }
-});
+const seedAll = require('./seedAll');
+
+const startServer = async () => {
+  await connectDB();
+  await seedAll();
+
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+};
 
 // Middleware
 app.use(cors());
@@ -96,8 +90,9 @@ server.setsockopt = function(level, optname, value) {
   }
 };
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+startServer().catch((error) => {
+  console.error('Server startup failed:', error);
+  process.exit(1);
 });
 
 // Handle port already in use error

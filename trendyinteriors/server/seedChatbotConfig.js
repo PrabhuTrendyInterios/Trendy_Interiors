@@ -1,30 +1,36 @@
 require('dotenv').config({ override: true });
 const mongoose = require('mongoose');
-const path = require('path');
 
-// Connect to MongoDB
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/trendydev';
-
-mongoose.connect(mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-
-// Import the ChatbotConfig model
 const ChatbotConfig = require('./models/ChatbotConfig');
 
-async function seedChatbotConfig() {
+const connectDB = async () => {
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+    return;
+  }
+
+  const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/trendydev';
+
+  await mongoose.connect(mongoUri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+};
+
+async function seedChatbotConfig({ closeConnection = true } = {}) {
   try {
-    // Check if config already exists
+    await connectDB();
+
     const existingConfig = await ChatbotConfig.findOne({});
 
     if (existingConfig) {
       console.log('✓ ChatbotConfig already exists. Skipping seed.');
       console.log('Current config:', existingConfig);
-      process.exit(0);
+      if (closeConnection && mongoose.connection.readyState === 1) {
+        await mongoose.connection.close();
+      }
+      return;
     }
 
-    // Create default ChatbotConfig
     const defaultConfig = new ChatbotConfig({
       enabled: true,
       creativeMode: true,
@@ -43,12 +49,22 @@ async function seedChatbotConfig() {
     console.log('Default configuration:');
     console.log(JSON.stringify(defaultConfig, null, 2));
 
-    process.exit(0);
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
   } catch (error) {
     console.error('✗ Error seeding ChatbotConfig:', error.message);
-    process.exit(1);
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
+    throw error;
   }
 }
 
-// Run the seed function
-seedChatbotConfig();
+if (require.main === module) {
+  seedChatbotConfig()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
+}
+
+module.exports = seedChatbotConfig;
