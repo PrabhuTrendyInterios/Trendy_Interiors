@@ -12,6 +12,8 @@
   z-index: 99999;
 
   animation: popupSlideIn 0.5s ease;
+  max-width: 720px;
+  width: min(95%, 720px);
 }
 
 .penguin-wrapper {
@@ -32,11 +34,14 @@
 .speech-bubble {
   position: relative;
 
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.88);
 
-  border-radius: 16px;
+  border-radius: 18px;
 
   padding: 24px;
+  min-width: 240px;
+  max-width: 500px;
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.15);
 }
 
 .speech-bubble::after {
@@ -85,21 +90,21 @@
 .speech-bubble p {
   margin: 0;
 
-  color: #000000;
+  color: #1c1c1c;
 
-  font-size: 20px;
+  font-size: 18px;
 
-  line-height: 1.8;
+  line-height: 1.75;
 }
 
 .popup-estimate-btn {
   margin-top: 20px;
-  font-size: 20px;
+  font-size: 18px;
   border: none;
 
-  padding: 14px 22px;
+  padding: 14px 24px;
 
-  border-radius: 12px;
+  border-radius: 14px;
 
   background: linear-gradient(
     135deg,
@@ -191,25 +196,52 @@
 
 @media (max-width: 768px) {
   .popup-container {
-    width: 95%;
-
+    width: min(95%, 440px);
+    max-width: 440px;
     flex-direction: column;
-
-    top: 50%;
+    align-items: center;
+    top: auto;
+    bottom: 24px;
     left: 50%;
+    transform: translateX(-50%);
+    padding: 0 0 12px;
+  }
 
-    transform: translate(-50%, -50%);
+  .penguin-wrapper {
+    margin-right: 0;
+    margin-bottom: -20px;
+    z-index: 3;
   }
 
   .penguin-image {
-    width: 140px;
+    width: 120px;
   }
 
   .speech-bubble {
     width: 100%;
+    padding: 20px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
   }
 
   .speech-bubble::before {
     display: none;
+  }
+
+  .speech-bubble p {
+    font-size: 16px;
+  }
+
+  .popup-estimate-btn {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .popup-close {
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
   }
 }

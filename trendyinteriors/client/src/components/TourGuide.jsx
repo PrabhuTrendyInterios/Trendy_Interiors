@@ -139,29 +139,34 @@ export default function TourGuide() {
 
   if (!visible || !targetRect) return null;
 
-  const guideWidth = 520;
-  const guideHeight = 240;
+  const isMobileTour = viewport.width < 900;
+  const guideWidth = isMobileTour ? Math.max(320, viewport.width - 40) : 520;
+  const guideHeight = isMobileTour ? 340 : 240;
   const verticalGap = 74;
-  const edgePadding = 120;
+  const edgePadding = isMobileTour ? 20 : 120;
 
   const targetCenterX = targetRect.left + targetRect.width / 2;
   const targetCenterY = targetRect.top + targetRect.height / 2;
 
-  const guideLeft = clamp(
-    targetCenterX - guideWidth / 2,
-    edgePadding,
-    viewport.width - guideWidth - edgePadding
-  );
+  const guideLeft = isMobileTour
+    ? clamp((viewport.width - guideWidth) / 2, edgePadding, viewport.width - guideWidth - edgePadding)
+    : clamp(
+        targetCenterX - guideWidth / 2,
+        edgePadding,
+        viewport.width - guideWidth - edgePadding
+      );
 
-  const guideTop = clamp(
-    placement === "top"
-      ? targetRect.top - guideHeight - verticalGap
-      : placement === "bottom"
-      ? targetRect.bottom + verticalGap
-      : targetCenterY - guideHeight / 2,
-    edgePadding,
-    viewport.height - guideHeight - edgePadding
-  );
+  const guideTop = isMobileTour
+    ? clamp(viewport.height - guideHeight - 28, edgePadding, viewport.height - guideHeight - edgePadding)
+    : clamp(
+        placement === "top"
+          ? targetRect.top - guideHeight - verticalGap
+          : placement === "bottom"
+          ? targetRect.bottom + verticalGap
+          : targetCenterY - guideHeight / 2,
+        edgePadding,
+        viewport.height - guideHeight - edgePadding
+      );
 
   const isChatbotStep = step === steps.length - 1;
 
@@ -180,6 +185,8 @@ export default function TourGuide() {
         viewport.height - guideHeight - edgePadding
       )
     : guideTop;
+
+  const layoutMode = isMobileTour ? "stacked" : "inline";
 
   const finishTour = () => {
     if (!isChatbotStep) {
@@ -221,6 +228,7 @@ export default function TourGuide() {
         <motion.div
           className="tour-guide"
           data-placement={placement}
+          data-layout={layoutMode}
           animate={{
             left: isExiting ? exitLeft : guideLeft,
             top: isExiting ? exitTop : guideTop,
