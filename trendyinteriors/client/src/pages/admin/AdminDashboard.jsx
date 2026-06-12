@@ -3,6 +3,7 @@ import {
     FaTrash, FaPlus, FaEdit, FaTimes, FaCheck,
     FaProjectDiagram, FaComments, FaUsers, FaCog, FaPhone, FaWhatsapp, FaPalette
 } from 'react-icons/fa';
+import { API_BASE_URL, authDelete, authGet, authPatch } from '../../utils/publicApi';
 import './AdminDashboard.css';
 import AdminNavigation from './components/AdminNavigation';
 import FormCard from './components/FormCard';
@@ -115,29 +116,11 @@ const AdminDashboard = () => {
 
     const fetchTestimonials = async () => {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                console.error('No auth token found');
-                setTestimonials([]);
-                return;
-            }
-            const response = await fetch('https://trendyinteriors-1.onrender.com/api/testimonials/admin/all', {
-                method: 'GET',
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                console.error('Error fetching testimonials:', response.status, data.error || data.message || 'Unknown error');
-                console.error('Full error response:', data);
-                setTestimonials([]);
-                return;
-            }
-            if (data.success && Array.isArray(data.data)) {
-                console.log('Testimonials loaded successfully:', data.data);
+            const data = await authGet('/api/testimonials/admin/all');
+            if (Array.isArray(data.data)) {
                 setTestimonials(data.data);
+            } else if (Array.isArray(data)) {
+                setTestimonials(data);
             } else {
                 console.warn('Unexpected response format:', data);
                 setTestimonials([]);
@@ -400,15 +383,7 @@ const AdminDashboard = () => {
 
     const handleTestimonialApprove = async (id) => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`https://trendyinteriors-1.onrender.com/api/testimonials/${id}/approve`, {
-                method: 'PATCH',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message);
-
+            await authPatch(`/api/testimonials/${id}/approve`);
             showToast('Testimonial published successfully!', 'success');
             fetchTestimonials();
         } catch (error) {
@@ -418,15 +393,7 @@ const AdminDashboard = () => {
 
     const handleTestimonialDeny = async (id) => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`https://trendyinteriors-1.onrender.com/api/testimonials/${id}/deny`, {
-                method: 'PATCH',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message);
-
+            await authPatch(`/api/testimonials/${id}/deny`);
             showToast('Testimonial unpublished successfully!', 'success');
             fetchTestimonials();
         } catch (error) {
@@ -448,13 +415,7 @@ const AdminDashboard = () => {
         setDeleteModal(prev => ({ ...prev, isLoading: true }));
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`https://trendyinteriors-1.onrender.com/api/testimonials/${deleteModal.itemId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (!response.ok) throw new Error('Failed to delete');
+            await authDelete(`/api/testimonials/${deleteModal.itemId}`);
             showToast('Testimonial deleted successfully!', 'success');
             setDeleteModal({ isOpen: false, itemType: '', itemId: '', itemName: '', isLoading: false });
             fetchTestimonials();

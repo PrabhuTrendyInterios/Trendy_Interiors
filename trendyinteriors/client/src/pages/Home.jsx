@@ -250,56 +250,17 @@ const Home = () => {
             {loadingTestimonials ? (
               <p className="loading-text" style={{ textAlign: 'center', color: 'var(--color-gold)' }}>Loading testimonials...</p>
             ) : testimonials.length === 0 ? (
-              // Fallback to static testimonials if DB is empty
-              [
-                {
-                  name: 'Priya Sharma',
-                  location: 'Chennai, Tamil Nadu',
-                  text: 'TrendyInterios transformed our home into a masterpiece! Their attention to detail and creative design solutions exceeded our expectations.',
-                  image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'
-                },
-                {
-                  name: 'Rajesh Kumar',
-                  location: 'Erode, Tamil Nadu',
-                  text: 'Exceptional service from start to finish! The modular kitchen design is both beautiful and functional.',
-                  image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'
-                },
-                {
-                  name: 'Ananya Reddy',
-                  location: 'Coimbatore, Tamil Nadu',
-                  text: "Outstanding craftsmanship and innovative designs! Our bedroom and living room look absolutely stunning.",
-                  image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop'
-                }
-              ].map((t, idx) => (
+              <p style={{ textAlign: 'center', color: 'var(--color-gray)', fontSize: '16px' }}>
+                No testimonials yet. Submit your feedback to help us improve!
+              </p>
+            ) : (
+              testimonials.map((t, idx) => (
                 <div key={idx} className="testimonial-card">
                   <div className="quote-icon">"</div>
-                  <div className="stars">★★★★★</div>
-                  <p className="testimonial-text">"{t.text}"</p>
-                  <div className="customer-info">
-                    <img src={t.image} alt={t.name} className="customer-avatar" />
-                    <div className="customer-details">
-                      <h4>{t.name}</h4>
-                      <p>{t.location}</p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              testimonials.slice(0, 3).map((t, index) => (
-                <div key={t._id || index} className="testimonial-card">
-                  <div className="quote-icon">"</div>
-                  <div className="stars">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <span key={i} style={{ color: i < (Number(t.rating) || 5) ? 'var(--color-gold)' : '#e4e5e9' }}>
-                        ★
-                      </span>
-                    ))}
-                  </div>
+                  <div className="stars">{'★'.repeat(t.rating || 5)}</div>
                   <p className="testimonial-text">"{t.testimonialText}"</p>
                   <div className="customer-info">
-                    <div className="customer-avatar" style={{ background: 'var(--color-gold)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontWeight: 'bold' }}>
-                      {t.name.charAt(0)}
-                    </div>
+                    <div className="customer-avatar">{t.name ? t.name.charAt(0).toUpperCase() : '?'}</div>
                     <div className="customer-details">
                       <h4>{t.name}</h4>
                       <p>{t.postalAddress || 'India'}</p>

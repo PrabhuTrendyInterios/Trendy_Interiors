@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { publicPost } from '../utils/publicApi';
 import { FaUser, FaEnvelope, FaTag, FaPhone, FaPen, FaMapMarkerAlt, FaStar } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import './ContactForm.css';
@@ -37,7 +37,6 @@ const ContactForm = ({ formType = 'contact' }) => {
     try {
       let endpoint = '';
       let payload = {};
-      let headers = {};
 
       if (formType === 'contact') {
         endpoint = '/api/contacts';
@@ -63,17 +62,20 @@ const ContactForm = ({ formType = 'contact' }) => {
           mobileNumber: cleanMobile,
           message: formData.message,
         };
-
-        const token = localStorage.getItem('token');
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
       } else if (formType === 'testimonial') {
         endpoint = '/api/testimonials';
 
-        // 1. Validate Testimonial Length
+        // Validate Testimonial Length
         if (formData.testimonialText.trim().length < 20) {
           setMessage('Give testimonial above 20 characters');
+          setLoading(false);
+          return;
+        }
+
+        // Clean and validate mobile number if provided
+        const cleanMobile = formData.mobileNumber ? formData.mobileNumber.replace(/\D/g, '').slice(-10) : '';
+        if (formData.mobileNumber && cleanMobile.length !== 10) {
+          setMessage('Please provide a valid 10-digit mobile number');
           setLoading(false);
           return;
         }
@@ -81,17 +83,13 @@ const ContactForm = ({ formType = 'contact' }) => {
         payload = {
           name: formData.name,
           postalAddress: formData.postalAddress,
+          mobileNumber: cleanMobile,
           testimonialText: formData.testimonialText,
           rating: Number(formData.rating)
         };
-
-        const token = localStorage.getItem('token');
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
       }
 
-      await axios.post(`https://trendyinteriors-1.onrender.com${endpoint}`, payload, { headers });
+      await publicPost(endpoint, payload);
 
       setMessage(`Thank you! Your ${formType === 'contact' ? 'message' : 'testimonial'} has been sent successfully.`);
       setFormData({
@@ -105,7 +103,7 @@ const ContactForm = ({ formType = 'contact' }) => {
         rating: 5
       });
     } catch (error) {
-      const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Something went wrong. Please try again later.';
+      const errorMsg = error.message || 'Something went wrong. Please try again later.';
       setMessage(errorMsg);
     } finally {
       setLoading(false);
@@ -191,6 +189,22 @@ const ContactForm = ({ formType = 'contact' }) => {
                 onChange={handleChange}
                 required
                 placeholder="e.g. Dream Villa, Erode"
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="mobileNumber">Mobile Number</label>
+            <div className="input-with-icon">
+              <FaPhone className="input-icon" />
+              <input
+                type="tel"
+                id="mobileNumber"
+                name="mobileNumber"
+                value={formData.mobileNumber}
+                onChange={handleChange}
+                placeholder="10-digit mobile number (optional)"
+                pattern="\d{10}"
               />
             </div>
           </div>

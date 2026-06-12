@@ -15,6 +15,59 @@ export const publicGet = async (path) => {
   return data;
 };
 
+export const publicPost = async (path, payload) => {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || data.error || 'Request failed');
+  }
+
+  return data;
+};
+
+const authRequest = async (path, options = {}) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    ...(options.headers || {}),
+  };
+
+  if (options.body !== undefined && !headers['Content-Type'] && !headers['content-type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers,
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || 'Request failed');
+  }
+
+  return data;
+};
+
+export const authGet = (path) => authRequest(path, { method: 'GET' });
+export const authPost = (path, data) => authRequest(path, { method: 'POST', body: JSON.stringify(data) });
+export const authPut = (path, data) => authRequest(path, { method: 'PUT', body: JSON.stringify(data) });
+export const authPatch = (path, data) =>
+  authRequest(path, { method: 'PATCH', body: data !== undefined ? JSON.stringify(data) : undefined });
+export const authDelete = (path) => authRequest(path, { method: 'DELETE' });
+
 export const getProjectCover = (project) =>
   project?.coverImageUrl || project?.image || '';
 

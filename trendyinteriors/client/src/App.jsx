@@ -24,6 +24,7 @@ import EstimatesPage from './pages/admin/pages/EstimatesPage';
 import EstimateDetailsPage from './pages/admin/pages/EstimateDetailsPage';
 import MeetingRequestsPage from './pages/admin/pages/MeetingRequestsPage';
 import MeetingRequestDetailsPage from './pages/admin/pages/MeetingRequestDetailsPage';
+import TestimonialsPage from './pages/admin/pages/TestimonialsPage';
 import AdminRoute from './components/AdminRoute';
 import Estimator from './pages/Estimator';
 import TourGuide from './components/TourGuide';
@@ -70,6 +71,7 @@ const Layout = () => {
               <Route path="estimates/:id" element={<EstimateDetailsPage />} />
               <Route path="meetings" element={<MeetingRequestsPage />} />
               <Route path="meetings/:id" element={<MeetingRequestDetailsPage />} />
+              <Route path="testimonials" element={<TestimonialsPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Route>

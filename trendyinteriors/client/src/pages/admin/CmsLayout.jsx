@@ -10,6 +10,7 @@ const PAGE_META = {
   '/admin': { title: 'Dashboard', subtitle: 'Overview of your content' },
   '/admin/projects': { title: 'Projects', subtitle: 'Manage portfolio projects' },
   '/admin/team': { title: 'Team Members', subtitle: 'Manage your team profiles' },
+  '/admin/testimonials': { title: 'Testimonials', subtitle: 'Review and approve customer testimonials' },
   '/admin/estimates': { title: 'Estimates', subtitle: 'Manage customer estimates and quotations' },
   '/admin/meetings': { title: 'Meetings', subtitle: 'Review chatbot meeting requests and statuses' },
   '/admin/rooms': { title: 'Rooms', subtitle: 'Configure estimator room options' },

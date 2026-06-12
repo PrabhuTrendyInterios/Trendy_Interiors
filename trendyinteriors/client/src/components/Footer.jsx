@@ -63,7 +63,7 @@ const Footer = () => {
             <li>Living Room Design</li>
             <li>Modular Kitchen</li>
             <li>Bedroom Interiors</li>
-            <li>Office Design</li>
+            <li>Pooja Room Design</li>
             <li>Wardrobe Solutions</li>
             <li>TV Unit & Paneling</li>
           </ul>
