@@ -8,6 +8,7 @@ const seedExpertise = require('./seedExpertise');
 const seedGlobalAddons = require('./seedGlobalAddons');
 const seedRooms = require('./seedRooms');
 const seedServices = require('./seedServices');
+const seedTestimonials = require('./seedTestimonials');
 
 const seedAll = async () => {
   console.log('Running server startup seeds...');
@@ -19,6 +20,7 @@ const seedAll = async () => {
   await seedRooms({ closeConnection: false });
   await seedGlobalAddons({ closeConnection: false });
   await seedEstimator({ closeConnection: false });
+  await seedTestimonials({ closeConnection: false });
   console.log('Server startup seeding complete.');
 };
 
