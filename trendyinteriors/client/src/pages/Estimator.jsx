@@ -293,7 +293,12 @@ const Estimator = () => {
       selectedPackageComponents,
       selectedLayoutMaterials,
     );
-    setQuoteSummary(updatedQuote);
+
+    const quoteJson = JSON.stringify(quoteSummary);
+    const updatedJson = JSON.stringify(updatedQuote);
+    if (quoteJson !== updatedJson) {
+      setQuoteSummary(updatedQuote);
+    }
   }, [currentStep, quoteSummary, selectedPackageComponents, selectedLayoutMaterials]);
 
   const scrollToTop = () => {
