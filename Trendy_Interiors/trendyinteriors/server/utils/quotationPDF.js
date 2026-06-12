@@ -203,9 +203,10 @@ function drawLetterhead(doc, quotation) {
   doc.text("Trendy Interios.", MARGIN + padX, bottomY);
   
   doc.fillColor(MID_TEXT).font("Helvetica").fontSize(8);
-  doc.text("138, Muthugoundampalayam, Kavindapadi, Erode", MARGIN + padX, bottomY + 14);
-  doc.text("+91 99652 99777 | +91 90803 98889", MARGIN + padX, bottomY + 24);
-  doc.text("trendyinteriors@gmail.com | www.trendyinteriors.com", MARGIN + padX, bottomY + 34);
+  doc.text("138, Muthugoundampalayam, Sathy-Erode Road,", MARGIN + padX, bottomY + 12);
+  doc.text("Opp TNK School, Kavindapadi, Erode - 638 455", MARGIN + padX, bottomY + 22);
+  doc.text("+91 99652 99777 | +91 90803 98889", MARGIN + padX, bottomY + 32);
+  doc.text("trendyinterios@gmail.com | info@trendyinterios.com", MARGIN + padX, bottomY + 42);
 
   // Bottom section: Quotation Details (Right)
   const labelWidth = 70;
@@ -230,7 +231,7 @@ function drawFooter(doc, pagesCount) {
     doc.moveTo(MARGIN, y - 5).lineTo(MARGIN + CONTENT_W, y - 5).stroke();
 
     doc.fillColor(MID_TEXT).font("Helvetica").fontSize(7.5);
-    doc.text("TRENDY INTERIOS. | +91 99652 99777 | trendyinteriors@gmail.com", MARGIN, y, { lineBreak: false });
+    doc.text("TRENDY INTERIOS. | +91 99652 99777 | trendyinterios@gmail.com", MARGIN, y, { lineBreak: false });
     doc.text(`Page ${i}`, MARGIN, y, { width: CONTENT_W, align: "right", lineBreak: false });
   }
 }
