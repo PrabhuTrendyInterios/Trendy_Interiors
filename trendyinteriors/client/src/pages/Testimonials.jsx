@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { publicGet } from '../utils/publicApi';
-import { FaQuoteLeft, FaStar, FaPenNib, FaUserCircle } from 'react-icons/fa';
+import { FaQuoteLeft, FaStar, FaPenNib } from 'react-icons/fa';
 import './Testimonials.css';
 
 const Testimonials = () => {
