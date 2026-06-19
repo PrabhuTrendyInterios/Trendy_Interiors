@@ -137,63 +137,6 @@ const Header = () => {
             Give Testimonial
           </Link>
         </nav>
-
-        {/* Right Side Actions */}
-        <div className="header-actions">
-          {/* YouTube Icon */}
-          <a
-            href="https://www.youtube.com/@TrendyInterioS-ql7rz"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="youtube-icon-wrapper"
-            data-tooltip="Watch Our Works"
-          >
-            <div className="youtube-icon">
-              <FaYoutube />
-            </div>
-          </a>
-
-          {/* Admin / Auth Section */}
-          <div className="auth-action">
-            {user && user.role === 'admin' ? (
-              <div
-                className={`dropdown profile-dropdown-wrapper ${activeDropdown === 'profile' ? 'open' : ''}`}
-                onMouseEnter={() => window.innerWidth > 992 && setActiveDropdown('profile')}
-                onMouseLeave={() => window.innerWidth > 992 && setActiveDropdown(null)}
-              >
-                <button
-                  className="profile-button"
-                  onClick={() => toggleDropdown('profile')}
-                >
-                  <div className="profile-avatar">
-                    <FaCrown />
-                  </div>
-                </button>
-
-                <div className={`dropdown-menu ${activeDropdown === 'profile' ? 'active' : ''} profile-menu`}>
-                  <div className="profile-dropdown-header">
-                    <span className="profile-dropdown-name">Admin</span>
-                  </div>
-
-                  <button 
-                    className="profile-dropdown-item" 
-                    onClick={() => {
-                      setIsPasswordModalOpen(true);
-                      setActiveDropdown(null);
-                    }}
-                  >
-                    <FaKey /> Change Password
-                  </button>
-                  <div className="profile-dropdown-divider"></div>
-                  <button className="profile-dropdown-item logout-item" onClick={handleLogout}>
-                    <FaSignOutAlt /> Logout
-                  </button>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </div>
-
         {/* Mobile Menu Toggle */}
         <button className="menu-toggle" onClick={toggleMenu}>
           {isMenuOpen ? <FaTimes /> : <FaBars />}
