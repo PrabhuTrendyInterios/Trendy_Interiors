@@ -18,43 +18,19 @@ const buildRoomFilter = (query) => {
 };
 
 /**
- * Intelligently merges nested arrays during update
- * Preserves existing items by _id if they're not being explicitly updated
- * @param {Array} existingArray - Current array from database
+ * Replaces nested arrays during update
+ * When an array is provided in the request, it completely replaces the existing array
  * @param {Array} incomingArray - New array from request
  * @param {Function} normalizer - Function to normalize/validate items
- * @returns {Array} Merged array
+ * @returns {Array} Normalized array
  */
-const mergeNestedArray = (existingArray = [], incomingArray = [], normalizer = (x) => x) => {
+const mergeNestedArray = (incomingArray = [], normalizer = (x) => x) => {
   if (!Array.isArray(incomingArray)) {
-    return existingArray;
-  }
-
-  if (incomingArray.length === 0) {
     return [];
   }
 
   // Normalize incoming items
-  const normalizedIncoming = incomingArray.map(normalizer);
-
-  // If no existing items, return all incoming
-  if (!Array.isArray(existingArray) || existingArray.length === 0) {
-    return normalizedIncoming;
-  }
-
-  // Merge: for each incoming item, use it if _id matches, otherwise create new
-  const incomingByIdSet = new Set(
-    normalizedIncoming
-      .filter((item) => item._id)
-      .map((item) => item._id.toString())
-  );
-
-  // Preserve existing items that aren't being updated
-  const preserved = existingArray.filter(
-    (existing) => existing._id && !incomingByIdSet.has(existing._id.toString())
-  );
-
-  return [...normalizedIncoming, ...preserved];
+  return incomingArray.map(normalizer);
 };
 
 /**
@@ -250,29 +226,26 @@ exports.updateRoom = async (req, res) => {
     // If dimensions/layouts/addons are provided in request, use them; otherwise preserve existing
     if (Array.isArray(req.body.dimensions)) {
       updates.dimensions = mergeNestedArray(
-        existingRoom.dimensions,
         req.body.dimensions,
         normalizeDimension
       );
-      console.log(`[updateRoom] Dimensions: merged ${updates.dimensions.length} items (${existingRoom.dimensions.length} existing + updates)`);
+      console.log(`[updateRoom] Dimensions: updated to ${updates.dimensions.length} items`);
     }
 
     if (Array.isArray(req.body.layouts)) {
       updates.layouts = mergeNestedArray(
-        existingRoom.layouts,
         req.body.layouts,
         normalizeLayout
       );
-      console.log(`[updateRoom] Layouts: merged ${updates.layouts.length} items (${existingRoom.layouts.length} existing + updates)`);
+      console.log(`[updateRoom] Layouts: updated to ${updates.layouts.length} items`);
     }
 
     if (Array.isArray(req.body.addons)) {
       updates.addons = mergeNestedArray(
-        existingRoom.addons,
         req.body.addons,
         normalizeAddon
       );
-      console.log(`[updateRoom] Addons: merged ${updates.addons.length} items (${existingRoom.addons.length} existing + updates)`);
+      console.log(`[updateRoom] Addons: updated to ${updates.addons.length} items`);
     }
 
     const dimensionsForValidation = Array.isArray(updates.dimensions)

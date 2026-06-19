@@ -23,11 +23,8 @@ const { Server } = require('socket.io');
 
 const app = express();
 
-const seedAll = require('./seedAll');
-
 const startServer = async () => {
   await connectDB();
-  await seedAll();
 
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
