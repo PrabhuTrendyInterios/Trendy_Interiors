@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { API_CONFIG } from '../utils/apiConfig';
 import './Auth.css';
 
 const ForgotPassword = () => {
@@ -24,7 +25,7 @@ const ForgotPassword = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('https://trendyinteriors-1.onrender.com/api/auth/forgot-password', {
+            const response = await fetch(API_CONFIG.AUTH.FORGOT_PASSWORD, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: ADMIN_EMAIL })
@@ -61,7 +62,7 @@ const ForgotPassword = () => {
         }
 
         try {
-            const response = await fetch('https://trendyinteriors-1.onrender.com/api/auth/verify-reset-otp', {
+            const response = await fetch(API_CONFIG.AUTH.VERIFY_RESET_OTP, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: ADMIN_EMAIL, otp })
@@ -109,7 +110,7 @@ const ForgotPassword = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('https://trendyinteriors-1.onrender.com/api/auth/reset-password', {
+            const response = await fetch(API_CONFIG.AUTH.RESET_PASSWORD, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ resetToken, password: newPassword, confirmPassword })

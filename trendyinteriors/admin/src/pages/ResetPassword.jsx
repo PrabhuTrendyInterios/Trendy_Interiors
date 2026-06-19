@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { validatePassword, getPasswordStrengthMessage } from '../utils/passwordValidation';
+import { API_CONFIG } from '../utils/apiConfig';
 import './Auth.css';
 
 const ResetPassword = () => {
@@ -34,7 +35,7 @@ const ResetPassword = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('https://trendyinteriors-1.onrender.com/api/auth/reset-password', {
+            const response = await fetch(API_CONFIG.AUTH.RESET_PASSWORD, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, password, confirmPassword })

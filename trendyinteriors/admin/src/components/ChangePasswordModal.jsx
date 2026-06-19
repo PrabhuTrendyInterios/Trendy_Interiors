@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { validatePassword, getPasswordStrengthMessage } from '../utils/passwordValidation';
+import { API_CONFIG } from '../utils/apiConfig';
 import './ChangePasswordModal.css';
 
 const ChangePasswordModal = ({ isOpen, onClose, onSuccess }) => {
@@ -21,7 +22,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSuccess }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('https://trendyinteriors-1.onrender.com/api/auth/send-change-password-otp', {
+            const response = await fetch(API_CONFIG.AUTH.SEND_CHANGE_PASSWORD_OTP, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -87,7 +88,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSuccess }) => {
         try {
             const token = localStorage.getItem('token');
             const otp = otpDigits.join('');
-            const response = await fetch('https://trendyinteriors-1.onrender.com/api/auth/change-password-with-otp', {
+            const response = await fetch(API_CONFIG.AUTH.CHANGE_PASSWORD_WITH_OTP, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

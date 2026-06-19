@@ -136,33 +136,6 @@ const Header = () => {
           >
             Give Testimonial
           </Link>
-
-          {/* Mobile Only: Auth Links */}
-          <div className="mobile-auth-links">
-            {user && user.role === 'admin' ? (
-              <>
-                <div className="mobile-user-info">
-                  <div className="mobile-avatar">
-                    <FaCrown />
-                  </div>
-                  <span>Admin</span>
-                </div>
-                <button 
-                  className="nav-link" 
-                  onClick={() => setIsPasswordModalOpen(true)}
-                  style={{ textAlign: 'left', background: 'none', border: 'none', color: '#fff', fontSize: '1.1rem' }}
-                >
-                  Change Password
-                </button>
-                <button className="nav-link" onClick={handleLogout} style={{ textAlign: 'left', background: 'none', border: 'none', color: '#fff', fontSize: '1.1rem' }}>
-                  Logout
-                </button>
-              </>
-            ) : (
-              /* Admin Login Only */
-              <Link to="/login" className="nav-link" onClick={closeMenu}>Admin Login</Link>
-            )}
-          </div>
         </nav>
 
         {/* Right Side Actions */}
