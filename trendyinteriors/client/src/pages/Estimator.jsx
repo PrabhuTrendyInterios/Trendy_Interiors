@@ -1042,22 +1042,45 @@ const Estimator = () => {
 
                                           return (
                                             <div key={material.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.5rem' }}>
-                                              <input
-                                                type="checkbox"
-                                                checked={isSelected}
-                                                disabled={material.mandatory}
-                                                onChange={() =>
+                                              <button
+                                                type="button"
+                                                onClick={() =>
                                                   item.roomId &&
                                                   material.id &&
                                                   !material.mandatory &&
                                                   toggleLayoutMaterial(item.roomId, material.id)
                                                 }
+                                                disabled={material.mandatory}
+                                                title={isSelected ? 'Click to deselect' : 'Click to select'}
+                                                aria-pressed={isSelected}
                                                 style={{
                                                   cursor: material.mandatory ? 'not-allowed' : 'pointer',
-                                                  width: '16px',
-                                                  height: '16px',
+                                                  width: '20px',
+                                                  height: '20px',
+                                                  minWidth: '20px',
+                                                  minHeight: '20px',
+                                                  borderRadius: '50%',
+                                                  border: `2px solid ${isSelected ? 'var(--color-gold)' : '#ccc'}`,
+                                                  backgroundColor: isSelected ? 'var(--color-gold)' : 'white',
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'center',
+                                                  padding: 0,
+                                                  transition: 'all 0.3s ease',
+                                                  boxShadow: isSelected ? '0 0 0 3px rgba(212, 175, 55, 0.1)' : 'none',
                                                 }}
-                                              />
+                                              >
+                                                {isSelected && (
+                                                  <span style={{
+                                                    fontSize: '12px',
+                                                    color: 'white',
+                                                    fontWeight: 'bold',
+                                                    lineHeight: 1,
+                                                  }}>
+                                                    ✓
+                                                  </span>
+                                                )}
+                                              </button>
                                               <div style={{ flex: 1, minWidth: 0 }}>
                                                 <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-charcoal-dark)', fontWeight: '500' }}>
                                                   {material.name}
