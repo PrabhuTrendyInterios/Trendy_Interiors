@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaBars, FaTimes, FaYoutube, FaHome, FaBuilding, FaPaintBrush, FaSignOutAlt, FaCrown, FaKey } from 'react-icons/fa';
-import { useAuth } from '../context/AuthContext';
+import { FaBars, FaTimes, FaHome, FaBuilding, FaPaintBrush } from 'react-icons/fa';
 import './Header.css';
 
 const Header = () => {
@@ -11,7 +10,6 @@ const Header = () => {
   // eslint-disable-next-line
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const location = useLocation();
-  const { user, logout } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -26,10 +24,6 @@ const Header = () => {
     setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
   };
 
-  const handleLogout = () => {
-    logout();
-    closeMenu();
-  };
 
   useEffect(() => {
     const handleScroll = () => {
