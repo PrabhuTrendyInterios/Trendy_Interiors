@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaWhatsapp, FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaLock, FaYoutube, FaStore } from 'react-icons/fa';
+import { FaWhatsapp, FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaYoutube, FaStore } from 'react-icons/fa';
 import ChatBot from './ChatBot';
 import './Footer.css';
 
