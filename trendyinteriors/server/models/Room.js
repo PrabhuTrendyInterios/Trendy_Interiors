@@ -87,8 +87,9 @@ const layoutMaterialSchema = new mongoose.Schema(
 const layoutConfigurationSchema = new mongoose.Schema(
   {
     dimensionId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
+      description: 'Reference to dimension name or _id',
     },
     materials: {
       type: [layoutMaterialSchema],

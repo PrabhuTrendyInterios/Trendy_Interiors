@@ -1,7 +1,37 @@
 const DIMENSION_TEMPLATES = [
-  { name: 'Low', length: 10, width: 10, height: 9 },
-  { name: 'Mid', length: 14, width: 12, height: 10 },
-  { name: 'Large', length: 18, width: 16, height: 11 },
+  {
+    name: 'Low',
+    length: 10,
+    width: 10,
+    height: 9,
+    packageComponents: [
+      { name: 'Hinges', price: 2000, mandatory: true, displayOrder: 1 },
+      { name: 'Handles', price: 1500, mandatory: true, displayOrder: 2 },
+      { name: 'Internal Rods', price: 3000, mandatory: false, displayOrder: 3 },
+    ],
+  },
+  {
+    name: 'Mid',
+    length: 14,
+    width: 12,
+    height: 10,
+    packageComponents: [
+      { name: 'Hinges', price: 2500, mandatory: true, displayOrder: 1 },
+      { name: 'Handles', price: 2000, mandatory: true, displayOrder: 2 },
+      { name: 'Internal Rods', price: 4000, mandatory: false, displayOrder: 3 },
+    ],
+  },
+  {
+    name: 'Large',
+    length: 18,
+    width: 16,
+    height: 11,
+    packageComponents: [
+      { name: 'Hinges', price: 3000, mandatory: true, displayOrder: 1 },
+      { name: 'Handles', price: 2500, mandatory: true, displayOrder: 2 },
+      { name: 'Internal Rods', price: 5000, mandatory: false, displayOrder: 3 },
+    ],
+  },
 ];
 
 const roomsCatalog = [
@@ -20,6 +50,30 @@ const roomsCatalog = [
           'https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?auto=format&fit=crop&w=700&q=80',
         description: 'Efficient corner kitchen layout',
         fixedPrice: 15000,
+        hasLayoutMaterials: true,
+        configurations: [
+          {
+            dimensionId: 'Low',
+            materials: [
+              { name: 'Laminate', price: 8000, mandatory: true },
+              { name: 'Granite', price: 15000, mandatory: false },
+            ],
+          },
+          {
+            dimensionId: 'Mid',
+            materials: [
+              { name: 'Laminate', price: 10000, mandatory: true },
+              { name: 'Granite', price: 18000, mandatory: false },
+            ],
+          },
+          {
+            dimensionId: 'Large',
+            materials: [
+              { name: 'Laminate', price: 12000, mandatory: true },
+              { name: 'Granite', price: 22000, mandatory: false },
+            ],
+          },
+        ],
       },
       {
         name: 'U Shape',
@@ -27,6 +81,30 @@ const roomsCatalog = [
           'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=700&q=80',
         description: 'Maximum counter and storage space',
         fixedPrice: 20000,
+        hasLayoutMaterials: true,
+        configurations: [
+          {
+            dimensionId: 'Low',
+            materials: [
+              { name: 'Laminate', price: 10000, mandatory: true },
+              { name: 'Granite', price: 18000, mandatory: false },
+            ],
+          },
+          {
+            dimensionId: 'Mid',
+            materials: [
+              { name: 'Laminate', price: 12000, mandatory: true },
+              { name: 'Granite', price: 21000, mandatory: false },
+            ],
+          },
+          {
+            dimensionId: 'Large',
+            materials: [
+              { name: 'Laminate', price: 15000, mandatory: true },
+              { name: 'Granite', price: 25000, mandatory: false },
+            ],
+          },
+        ],
       },
       {
         name: 'Straight',
@@ -34,6 +112,8 @@ const roomsCatalog = [
           'https://images.unsplash.com/photo-1556909172-8c2f041fca1e?auto=format&fit=crop&w=700&q=80',
         description: 'Compact linear kitchen',
         fixedPrice: 12000,
+        hasLayoutMaterials: false,
+        configurations: [],
       },
       {
         name: 'Island',
@@ -41,6 +121,23 @@ const roomsCatalog = [
           'https://images.unsplash.com/photo-1600489000022-c2086d79f9d4?auto=format&fit=crop&w=700&q=80',
         description: 'Island kitchen with open planning',
         fixedPrice: 25000,
+        hasLayoutMaterials: true,
+        configurations: [
+          {
+            dimensionId: 'Mid',
+            materials: [
+              { name: 'Laminate', price: 14000, mandatory: true },
+              { name: 'Granite', price: 24000, mandatory: false },
+            ],
+          },
+          {
+            dimensionId: 'Large',
+            materials: [
+              { name: 'Laminate', price: 18000, mandatory: true },
+              { name: 'Granite', price: 30000, mandatory: false },
+            ],
+          },
+        ],
       },
     ],
     addons: [
@@ -75,6 +172,30 @@ const roomsCatalog = [
           'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=700&q=80',
         description: 'Space-saving sliding wardrobe',
         fixedPrice: 18000,
+        hasLayoutMaterials: true,
+        configurations: [
+          {
+            dimensionId: 'Low',
+            materials: [
+              { name: 'Particle Board', price: 6000, mandatory: true },
+              { name: 'Plywood', price: 10000, mandatory: false },
+            ],
+          },
+          {
+            dimensionId: 'Mid',
+            materials: [
+              { name: 'Particle Board', price: 7500, mandatory: true },
+              { name: 'Plywood', price: 12000, mandatory: false },
+            ],
+          },
+          {
+            dimensionId: 'Large',
+            materials: [
+              { name: 'Particle Board', price: 9000, mandatory: true },
+              { name: 'Plywood', price: 15000, mandatory: false },
+            ],
+          },
+        ],
       },
       {
         name: 'Hinged Wardrobe',
@@ -82,6 +203,30 @@ const roomsCatalog = [
           'https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?auto=format&fit=crop&w=700&q=80',
         description: 'Classic hinged wardrobe',
         fixedPrice: 15000,
+        hasLayoutMaterials: true,
+        configurations: [
+          {
+            dimensionId: 'Low',
+            materials: [
+              { name: 'Particle Board', price: 5500, mandatory: true },
+              { name: 'Plywood', price: 9000, mandatory: false },
+            ],
+          },
+          {
+            dimensionId: 'Mid',
+            materials: [
+              { name: 'Particle Board', price: 7000, mandatory: true },
+              { name: 'Plywood', price: 11000, mandatory: false },
+            ],
+          },
+          {
+            dimensionId: 'Large',
+            materials: [
+              { name: 'Particle Board', price: 8500, mandatory: true },
+              { name: 'Plywood', price: 14000, mandatory: false },
+            ],
+          },
+        ],
       },
     ],
     addons: [

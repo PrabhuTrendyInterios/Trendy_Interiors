@@ -154,8 +154,12 @@ const collectDimensionIds = (dimensions = []) => {
   const ids = new Set();
 
   (Array.isArray(dimensions) ? dimensions : []).forEach((dim) => {
+    // Collect both _id (as string) and name as valid references
     if (dim?._id) {
       ids.add(String(dim._id));
+    }
+    if (dim?.name) {
+      ids.add(String(dim.name));
     }
   });
 
