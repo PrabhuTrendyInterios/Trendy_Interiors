@@ -26,9 +26,6 @@ const Footer = () => {
               <FaStore />
             </a>
           </div>
-          <Link to="/login" className="admin-use-only-link" title="For Admin Use Only">
-            <FaLock /> For Admin Use Only
-          </Link>
         </div>
 
         {/* Quick Links */}

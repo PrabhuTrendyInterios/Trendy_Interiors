@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaYoutube, FaHome, FaBuilding, FaPaintBrush, FaSignOutAlt, FaCrown, FaKey } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
-import ChangePasswordModal from './ChangePasswordModal';
 import './Header.css';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  // eslint-disable-next-line
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -147,7 +147,6 @@ const Header = () => {
                   </div>
                   <span>Admin</span>
                 </div>
-                <Link to="/admin" className="nav-link" onClick={closeMenu}>Dashboard</Link>
                 <button 
                   className="nav-link" 
                   onClick={() => setIsPasswordModalOpen(true)}
@@ -202,9 +201,7 @@ const Header = () => {
                   <div className="profile-dropdown-header">
                     <span className="profile-dropdown-name">Admin</span>
                   </div>
-                  <Link to="/admin" className="profile-dropdown-item" onClick={closeMenu}>
-                    <FaCrown /> Dashboard
-                  </Link>
+
                   <button 
                     className="profile-dropdown-item" 
                     onClick={() => {
@@ -229,16 +226,6 @@ const Header = () => {
           {isMenuOpen ? <FaTimes /> : <FaBars />}
         </button>
       </div>
-
-      {/* Change Password Modal */}
-      <ChangePasswordModal 
-        isOpen={isPasswordModalOpen}
-        onClose={() => setIsPasswordModalOpen(false)}
-        onSuccess={() => {
-          setIsPasswordModalOpen(false);
-          setActiveDropdown(null);
-        }}
-      />
     </header>
   );
 };
