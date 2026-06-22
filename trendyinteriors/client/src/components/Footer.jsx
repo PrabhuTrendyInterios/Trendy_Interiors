@@ -107,6 +107,20 @@ const Footer = () => {
         <div className="footer-bottom-container">
           <p>&copy; {new Date().getFullYear()} <span className="brand-name">TrendyInterios</span>. All Rights Reserved.</p>
 
+      <center>
+        <span className="footer-credit premium">
+          Designed & Engineered by{" "}
+          <a
+            href="https://tekriq.in/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-link"
+          >
+            Tekriq Technologies
+          </a>
+        </span>
+      </center>
+
           <button
             className="back-to-top"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

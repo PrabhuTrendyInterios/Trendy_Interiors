@@ -462,3 +462,21 @@
 .admin-use-only-link:active {
   transform: translateY(0);
 }
+
+.footer-credit {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.5px;
+}
+
+.footer-credit a.footer-link {
+  color: #f1c40f; /* or your theme accent */
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.footer-credit a.footer-link:hover {
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(255, 122, 162, 0.6);
+}
