@@ -1,12 +1,15 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FaWhatsapp, FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaYoutube, FaStore } from 'react-icons/fa';
 import ChatBot from './ChatBot';
 import './Footer.css';
 
 const Footer = () => {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
   return (
-    <footer className="footer">
+    <footer className={`footer ${isHomePage ? 'transparent' : ''}`}>
       <div className="footer-container">
         {/* About Section */}
         <div className="footer-section">

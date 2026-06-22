@@ -1,16 +1,22 @@
 /* ===== PREMIUM LUXURY FOOTER ===== */
 .footer {
-  background-color: #0f1214;
-  /* Deep charcoal almost black */
-  background-image:
-    radial-gradient(at 0% 0%, rgba(44, 62, 80, 0.2) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(212, 175, 55, 0.05) 0px, transparent 50%);
-  color: #e0e0e0;
+  background: #1a1a1a;
+  color: #ffffff;
   padding-top: 5rem;
   position: relative;
   font-family: 'Inter', sans-serif;
   overflow: hidden;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+.footer.transparent {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  color: rgba(255, 255, 255, 0.92);
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* Entrance Animation */
@@ -93,7 +99,7 @@
 }
 
 .footer-description {
-  color: #999;
+  color: rgba(255, 255, 255, 0.92);
   line-height: 1.7;
   font-size: 0.95rem;
   max-width: 300px;
@@ -192,10 +198,13 @@
 /* Newsletter - Integrated into layout better */
 .footer-newsletter {
   grid-column: 1 / -1;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03), transparent);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   padding: 2.5rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -235,8 +244,9 @@
 }
 
 .newsletter-form input {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   padding: 12px 20px;
   border-radius: 4px;
@@ -287,9 +297,12 @@
 
 /* Footer Bottom Bar */
 .footer-bottom {
-  background: #000000;
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
   padding: 1.5rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border: none !important;
+  box-shadow: none !important;
   font-size: 0.85rem;
   color: #666;
 }

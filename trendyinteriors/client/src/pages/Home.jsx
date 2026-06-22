@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { FaHandshake, FaPalette, FaFileInvoiceDollar, FaClipboardCheck, FaTruck, FaTools, FaCheckCircle, FaKey } from 'react-icons/fa';
-import Carousel from '../components/Carousel';
 import PremiumSectionHeader from '../components/PremiumSectionHeader';
 import { useAuth } from '../context/AuthContext';
 import { publicGet, normalizeProjectForDisplay, getProjectCover } from '../utils/publicApi';
@@ -11,35 +10,14 @@ import './HomeEnhancements.css';
 
 const Home = () => {
   const { user } = useAuth();
+  const videoRef = useRef(null);
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [testimonials, setTestimonials] = useState([]);
   const [loadingTestimonials, setLoadingTestimonials] = useState(true);
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
-
-  const heroSlides = [
-    {
-      image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1974&auto=format&fit=crop',
-      title: 'LUXURY LIVING SPACES',
-      description: 'Transform your home into a masterpiece of elegance and comfort',
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1556912173-46c336c7fd55?q=80&w=2070&auto=format&fit=crop',
-      title: 'MODULAR KITCHEN DESIGN',
-      description: 'Elegant, clutter-free kitchens with smart storage and premium finishes',
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=2032&auto=format&fit=crop',
-      title: 'BEDROOM SANCTUARIES',
-      description: 'Relaxing master bedrooms with warm lighting and sophisticated design',
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=2069&auto=format&fit=crop',
-      title: 'PROFESSIONAL WORKSPACES',
-      description: 'Modern office interiors designed for productivity and inspiration',
-    },
-  ];
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const defaultServices = [
     {
@@ -114,6 +92,43 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Scroll-controlled video background
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    let animationFrameId;
+    let lastProgress = 0;
+
+    const handleScroll = () => {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = Math.min(window.scrollY / maxScroll, 1);
+
+      // Update isScrolled state only on threshold changes
+      if (progress > 0 && !isScrolled) {
+        setIsScrolled(true);
+      } else if (progress === 0 && isScrolled) {
+        setIsScrolled(false);
+      }
+
+      // Smooth video progress update using requestAnimationFrame
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(() => {
+        if (video && video.duration && Math.abs(progress - lastProgress) > 0.001) {
+          video.currentTime = progress * video.duration;
+          lastProgress = progress;
+        }
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [isScrolled]);
+
   const designProcess = [
     { step: 'Meet Designer', icon: <FaHandshake />, description: 'Initial consultation to understand your vision' },
     { step: 'Design Concepts', icon: <FaPalette />, description: 'Creative design proposals tailored to you' },
@@ -127,9 +142,40 @@ const Home = () => {
 
   return (
     <div className="home-page">
+      {/* Background image that fades out on scroll */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: 'url(/images/hero-sectionn.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          opacity: isScrolled ? 0 : 1,
+          transition: 'opacity 0.3s ease-out',
+          zIndex: -2,
+          pointerEvents: 'none'
+        }}
+      />
+
+      {/* Video background that fades in on scroll */}
+      <video
+        ref={videoRef}
+        className="home-bg-video"
+        muted
+        playsInline
+        preload="auto"
+        poster="/images/hero-sectionn.png"
+        style={{ opacity: isScrolled ? 1 : 0, transition: 'opacity 0.3s ease-out' }}
+      >
+        <source src="/video/hero-section.mp4" type="video/mp4" />
+      </video>
+
       {/* Hero Carousel Section */}
       <section className="hero-section">
-        <Carousel slides={heroSlides} autoPlay={true} interval={5000} />
         <div className="tagline">
           {user && (
             <div className="welcome-message">
@@ -250,7 +296,7 @@ const Home = () => {
             {loadingTestimonials ? (
               <p className="loading-text" style={{ textAlign: 'center', color: 'var(--color-gold)' }}>Loading testimonials...</p>
             ) : testimonials.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--color-gray)', fontSize: '16px' }}>
+              <p style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.92)', fontSize: '16px' }}>
                 No testimonials yet. Submit your feedback to help us improve!
               </p>
             ) : (

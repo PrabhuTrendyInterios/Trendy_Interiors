@@ -39,8 +39,10 @@ const Header = () => {
 
 
 
+  const isHomePage = location.pathname === '/';
+
   return (
-    <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
+    <header className={`header ${isScrolled ? 'scrolled' : ''} ${isHomePage ? 'transparent' : ''}`}>
       <div className="header-container">
         {/* Luxury Logo Section */}
         <div className="logo">
