@@ -358,12 +358,18 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename="Trendy_Interios._Quotation_${quoteNo}.pdf"`);
       doc.pipe(res);
+
+      res.on("error", (err) => {
+        if (callback) callback(err);
+      });
     } else {
       // For local testing if needed
       doc.pipe(fs.createWriteStream(`Trendy_Interios._Quotation_${quoteNo}.pdf`));
     }
 
-    doc.on("error", (err) => { if (callback) callback(err); });
+    doc.on("error", (err) => {
+      if (callback) callback(err);
+    });
 
     // PAGE 1: Letterhead
     drawLetterhead(doc, quotation);
@@ -581,39 +587,20 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     // SECTION 8: CUSTOMER APPROVAL
     renderBlock(doc, 220, () => {
       const appY = doc.y;
-      const halfW = CONTENT_W * 0.50;
-      
-      // Left Block
-      doc.rect(MARGIN, appY, halfW, 180).fillAndStroke(LIGHT_BG, BORDER);
+      doc.rect(MARGIN, appY, CONTENT_W, 190).fillAndStroke(LIGHT_BG, BORDER);
       doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(9);
-      doc.text("CUSTOMER APPROVAL", MARGIN + 14, appY + 10);
+      doc.text("AUTHORIZED BY", MARGIN + 14, appY + 10);
       doc.lineWidth(0.8).strokeColor(GOLD);
-      doc.moveTo(MARGIN + 14, appY + 22).lineTo(MARGIN + halfW - 14, appY + 22).stroke();
-      doc.fillColor(MID_TEXT).font("Helvetica").fontSize(8.5);
-      doc.text("Name :", MARGIN + 14, appY + 45);
-      doc.text("Signature :", MARGIN + 14, appY + 90);
-      doc.text("Date :", MARGIN + 14, appY + 135);
-      // Draw lines for fields
-      doc.lineWidth(0.5).strokeColor(BORDER);
-      doc.moveTo(MARGIN + 70, appY + 53).lineTo(MARGIN + halfW - 14, appY + 53).stroke();
-      doc.moveTo(MARGIN + 70, appY + 98).lineTo(MARGIN + halfW - 14, appY + 98).stroke();
-      doc.moveTo(MARGIN + 70, appY + 143).lineTo(MARGIN + halfW - 14, appY + 143).stroke();
-
-      // Right Block
-      doc.rect(MARGIN + halfW, appY, halfW, 180).fillAndStroke(LIGHT_BG, BORDER);
-      doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(9);
-      doc.text("AUTHORIZED BY", MARGIN + halfW + 14, appY + 10);
-      doc.lineWidth(0.8).strokeColor(GOLD);
-      doc.moveTo(MARGIN + halfW + 14, appY + 22).lineTo(MARGIN + CONTENT_W - 14, appY + 22).stroke();
+      doc.moveTo(MARGIN + 14, appY + 22).lineTo(MARGIN + CONTENT_W - 14, appY + 22).stroke();
       doc.fillColor(DARK_TEXT).font("Helvetica-Bold").fontSize(9);
-      doc.text("TRENDY INTERIOS.", MARGIN + halfW + 14, appY + 36);
+      doc.text("TRENDY INTERIOS.", MARGIN  + 14, appY + 36);
       doc.fillColor(MID_TEXT).font("Helvetica").fontSize(8);
-      doc.text("Authorized Signature", MARGIN + halfW + 14, appY + 100);
       doc.lineWidth(0.5).strokeColor(BORDER);
-      doc.moveTo(MARGIN + halfW + 14, appY + 96).lineTo(MARGIN + CONTENT_W - 14, appY + 96).stroke();
-      doc.text("Company Seal / Stamp", MARGIN + halfW + 14, appY + 155);
+      doc.text("Authorized Signature", MARGIN + 14, appY + 100);
+      doc.moveTo(MARGIN + 14, appY + 96).lineTo(MARGIN + CONTENT_W - 14, appY + 96).stroke();
+      doc.text("Company Seal / Stamp", MARGIN + 14, appY + 155);
 
-      doc.y = appY + 190;
+      doc.y = appY + 205;
     });
 
     // FOOTERS

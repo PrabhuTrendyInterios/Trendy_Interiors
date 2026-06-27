@@ -19,26 +19,6 @@ const steps = [
     text: "Design your dream interior and get a quick estimate."
   },
   {
-    selector: ".tour-projects",
-    title: "Our Projects",
-    text: "Explore some of our latest interior transformations."
-  },
-  {
-    selector: ".tour-process",
-    title: "Design Journey",
-    text: "See how we bring your dream space to life."
-  },
-  {
-    selector: ".tour-testimonials",
-    title: "Client Reviews",
-    text: "Hear from homeowners who trusted us."
-  },
-  {
-    selector: ".tour-services",
-    title: "Our Services",
-    text: "Discover our complete interior solutions."
-  },
-  {
     selector: ".chatbot-toggle",
     title: "Need Instant Help?",
     text: "Tap the chatbot icon for quick answers and a smooth handoff."

@@ -111,6 +111,21 @@ const resolveGlobalAddon = (globalAddons = [], addonId) =>
       addon.name === addonId
   );
 
+const normalizeExtraAddonIds = (extraAddons = []) => {
+  const seen = new Set();
+
+  return (Array.isArray(extraAddons) ? extraAddons : [])
+    .map((addonId) => (addonId != null ? String(addonId).trim() : ''))
+    .filter((addonId) => {
+      if (!addonId || seen.has(addonId)) {
+        return false;
+      }
+
+      seen.add(addonId);
+      return true;
+    });
+};
+
 /**
  * Pricing rules:
  * - Area = Length × Width (height is informational only)
@@ -231,9 +246,10 @@ const calculateEstimate = ({
 
   const addonDetails = [];
   let globalAddonsTotal = 0;
+  const normalizedExtraAddons = normalizeExtraAddonIds(extraAddons);
 
-  if (Array.isArray(extraAddons) && extraAddons.length > 0) {
-    extraAddons.forEach((addonId) => {
+  if (normalizedExtraAddons.length > 0) {
+    normalizedExtraAddons.forEach((addonId) => {
       const addon = resolveGlobalAddon(globalAddons, addonId);
       if (addon && addon.active !== false) {
         const price = Number(addon.price) || 0;

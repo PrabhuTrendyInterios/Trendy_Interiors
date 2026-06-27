@@ -227,18 +227,17 @@
   cursor: not-allowed;
 }
 
-/* Button Hidden State */
-.btn-hidden {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  cursor: default !important;
-  animation: none !important;
-}
+  .estimator-actions .btn-secondary {
+    background-color: #ffffff !important;
+    color: #202124 !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+  }
 
-/* Button Animations */
-.estimator-actions > button:not(.btn-hidden):nth-child(1) {
-  animation: slideInFromLeft 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
+  .estimator-actions .btn-secondary:hover:not(:disabled) {
+    background-color: #202124 !important;
+    color: #ffffff !important;
+  }
+
 
 .estimator-actions > button:not(.btn-hidden):nth-child(2) {
   animation: slideInFromRightSlow 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -698,10 +697,10 @@
 }
 
 .dimensions-room-navigation {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: var(--spacing-sm);
+  display: flex;
   align-items: center;
+  justify-content: flex-start;
+  gap: var(--spacing-sm);
   margin-bottom: var(--spacing-md);
   padding: 12px;
   border: 1px solid rgba(212, 175, 55, 0.25);
@@ -710,16 +709,44 @@
 }
 
 .dimensions-room-navigation button {
-  white-space: normal;
-  min-width: 140px;
-  padding: 10px 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  min-width: 50px;
+  white-space: nowrap;
+}
+
+.dimensions-room-navigation .btn-secondary {
+  background-color: #ffffff !important;
+  color: #202124 !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+}
+
+.dimensions-room-navigation .btn-secondary:hover:not(:disabled) {
+  background-color: #202124 !important;
+  color: #ffffff !important;
+}
+
+.dimensions-room-navigation .btn-secondary:disabled {
+  opacity: 0.75 !important;
+  color: #5f6368 !important;
+  background-color: rgba(255, 255, 255, 0.92) !important;
 }
 
 .dimensions-room-status {
   text-align: center;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 4px;
+  align-items: center;
 }
 
 .dimensions-room-status span {

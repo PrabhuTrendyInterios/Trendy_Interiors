@@ -87,12 +87,6 @@ const DimensionsSelection = ({
   const requiresDimensions = selectedRoomData?.requiresDimensions !== false;
 
   useEffect(() => {
-    if (selectedRoomData) {
-      console.log(`Room: ${selectedRoomData.name}, requiresDimensions:`, selectedRoomData.requiresDimensions);
-    }
-  }, [selectedRoomData]);
-
-  useEffect(() => {
     if (!selectedRoom && roomEntries.length > 0) {
       onSelectRoom(roomEntries[0].id);
       setShowCustomDimensions(false);
@@ -129,53 +123,28 @@ const DimensionsSelection = ({
 
     const roomData = findRoomByName(roomsCatalog, roomEntry.roomName);
     const requiresDims = roomData?.requiresDimensions !== false;
-
-    if (!requiresDims) {
-      return true; // Room doesn't require dimensions
-    }
-
-    const dimensions = roomDimensions?.[roomId] || {};
-    return (
-      Number(dimensions.length) > 0 &&
-      Number(dimensions.width) > 0 &&
-      Number(dimensions.height) > 0
-    );
-  };
-
-  const completedRoomCount = roomEntries.filter((room) => roomIsComplete(room.id)).length;
-
-  const isRoomFullyConfigured = (roomId) => {
-    // Get room info
-    const roomEntry = roomEntries.find((room) => room.id === roomId);
-    if (!roomEntry) return false;
-
-    const roomData = findRoomByName(roomsCatalog, roomEntry.roomName);
-    const requiresDims = roomData?.requiresDimensions !== false;
-
-    // Check if room has dimensions (only if required)
+    const roomOptions = getRoomOptions(roomEntry.roomName, roomsCatalog);
     const dimensions = roomDimensions?.[roomId] || {};
     const hasDimensions =
       Number(dimensions.length) > 0 &&
       Number(dimensions.width) > 0 &&
       Number(dimensions.height) > 0;
+    const hasLayout = Boolean(dimensions.selectedDesignIdea?.layout);
 
-    // If dimensions are required but not provided, room is not configured
-    if (requiresDims && !hasDimensions) return false;
-
-    // Get room options to check if layout is required
-    const roomOptions = getRoomOptions(roomEntry.roomName, roomsCatalog);
-    
-    // If layout is required, check if it's selected
-    if (roomOptions.showLayout) {
-      const selectedLayout = dimensions.selectedDesignIdea?.layout || '';
-      return selectedLayout !== '';
+    if (requiresDims && !hasDimensions) {
+      return false;
     }
 
-    // Room is complete (dimensions provided if required, no layout required)
+    if (roomOptions.showLayout && !hasLayout) {
+      return false;
+    }
+
     return true;
   };
 
-  const allRoomsConfigured = roomEntries.length > 0 && roomEntries.every((room) => isRoomFullyConfigured(room.id));
+  const completedRoomCount = roomEntries.filter((room) => roomIsComplete(room.id)).length;
+
+  const allRoomsConfigured = roomEntries.length > 0 && roomEntries.every((room) => roomIsComplete(room.id));
 
   const handleRoomMove = (direction) => {
     if (!roomEntries.length) return;
@@ -341,33 +310,6 @@ const DimensionsSelection = ({
             )}
           </select>
         </div>
-      </div>
-
-      <div className="dimensions-room-navigation">
-        <button
-          type="button"
-          className="btn-secondary"
-          onClick={() => handleRoomMove('prev')}
-          disabled={currentRoomIndex <= 0}
-        >
-          Previous Room
-        </button>
-
-        <div className="dimensions-room-status">
-          <span>
-            Room {currentRoomIndex >= 0 ? currentRoomIndex + 1 : 0} of {roomEntries.length || 0}
-          </span>
-          <strong>{currentRoomLabel}</strong>
-        </div>
-
-        <button
-          type="button"
-          className="btn-secondary"
-          onClick={() => handleRoomMove('next')}
-          disabled={currentRoomIndex < 0 || currentRoomIndex >= roomEntries.length - 1}
-        >
-          Next Room
-        </button>
       </div>
 
       <div className="premium-design-focus">
@@ -633,6 +575,46 @@ const DimensionsSelection = ({
 
       <div className="quote-progress-note">
         {completedRoomCount} of {roomEntries.length || 0} rooms ready for quote.
+      </div>
+
+      <div
+        className="dimensions-room-navigation"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.75rem',
+          marginTop: '1rem',
+          marginBottom: '0.75rem',
+          width: '100%',
+        }}
+      >
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => handleRoomMove('prev')}
+          disabled={currentRoomIndex <= 0}
+          aria-label="Previous room"
+        >
+          ←
+        </button>
+
+        <div className="dimensions-room-status">
+          <span>
+            Room {currentRoomIndex >= 0 ? currentRoomIndex + 1 : 0} of {roomEntries.length || 0}
+          </span>
+          <strong>{currentRoomLabel}</strong>
+        </div>
+
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => handleRoomMove('next')}
+          disabled={currentRoomIndex < 0 || currentRoomIndex >= roomEntries.length - 1}
+          aria-label="Next room"
+        >
+          →
+        </button>
       </div>
 
       <div className="estimator-actions">

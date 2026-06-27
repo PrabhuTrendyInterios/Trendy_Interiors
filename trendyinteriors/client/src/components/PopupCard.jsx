@@ -141,7 +141,7 @@ const PopupCard = () => {
           className="popup-estimate-btn"
           onClick={handleEstimate}
         >
-          🏡 Show Me The Estimate
+          Quote Your Interior
         </button>
       </div>
     </div>

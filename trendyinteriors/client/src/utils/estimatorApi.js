@@ -206,17 +206,99 @@ export const getLayoutMaterialsTotal = (materials = [], roomSelection = {}) =>
     return sum;
   }, 0);
 
-export const formatGlobalAddonForCard = (addon) => ({
-  id: addon._id,
-  _id: addon._id,
-  name: addon.name,
-  description: addon.description || '',
-  image: addon.imageUrl || '',
-  price: Number(addon.price) || 0,
-  priceHint: addon.price
-    ? `From ₹${Number(addon.price).toLocaleString('en-IN')}`
-    : 'Premium selection',
-});
+export const normalizeGlobalAddonId = (id) => {
+  if (id == null || id === '') {
+    return '';
+  }
+
+  if (typeof id === 'object') {
+    if (id.$oid) {
+      return String(id.$oid);
+    }
+
+    if (typeof id.toString === 'function' && id.toString() !== '[object Object]') {
+      return String(id);
+    }
+
+    return '';
+  }
+
+  return String(id);
+};
+
+export const normalizeSelectedGlobalAddons = (selectedIds = []) => {
+  const seen = new Set();
+
+  return (Array.isArray(selectedIds) ? selectedIds : [])
+    .map(normalizeGlobalAddonId)
+    .filter((id) => {
+      if (!id || seen.has(id)) {
+        return false;
+      }
+
+      seen.add(id);
+      return true;
+    });
+};
+
+export const isGlobalAddonSelected = (selectedIds = [], addonId) => {
+  const normalizedTarget = normalizeGlobalAddonId(addonId);
+  if (!normalizedTarget) {
+    return false;
+  }
+
+  return normalizeSelectedGlobalAddons(selectedIds).includes(normalizedTarget);
+};
+
+export const toggleGlobalAddonSelection = (selectedIds = [], addonId) => {
+  const normalizedTarget = normalizeGlobalAddonId(addonId);
+  if (!normalizedTarget) {
+    return normalizeSelectedGlobalAddons(selectedIds);
+  }
+
+  const normalizedSelected = normalizeSelectedGlobalAddons(selectedIds);
+
+  if (normalizedSelected.includes(normalizedTarget)) {
+    return normalizedSelected.filter((id) => id !== normalizedTarget);
+  }
+
+  return [...normalizedSelected, normalizedTarget];
+};
+
+export const formatGlobalAddonForCard = (addon) => {
+  const id = normalizeGlobalAddonId(addon._id || addon.id);
+
+  return {
+    id,
+    _id: id,
+    name: addon.name || '',
+    description: addon.description || '',
+    image: addon.imageUrl || '',
+    price: Number(addon.price) || 0,
+    priceHint: addon.price
+      ? `From ₹${Number(addon.price).toLocaleString('en-IN')}`
+      : 'Premium selection',
+  };
+};
+
+export const buildGlobalAddonDetails = (selectedIds = [], addonsCatalog = []) => {
+  const catalog = (Array.isArray(addonsCatalog) ? addonsCatalog : []).map(formatGlobalAddonForCard);
+
+  return normalizeSelectedGlobalAddons(selectedIds)
+    .map((selectedId) => catalog.find((addon) => addon.id === selectedId))
+    .filter(Boolean)
+    .map((addon) => ({
+      id: addon.id,
+      name: addon.name,
+      price: Number(addon.price) || 0,
+    }));
+};
+
+export const getGlobalAddonsTotal = (selectedIds = [], addonsCatalog = []) =>
+  buildGlobalAddonDetails(selectedIds, addonsCatalog).reduce(
+    (sum, addon) => sum + (Number(addon.price) || 0),
+    0,
+  );
 
 export const buildRoomInstances = (rooms = {}) =>
   Object.entries(rooms).flatMap(([roomName, count]) =>

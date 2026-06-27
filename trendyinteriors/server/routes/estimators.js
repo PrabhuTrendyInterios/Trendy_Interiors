@@ -16,6 +16,21 @@ const toPositiveNumber = (value) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
+const normalizeExtraAddonIds = (extraAddons = []) => {
+  const seen = new Set();
+
+  return (Array.isArray(extraAddons) ? extraAddons : [])
+    .map((addonId) => (addonId != null ? String(addonId).trim() : ''))
+    .filter((addonId) => {
+      if (!addonId || seen.has(addonId)) {
+        return false;
+      }
+
+      seen.add(addonId);
+      return true;
+    });
+};
+
 const buildRoomInstances = (rooms) =>
   Object.entries(rooms || {}).flatMap(([roomName, count]) => {
     const quantity = Number(count) || 0;
@@ -138,7 +153,7 @@ const validateEstimatorPayload = (payload, roomsCatalog = [], options = {}) => {
     rooms,
     selectedRoomForDimensions: normalizedSelectedRoom,
     customerInfo: payload?.customerInfo || {},
-    extraAddons: Array.isArray(payload?.extraAddons) ? payload.extraAddons : [],
+    extraAddons: normalizeExtraAddonIds(payload?.extraAddons),
   };
 };
 

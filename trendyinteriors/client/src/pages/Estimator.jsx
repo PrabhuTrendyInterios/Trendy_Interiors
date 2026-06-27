@@ -4,6 +4,7 @@ import RoomSelection from '../components/estimator/RoomSelection';
 import DimensionsSelection from '../components/estimator/DimensionsSelection';
 import ExtraAddons from '../components/estimator/ExtraAddons';
 import LeadCapture from '../components/estimator/LeadCapture';
+import TermsAndCondition from '../components/estimator/TermsAndCondition';
 import {
   API_BASE_URL,
   buildRoomInstances,
@@ -11,6 +12,12 @@ import {
   fetchGlobalAddons,
   findRoomByName,
   formatGlobalAddonForCard,
+  buildGlobalAddonDetails,
+  getGlobalAddonsTotal,
+  isGlobalAddonSelected,
+  normalizeGlobalAddonId,
+  normalizeSelectedGlobalAddons,
+  toggleGlobalAddonSelection,
   buildDefaultLayoutMaterialSelection,
   getLayoutMaterialsForRoom,
   getLayoutMaterialsTotal,
@@ -43,6 +50,110 @@ const migrateRoomDimensions = (roomDimensionsByRoom) => {
   return migrated;
 };
 
+const isDimensionRoomComplete = (room, roomDimensionsByRoom, roomsCatalog) => {
+  const roomData = findRoomByName(roomsCatalog, room.roomName);
+  const requiresDims = roomData?.requiresDimensions !== false;
+  const requiresLayout = Array.isArray(roomData?.layouts) && roomData.layouts.length > 0;
+  const dimensions = roomDimensionsByRoom?.[room.id] || {};
+  const hasDimensions =
+    Number(dimensions.length) > 0 &&
+    Number(dimensions.width) > 0 &&
+    Number(dimensions.height) > 0;
+  const hasLayout = Boolean(dimensions.selectedDesignIdea?.layout);
+
+  if (requiresDims && !hasDimensions) {
+    return false;
+  }
+
+  if (requiresLayout && !hasLayout) {
+    return false;
+  }
+
+  return true;
+};
+
+const recalculateQuoteTotals = (
+  quote,
+  selectedComponents,
+  selectedMaterials,
+  selectedGlobalAddons = [],
+  globalAddonsOptions = [],
+) => {
+  if (!quote || !Array.isArray(quote.lineItems)) {
+    return quote;
+  }
+
+  const updatedQuote = JSON.parse(JSON.stringify(quote));
+  let newRoomTotals = 0;
+  const normalizedSelectedIds = normalizeSelectedGlobalAddons(selectedGlobalAddons);
+  const addonDetails = buildGlobalAddonDetails(normalizedSelectedIds, globalAddonsOptions);
+  const globalAddonsTotal = getGlobalAddonsTotal(normalizedSelectedIds, globalAddonsOptions);
+
+  updatedQuote.lineItems = updatedQuote.lineItems
+    .filter((item) => item.roomId !== 'global-addons' && item.roomId !== 'extra-addons')
+    .map((item) => {
+      if (!item.roomId) {
+        newRoomTotals += item.estimatedCost || 0;
+        return item;
+      }
+
+      let packageComponentsTotal = item.packageComponentsTotal || 0;
+      if (Array.isArray(item.packageComponents) && item.packageComponents.length > 0) {
+        const selectedIds = selectedComponents[item.roomId] || [];
+        packageComponentsTotal = item.packageComponents.reduce((sum, component) => {
+          if (!component.id) return sum;
+          const isIncluded = component.mandatory === true || selectedIds.includes(component.id);
+          return isIncluded ? sum + (component.price || 0) : sum;
+        }, 0);
+      }
+
+      let layoutMaterialsCost = item.layoutMaterialsCost || 0;
+      if (Array.isArray(item.layoutMaterials) && item.layoutMaterials.length > 0) {
+        layoutMaterialsCost = getLayoutMaterialsTotal(
+          item.layoutMaterials,
+          selectedMaterials[item.roomId] || {},
+        );
+      }
+
+      const newEstimatedCost =
+        (item.baseCost || 0) +
+        (item.layoutCost || 0) +
+        (item.addonsCost || 0) +
+        packageComponentsTotal +
+        layoutMaterialsCost;
+
+      newRoomTotals += newEstimatedCost;
+
+      return {
+        ...item,
+        packageComponentsTotal,
+        layoutMaterialsCost,
+        estimatedCost: newEstimatedCost,
+      };
+    });
+
+  updatedQuote.lineItems.push({
+    roomId: 'global-addons',
+    roomName: 'Global Add-ons',
+    label: 'Premium Add-ons',
+    areaSqFt: 0,
+    ratePerSqFt: 0,
+    baseCost: 0,
+    layout: '',
+    layoutCost: 0,
+    addons: addonDetails.map((addon) => addon.name),
+    addonDetails,
+    addonsCost: globalAddonsTotal,
+    estimatedCost: globalAddonsTotal,
+  });
+
+  updatedQuote.roomTotals = newRoomTotals;
+  updatedQuote.globalAddonsTotal = globalAddonsTotal;
+  updatedQuote.estimatedAmount = newRoomTotals + globalAddonsTotal;
+
+  return updatedQuote;
+};
+
 const Estimator = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState(new Set());
@@ -52,6 +163,9 @@ const Estimator = () => {
   const [apiError, setApiError] = useState('');
   const [quoteSummary, setQuoteSummary] = useState(null);
   const [submissionResult, setSubmissionResult] = useState(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsReviewed, setTermsReviewed] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [selectedPackageComponents, setSelectedPackageComponents] = useState(() => {
     try {
       const storedPackageComponents = localStorage.getItem('estimatorSelectedPackageComponents');
@@ -81,7 +195,7 @@ const Estimator = () => {
           rooms: parsedDraft.rooms || {},
           selectedRoomForDimensions: parsedDraft.selectedRoomForDimensions || '',
           roomDimensionsByRoom: migrateRoomDimensions(parsedDraft.roomDimensionsByRoom),
-          extraAddons: parsedDraft.extraAddons || [],
+          extraAddons: normalizeSelectedGlobalAddons(parsedDraft.extraAddons || []),
           leadData: parsedDraft.leadData || { name: '', email: '', phone: '', location: '', message: '' },
         };
       }
@@ -126,6 +240,34 @@ const Estimator = () => {
 
     loadEstimatorData();
   }, []);
+
+  useEffect(() => {
+    if (globalAddonsOptions.length === 0) {
+      return;
+    }
+
+    const activeAddonIds = new Set(
+      globalAddonsOptions.map((addon) => normalizeGlobalAddonId(addon._id || addon.id)),
+    );
+
+    setFormData((prev) => {
+      const normalizedSelection = normalizeSelectedGlobalAddons(prev.extraAddons);
+      const filteredSelection = normalizedSelection.filter((addonId) => activeAddonIds.has(addonId));
+
+      const selectionChanged =
+        filteredSelection.length !== normalizedSelection.length ||
+        filteredSelection.some((addonId, index) => addonId !== normalizedSelection[index]);
+
+      if (!selectionChanged) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        extraAddons: filteredSelection,
+      };
+    });
+  }, [globalAddonsOptions]);
 
   useEffect(() => {
     const roomInstances = buildRoomInstances(formData.rooms);
@@ -292,6 +434,8 @@ const Estimator = () => {
       quoteSummary,
       selectedPackageComponents,
       selectedLayoutMaterials,
+      formData.extraAddons || [],
+      globalAddonsOptions,
     );
 
     const quoteJson = JSON.stringify(quoteSummary);
@@ -299,7 +443,7 @@ const Estimator = () => {
     if (quoteJson !== updatedJson) {
       setQuoteSummary(updatedQuote);
     }
-  }, [currentStep, quoteSummary, selectedPackageComponents, selectedLayoutMaterials]);
+  }, [currentStep, quoteSummary, selectedPackageComponents, selectedLayoutMaterials, formData.extraAddons, globalAddonsOptions]);
 
   const scrollToTop = () => {
     if (typeof window !== 'undefined') {
@@ -327,21 +471,9 @@ const Estimator = () => {
       case 2: // Dimensions
         {
           const roomInstances = buildRoomInstances(formData.rooms);
-          return roomInstances.length > 0 && roomInstances.every((room) => {
-            const roomData = findRoomByName(roomsCatalog, room.roomName);
-            const requiresDims = roomData?.requiresDimensions !== false;
-
-            if (!requiresDims) {
-              return true; // Room doesn't require dimensions, so it's complete
-            }
-
-            const dimensions = formData.roomDimensionsByRoom[room.id] || {};
-            return (
-              Number(dimensions.length) > 0 &&
-              Number(dimensions.width) > 0 &&
-              Number(dimensions.height) > 0
-            );
-          });
+          return roomInstances.length > 0 && roomInstances.every((room) =>
+            isDimensionRoomComplete(room, formData.roomDimensionsByRoom, roomsCatalog)
+          );
         }
       case 3: // Extra Add-ons
         return true; // This is optional
@@ -502,17 +634,13 @@ const Estimator = () => {
   };
 
   const toggleAddon = (addonId) => {
-    setFormData((prev) => {
-      const currentAddons = prev.extraAddons || [];
-      const newAddons = currentAddons.includes(addonId)
-        ? currentAddons.filter((id) => id !== addonId)
-        : [...currentAddons, addonId];
-      
-      return {
-        ...prev,
-        extraAddons: newAddons,
-      };
-    });
+    setApiError('');
+    setSubmissionResult(null);
+
+    setFormData((prev) => ({
+      ...prev,
+      extraAddons: toggleGlobalAddonSelection(prev.extraAddons, addonId),
+    }));
   };
 
   const updateLeadData = (key, value) => {
@@ -548,70 +676,6 @@ const Estimator = () => {
     // Note: quoteSummary will be updated immediately by the useEffect that watches selectedPackageComponents
   };
 
-  // Local recalculation function - updates totals immediately without API call
-  const recalculateQuoteTotals = (quote, selectedComponents, selectedMaterials) => {
-    if (!quote || !Array.isArray(quote.lineItems)) {
-      return quote;
-    }
-
-    const updatedQuote = JSON.parse(JSON.stringify(quote));
-    let newGrandTotal = 0;
-    let newRoomTotals = 0;
-
-    updatedQuote.lineItems = updatedQuote.lineItems.map((item) => {
-      if (item.roomId === 'global-addons' || item.roomId === 'extra-addons') {
-        newGrandTotal += item.estimatedCost || 0;
-        return item;
-      }
-
-      if (!item.roomId) {
-        newGrandTotal += item.estimatedCost || 0;
-        return item;
-      }
-
-      let packageComponentsTotal = item.packageComponentsTotal || 0;
-      if (Array.isArray(item.packageComponents) && item.packageComponents.length > 0) {
-        const selectedIds = selectedComponents[item.roomId] || [];
-        packageComponentsTotal = item.packageComponents.reduce((sum, component) => {
-          if (!component.id) return sum;
-          const isIncluded = component.mandatory === true || selectedIds.includes(component.id);
-          return isIncluded ? sum + (component.price || 0) : sum;
-        }, 0);
-      }
-
-      let layoutMaterialsCost = item.layoutMaterialsCost || 0;
-      if (Array.isArray(item.layoutMaterials) && item.layoutMaterials.length > 0) {
-        layoutMaterialsCost = getLayoutMaterialsTotal(
-          item.layoutMaterials,
-          selectedMaterials[item.roomId] || {},
-        );
-      }
-
-      const newEstimatedCost =
-        (item.baseCost || 0) +
-        (item.layoutCost || 0) +
-        (item.addonsCost || 0) +
-        packageComponentsTotal +
-        layoutMaterialsCost;
-
-      const updatedItem = {
-        ...item,
-        packageComponentsTotal,
-        layoutMaterialsCost,
-        estimatedCost: newEstimatedCost,
-      };
-
-      newGrandTotal += newEstimatedCost;
-      newRoomTotals += newEstimatedCost;
-      return updatedItem;
-    });
-
-    updatedQuote.roomTotals = newRoomTotals;
-    updatedQuote.estimatedAmount = newGrandTotal;
-
-    return updatedQuote;
-  };
-
   const parseApiError = async (response) => {
     try {
       const body = await response.json();
@@ -625,6 +689,10 @@ const Estimator = () => {
   };
 
   const handleDimensionsNext = () => {
+    if (!isCurrentStepComplete()) {
+      return;
+    }
+
     // Just move to the next step without calculating yet
     // Calculation will happen on the review step
     setCurrentStep((prev) => prev + 1);
@@ -841,7 +909,7 @@ const Estimator = () => {
                         {quoteSummary.estimatedAmount.toLocaleString('en-IN')}
                       </p>
                     </div>
-                  
+
                   {/* Detailed Breakdown */}
                   {Array.isArray(quoteSummary.lineItems) && quoteSummary.lineItems.length > 0 && (
                     <div style={{ borderTop: '1px solid rgba(212, 175, 55, 0.2)', paddingTop: '1.5rem' }}>
@@ -852,51 +920,31 @@ const Estimator = () => {
                             // Extra Add-ons Display - Show each with individual cost
                             <>
                               <p style={{ margin: '0 0 0.75rem 0', fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.95rem' }}>Premium Add-ons</p>
-                              {Array.isArray(item.addonDetails) && item.addonDetails.length > 0 ? (
-                                <div style={{ marginTop: '0.25rem' }}>
-                                  {item.addonDetails.map((addon) => (
-                                    <div key={addon.id || addon.name} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', paddingLeft: '1rem' }}>
-                                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-gold-dark)' }}>
-                                        • {addon.name}
-                                      </p>
-                                      <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.85rem' }}>
-                                        ₹{(addon.price || 0).toLocaleString('en-IN')}
+                              <div style={{ marginTop: '1.25rem' }}>
+                                {globalAddonsOptions.map(formatGlobalAddonForCard).map((addon) => {
+                                  const isSelected = isGlobalAddonSelected(formData.extraAddons, addon.id);
+                                  const displayedPrice = isSelected ? Number(addon.price) || 0 : 0;
+
+                                  return (
+                                    <div key={addon.id || addon.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', paddingLeft: '1.25rem' }}>
+                                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0, cursor: 'pointer', color: isSelected ? 'var(--color-gold-dark)' : 'var(--color-gray)' }}>
+                                        <input
+                                          type="checkbox"
+                                          checked={isSelected}
+                                          onChange={() => toggleAddon(addon.id)}
+                                          style={{ width: '16px', height: '16px', accentColor: 'var(--color-gold)', flex: '0 0 auto' }}
+                                        />
+                                        <span style={{ fontSize: '1rem', lineHeight: 1.4 }}>
+                                          • {addon.name}
+                                        </span>
+                                      </label>
+                                      <p style={{ margin: 0, minWidth: '90px', textAlign: 'right', fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '0.95rem' }}>
+                                        ₹{displayedPrice.toLocaleString('en-IN')}
                                       </p>
                                     </div>
-                                  ))}
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
-                                    <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.9rem' }}>Total Add-ons</p>
-                                    <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '0.9rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
-                                  </div>
-                                </div>
-                              ) : Array.isArray(item.addons) && item.addons.length > 0 ? (
-                                <div style={{ marginTop: '0.25rem' }}>
-                                  {item.addons.map((addonId, idx) => {
-                                    const addonMeta = globalAddonsOptions
-                                      .map(formatGlobalAddonForCard)
-                                      .find(
-                                        (addon) =>
-                                          addon._id?.toString() === addonId ||
-                                          addon.id === addonId ||
-                                          addon.name === addonId
-                                      );
-                                    return (
-                                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', paddingLeft: '1rem' }}>
-                                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-gold-dark)' }}>
-                                          • {addonMeta?.name || addonId}
-                                        </p>
-                                        <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.85rem' }}>
-                                          ₹{(addonMeta?.price || 0).toLocaleString('en-IN')}
-                                        </p>
-                                      </div>
-                                    );
-                                  })}
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
-                                    <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.9rem' }}>Total Add-ons</p>
-                                    <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '0.9rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
-                                  </div>
-                                </div>
-                              ) : null}
+                                  );
+                                })}
+                              </div>
                             </>
                           ) : (
                             // Room Items Display
@@ -1117,9 +1165,53 @@ const Estimator = () => {
                       ))}
                     </div>
                   )}
-                </div>
+                    <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+                          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', cursor: 'pointer', flex: 1 }}>
+                            <input
+                              type="checkbox"
+                              checked={termsAccepted}
+                              disabled={!termsReviewed}
+                              onChange={(event) => {
+                                if (!termsReviewed) {
+                                  setIsTermsOpen(true);
+                                  return;
+                                }
+
+                                setTermsAccepted(event.target.checked);
+                              }}
+                              style={{ width: '18px', height: '18px', marginTop: '3px', accentColor: 'var(--color-gold)', cursor: termsReviewed ? 'pointer' : 'not-allowed' }}
+                            />
+                            <span style={{ fontSize: '0.95rem', color: 'var(--color-charcoal-dark)', lineHeight: 1.4 }}>
+                              {termsReviewed ? 'I agree to the ' : 'Read the '}
+                              <button
+                                type="button"
+                                onClick={() => setIsTermsOpen(true)}
+                                style={{ border: 'none', backgroundColor: 'transparent', color: 'var(--color-gold-dark)', cursor: 'pointer' }}
+                              >
+                                <strong>terms and conditions</strong>
+                              </button>
+                              {termsReviewed ? '.' : ' before accepting.'}
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </>
               )}
+
+              <TermsAndCondition
+                isOpen={isTermsOpen}
+                hasAccepted={termsAccepted}
+                onClose={() => setIsTermsOpen(false)}
+                onAccept={() => {
+                  setTermsReviewed(true);
+                  setTermsAccepted(true);
+                  setIsTermsOpen(false);
+                }}
+              />
 
               {apiError && (
                 <div style={{ padding: '1.5rem', backgroundColor: '#fff0f0', borderRadius: '12px', border: '1px solid #f5a5a5', color: '#8b1f1f' }}>
@@ -1158,10 +1250,12 @@ const Estimator = () => {
                   </>
                 ) : (
                   <>
-                    <button className="btn-secondary" onClick={handlePrevStep}>
-                      Back
-                    </button>
-                    <button className="btn-primary" onClick={handleSubmitEstimator} disabled={isSubmitting}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <button className="btn-secondary" onClick={handlePrevStep}>
+                        Back
+                      </button>
+                    </div>
+                    <button className="btn-primary" onClick={handleSubmitEstimator} disabled={!termsAccepted || isSubmitting}>
                       {isSubmitting ? 'Submitting...' : 'Submit Estimate'}
                     </button>
                   </>

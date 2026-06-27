@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatGlobalAddonForCard } from '../../utils/estimatorApi';
+import { formatGlobalAddonForCard, isGlobalAddonSelected } from '../../utils/estimatorApi';
 
 const ExtraAddons = ({
   selectedAddons = [],
@@ -12,22 +12,25 @@ const ExtraAddons = ({
 }) => {
   const availableAddons = addonsOptions.map(formatGlobalAddonForCard);
 
-  const renderAddonCard = (addon) => (
+  const renderAddonCard = (addon) => {
+    const isSelected = isGlobalAddonSelected(selectedAddons, addon.id);
+
+    return (
     <div
       key={addon.id}
-      className={`addon-card ${selectedAddons.includes(addon.id) ? 'selected' : ''}`}
+      className={`addon-card ${isSelected ? 'selected' : ''}`}
       onClick={() => onToggleAddon(addon.id)}
       style={{
         cursor: 'pointer',
         borderRadius: '20px',
         overflow: 'hidden',
         backgroundColor: '#fff',
-        boxShadow: selectedAddons.includes(addon.id)
+        boxShadow: isSelected
           ? '0 20px 40px rgba(107, 78, 255, 0.15)'
           : '0 10px 30px rgba(0, 0, 0, 0.05)',
-        border: selectedAddons.includes(addon.id) ? '3px solid #6b4eff' : '3px solid transparent',
+        border: isSelected ? '3px solid #6b4eff' : '3px solid transparent',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        transform: selectedAddons.includes(addon.id) ? 'translateY(-10px)' : 'none',
+        transform: isSelected ? 'translateY(-10px)' : 'none',
         position: 'relative',
       }}
     >
@@ -62,7 +65,7 @@ const ExtraAddons = ({
             +
           </div>
         )}
-        {selectedAddons.includes(addon.id) && (
+        {isSelected && (
           <div
             className="addon-selected-badge"
             style={{
@@ -101,7 +104,8 @@ const ExtraAddons = ({
         <p style={{ fontSize: '0.85rem', color: '#666', lineHeight: '1.5', margin: 0 }}>{addon.description}</p>
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="extra-addons-step">
