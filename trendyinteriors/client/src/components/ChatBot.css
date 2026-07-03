@@ -472,7 +472,7 @@
 @media (max-width: 480px) {
   .chatbot-window {
     width: calc(100vw - 32px);
-    height: 480px;
+    height: min(480px, calc(100svh - 112px));
     bottom: 90px;
     right: 16px;
   }

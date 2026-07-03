@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import './TermsAndCondition.css';
 
 const TermsAndCondition = ({ isOpen, onClose, onAccept, hasAccepted = false }) => {
   const scrollRef = useRef(null);
@@ -47,184 +48,36 @@ const TermsAndCondition = ({ isOpen, onClose, onAccept, hasAccepted = false }) =
   ];
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(23, 22, 18, 0.72)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1.25rem',
-        zIndex: 1100,
-      }}
-      onClick={onClose}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="terms-title"
-        onClick={(event) => event.stopPropagation()}
-        style={{
-          width: '100%',
-          maxWidth: '780px',
-          maxHeight: '88vh',
-          overflow: 'hidden',
-          backgroundColor: '#fffdf3',
-          borderRadius: '14px',
-          boxShadow: '0 28px 80px rgba(0, 0, 0, 0.32)',
-          border: '2px solid var(--color-gold)',
-          color: 'var(--color-charcoal-dark)',
-        }}
-      >
-        <div
-          style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 1,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: '1rem',
-            padding: '1.5rem 1.5rem 1.15rem',
-            backgroundColor: '#fffdf3',
-            borderBottom: '1px solid rgba(212, 175, 55, 0.25)',
-          }}
-        >
+    <div className="terms-overlay" onClick={onClose}>
+      <div className="terms-dialog" role="dialog" aria-modal="true" aria-labelledby="terms-title" onClick={(e) => e.stopPropagation()}>
+        <div className="terms-header">
           <div>
-            <p
-              style={{
-                margin: '0 0 0.35rem 0',
-                fontSize: '0.72rem',
-                fontWeight: 800,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--color-gold-dark)',
-              }}
-            >
-              Estimate Agreement
-            </p>
-            <h3
-              id="terms-title"
-              style={{
-                margin: 0,
-                color: 'var(--color-charcoal-dark)',
-                fontSize: '1.45rem',
-                lineHeight: 1.2,
-              }}
-            >
-              Terms & Conditions
-            </h3>
+            <p>Estimate Agreement</p>
+            <h3 id="terms-title">Terms & Conditions</h3>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close terms and conditions"
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              border: '1px solid rgba(212, 175, 55, 0.35)',
-              backgroundColor: '#ffffff',
-              color: 'var(--color-charcoal-dark)',
-              cursor: 'pointer',
-              fontWeight: 800,
-              fontSize: '1.35rem',
-              lineHeight: 1,
-              boxShadow: '0 8px 18px rgba(43, 43, 43, 0.08)',
-            }}
-          >
-            ×
-          </button>
+          <button type="button" onClick={onClose} aria-label="Close terms and conditions" className="terms-close-btn">×</button>
         </div>
 
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          style={{
-            maxHeight: 'calc(88vh - 170px)',
-            overflowY: 'auto',
-            padding: '1.35rem 1.5rem 1.5rem',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gap: '0.85rem',
-              color: 'var(--color-charcoal-dark)',
-              lineHeight: 1.65,
-              fontSize: '0.95rem',
-            }}
-          >
+        <div className="terms-body" ref={scrollRef} onScroll={handleScroll}>
+          <div className="terms-grid">
             {terms.map((term, index) => (
-              <div
-                key={term}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '34px 1fr',
-                  gap: '0.8rem',
-                  alignItems: 'flex-start',
-                  padding: '0.95rem 1rem',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid rgba(212, 175, 55, 0.18)',
-                  borderRadius: '10px',
-                  boxShadow: '0 8px 22px rgba(43, 43, 43, 0.045)',
-                }}
-              >
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '30px',
-                    height: '30px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(212, 175, 55, 0.14)',
-                    color: 'var(--color-gold-dark)',
-                    fontWeight: 800,
-                    fontSize: '0.85rem',
-                  }}
-                >
-                  {index + 1}
-                </span>
-                <p style={{ margin: 0 }}>{term}</p>
+              <div key={term} className="terms-item">
+                <span className="terms-item-index">{index + 1}</span>
+                <p>{term}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            padding: '1rem 1.5rem',
-            backgroundColor: '#fffdf3',
-            borderTop: '1px solid rgba(212, 175, 55, 0.25)',
-          }}
-        >
-          <p style={{ margin: 0, color: canAccept ? 'var(--color-gray)' : 'var(--color-gold-dark)', fontSize: '0.86rem', lineHeight: 1.4 }}>
+        <div className="terms-footer">
+          <p className="terms-accept-note">
             {canAccept ? 'You can now accept the terms.' : 'Please scroll to the end to enable acceptance.'}
           </p>
           <button
             type="button"
             disabled={!canAccept}
             onClick={onAccept}
-            style={{
-              border: 'none',
-              borderRadius: '10px',
-              padding: '0.8rem 1.2rem',
-              background: canAccept
-                ? 'linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-dark) 100%)'
-                : 'rgba(43, 43, 43, 0.12)',
-              color: canAccept ? '#ffffff' : 'var(--color-gray)',
-              cursor: canAccept ? 'pointer' : 'not-allowed',
-              fontWeight: 800,
-              whiteSpace: 'nowrap',
-              boxShadow: canAccept ? '0 8px 18px rgba(212, 175, 55, 0.25)' : 'none',
-            }}
+            className={`terms-accept-btn ${canAccept ? 'enabled' : 'disabled'}`}
           >
             I have read and agree
           </button>

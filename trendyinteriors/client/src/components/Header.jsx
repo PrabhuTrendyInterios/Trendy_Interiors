@@ -77,6 +77,18 @@ const Header = () => {
     processWheelDelta(event.deltaY);
   };
 
+  const handleDockPointerEnter = (event) => {
+    if (event.pointerType === 'mouse') {
+      setIsDockOpen(true);
+    }
+  };
+
+  const handleDockPointerLeave = (event) => {
+    if (event.pointerType === 'mouse') {
+      closeDock();
+    }
+  };
+
   const handleDockKeyDown = (event) => {
     if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
       event.preventDefault();
@@ -299,8 +311,8 @@ const Header = () => {
     <header className={`header ${isScrolled ? 'scrolled' : ''} ${isHomePage ? 'transparent' : ''}`}>
       <div
         className={`nav-dock ${isDockOpen ? 'is-open' : ''}`}
-        onMouseEnter={() => setIsDockOpen(true)}
-        onMouseLeave={closeDock}
+        onPointerEnter={handleDockPointerEnter}
+        onPointerLeave={handleDockPointerLeave}
         onFocus={() => setIsDockOpen(true)}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) {
@@ -314,7 +326,12 @@ const Header = () => {
           type="button"
           className="nav-edge-trigger"
           aria-label="Open navigation"
-          onClick={() => setIsDockOpen(true)}
+          onClick={() => setIsDockOpen((open) => !open)}
+          onPointerDown={(event) => {
+            if (event.pointerType !== 'mouse') {
+              setIsDockOpen(true);
+            }
+          }}
         />
 
         <nav className="navigation" aria-label="Primary navigation">

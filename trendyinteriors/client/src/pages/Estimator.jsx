@@ -215,6 +215,7 @@ const Estimator = () => {
 
   const [roomsCatalog, setRoomsCatalog] = useState([]);
   const [globalAddonsOptions, setGlobalAddonsOptions] = useState([]);
+  const [reviewAddonIds, setReviewAddonIds] = useState([]);
   const [loadingEstimatorData, setLoadingEstimatorData] = useState(true);
   const [loadConfigError, setLoadConfigError] = useState('');
 
@@ -453,6 +454,10 @@ const Estimator = () => {
   };
 
   const handleNextStep = () => {
+    if (currentStep === 3) {
+      setReviewAddonIds(normalizeSelectedGlobalAddons(formData.extraAddons));
+    }
+
     // Mark current step as completed
     setCompletedSteps(prev => new Set([...prev, currentStep]));
     setCurrentStep((prev) => prev + 1);
@@ -500,6 +505,10 @@ const Estimator = () => {
     if (step < currentStep || (step === currentStep + 1 && isCurrentStepComplete())) {
       // Mark current step as completed if going forward
       if (step > currentStep && isCurrentStepComplete()) {
+        if (currentStep === 3) {
+          setReviewAddonIds(normalizeSelectedGlobalAddons(formData.extraAddons));
+        }
+
         setCompletedSteps(prev => new Set([...prev, currentStep]));
       }
       setCurrentStep(step);
@@ -851,7 +860,12 @@ const Estimator = () => {
             onNext={handleNextStep}
           />
         );
-      case 5:
+      case 5: {
+        const formattedGlobalAddons = globalAddonsOptions.map(formatGlobalAddonForCard);
+        const reviewAddons = reviewAddonIds
+          .map((addonId) => formattedGlobalAddons.find((addon) => addon.id === addonId))
+          .filter(Boolean);
+
         return (
           <div className="review-container">
             {/* Left Side - Image */}
@@ -922,7 +936,13 @@ const Estimator = () => {
                             <>
                               <p style={{ margin: '0 0 0.75rem 0', fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.95rem' }}>Premium Add-ons</p>
                               <div style={{ marginTop: '1.25rem' }}>
-                                {globalAddonsOptions.map(formatGlobalAddonForCard).map((addon) => {
+                                {reviewAddons.length === 0 && (
+                                  <p style={{ margin: 0, color: 'var(--color-gray)', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                                    No premium add-ons selected.
+                                  </p>
+                                )}
+
+                                {reviewAddons.map((addon) => {
                                   const isSelected = isGlobalAddonSelected(formData.extraAddons, addon.id);
                                   const displayedPrice = isSelected ? Number(addon.price) || 0 : 0;
 
@@ -1265,6 +1285,7 @@ const Estimator = () => {
             </div>
           </div>
         );
+      }
       default:
         return <div>Unknown Step</div>;
     }

@@ -28,51 +28,20 @@ const LeadCapture = ({ leadData, isStepCompleted, onUpdateLead, onNext, onPrev }
     }
   };
 
-  const inputStyle = (hasError) => ({
-    width: '100%',
-    padding: '12px 0',
-    fontSize: '1rem',
-    color: 'var(--color-charcoal-dark)',
-    backgroundColor: 'transparent',
-    border: 'none',
-    borderBottom: `2px solid ${hasError ? '#e53e3e' : 'rgba(0,0,0,0.1)'}`,
-    outline: 'none',
-    transition: 'border-color 0.3s ease',
-    fontFamily: 'var(--font-body)',
-  });
-
-  const labelStyle = {
-    fontSize: '0.85rem',
-    fontWeight: '700',
-    color: 'var(--color-charcoal-dark)',
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
-    display: 'block',
-    marginBottom: '4px',
-    fontFamily: 'var(--font-body)',
-  };
+  const inputClass = (hasError) => `lead-input ${hasError ? 'has-error' : ''}`;
+  const labelClass = 'lead-label';
 
   return (
     <div className="lead-capture-container">
       {/* Visual Side */}
       <div
         className="lead-visual-side"
-        style={{ backgroundImage: `url('/images/estimator/lead-bg.png')` }}
+        style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/images/estimator/lead-bg.png)` }}
       >
-        {/* Darker overlay for better text readability */}
-        <div style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0) 100%)',
-          zIndex: 1
-        }} />
-        <div style={{ zIndex: 2, position: 'relative' }}>
-          <h3>
-            Design Consultation
-          </h3>
-          <p>
-            Experience the art of luxury living. Share your details to receive a personalized design blueprint.
-          </p>
+        <div className="lead-visual-overlay" />
+        <div className="lead-visual-content">
+          <h3>Design Consultation</h3>
+          <p>Experience the art of luxury living. Share your details to receive a personalized design blueprint.</p>
         </div>
       </div>
 
@@ -89,68 +58,60 @@ const LeadCapture = ({ leadData, isStepCompleted, onUpdateLead, onNext, onPrev }
 
         <div className="lead-form-grid">
           {/* Name */}
-          <div style={{ gridColumn: 'span 2' }}>
-            <label style={labelStyle}>Full Name</label>
+          <div className="full-span">
+            <label className={labelClass}>Full Name</label>
             <input
+              className={inputClass(!!errors.name)}
               type="text"
               placeholder="Enter your full name"
               value={leadData.name || ''}
               onChange={(e) => onUpdateLead('name', e.target.value)}
-              style={inputStyle(!!errors.name)}
-              onFocus={(e) => e.target.style.borderBottomColor = 'var(--color-gold)'}
-              onBlur={(e) => e.target.style.borderBottomColor = errors.name ? '#e53e3e' : 'rgba(0,0,0,0.1)'}
             />
-            {errors.name && <span style={{ color: '#e53e3e', fontSize: '0.8rem', marginTop: '5px', display: 'block' }}>{errors.name}</span>}
+            {errors.name && <span className="lead-error">{errors.name}</span>}
           </div>
 
           {/* Email */}
           <div>
-            <label style={labelStyle}>Email Address</label>
+            <label className={labelClass}>Email Address</label>
             <input
+              className={inputClass(!!errors.email)}
               type="email"
               placeholder="Enter your email address"
               value={leadData.email || ''}
               onChange={(e) => onUpdateLead('email', e.target.value)}
-              style={inputStyle(!!errors.email)}
-              onFocus={(e) => e.target.style.borderBottomColor = 'var(--color-gold)'}
-              onBlur={(e) => e.target.style.borderBottomColor = errors.email ? '#e53e3e' : 'rgba(0,0,0,0.1)'}
             />
-            {errors.email && <span style={{ color: '#e53e3e', fontSize: '0.8rem', marginTop: '5px', display: 'block' }}>{errors.email}</span>}
+            {errors.email && <span className="lead-error">{errors.email}</span>}
           </div>
 
           {/* Phone */}
           <div>
-            <label style={labelStyle}>Phone Number</label>
+            <label className={labelClass}>Phone Number</label>
             <input
+              className={inputClass(!!errors.phone)}
               type="tel"
               placeholder="Enter your phone number"
               value={leadData.phone || ''}
               onChange={(e) => onUpdateLead('phone', e.target.value)}
-              style={inputStyle(!!errors.phone)}
-              onFocus={(e) => e.target.style.borderBottomColor = 'var(--color-gold)'}
-              onBlur={(e) => e.target.style.borderBottomColor = errors.phone ? '#e53e3e' : 'rgba(0,0,0,0.1)'}
             />
-            {errors.phone && <span style={{ color: '#e53e3e', fontSize: '0.8rem', marginTop: '5px', display: 'block' }}>{errors.phone}</span>}
+            {errors.phone && <span className="lead-error">{errors.phone}</span>}
           </div>
 
           {/* Location */}
-          <div style={{ gridColumn: 'span 2' }}>
-            <label style={labelStyle}>City / Area</label>
+          <div className="full-span">
+            <label className={labelClass}>City / Area</label>
             <input
+              className={inputClass(!!errors.location)}
               type="text"
               placeholder="Enter your city or area"
               value={leadData.location || ''}
               onChange={(e) => onUpdateLead('location', e.target.value)}
-              style={inputStyle(!!errors.location)}
-              onFocus={(e) => e.target.style.borderBottomColor = 'var(--color-gold)'}
-              onBlur={(e) => e.target.style.borderBottomColor = errors.location ? '#e53e3e' : 'rgba(0,0,0,0.1)'}
             />
-            {errors.location && <span style={{ color: '#e53e3e', fontSize: '0.8rem', marginTop: '5px', display: 'block' }}>{errors.location}</span>}
+            {errors.location && <span className="lead-error">{errors.location}</span>}
           </div>
         </div>
 
         <div className="estimator-actions">
-          <button className="btn-secondary" onClick={onPrev}>Back</button>
+          <button className="btn-secondary estimator-back-btn lead-back-btn" onClick={onPrev}>Back</button>
           <button className="btn-primary" onClick={handleNext}>
             Next
           </button>

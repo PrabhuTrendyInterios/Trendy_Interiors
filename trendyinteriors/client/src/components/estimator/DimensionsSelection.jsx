@@ -344,15 +344,7 @@ const DimensionsSelection = ({
           )}
 
           {!requiresDimensions && (
-            <div style={{
-              margin: '1rem 0',
-              padding: '1rem',
-              borderRadius: '12px',
-              backgroundColor: '#fff9e6',
-              border: '1px solid rgba(212, 175, 55, 0.25)',
-              color: 'var(--color-charcoal-dark)',
-              fontSize: '0.9rem',
-            }}>
+            <div className="dimension-input-card">
               {selectedDesign.layout ? (
                 <>
                   This room does not require dimensions. Your selected layout <strong>{(() => {
@@ -413,7 +405,7 @@ const DimensionsSelection = ({
 
             {allowCustomDimensions && showCustomDimensions && (
               <>
-                <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>Enter Custom Dimensions</h4>
+                <h4>Enter Custom Dimensions</h4>
 
                 <div className="custom-dimensions-inputs">
                   <div className="custom-input-field">
@@ -577,18 +569,7 @@ const DimensionsSelection = ({
         {completedRoomCount} of {roomEntries.length || 0} rooms ready for quote.
       </div>
 
-      <div
-        className="dimensions-room-navigation"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '0.75rem',
-          marginTop: '1rem',
-          marginBottom: '0.75rem',
-          width: '100%',
-        }}
-      >
+      <div className="dimensions-room-navigation">
         <button
           type="button"
           className="btn-secondary"

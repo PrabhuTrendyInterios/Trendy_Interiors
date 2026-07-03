@@ -1444,3 +1444,57 @@
     width: min(220px, calc(100vw - 128px));
   }
 }
+
+@media (max-width: 480px) {
+  .nav-dock,
+  .nav-dock:hover,
+  .nav-dock.is-open,
+  .nav-dock:focus-within {
+    height: 308px;
+  }
+
+  .nav-dock:hover,
+  .nav-dock.is-open,
+  .nav-dock:focus-within {
+    width: min(310px, 100vw);
+  }
+
+  .nav-dock .navigation {
+    width: 154px;
+    height: 308px;
+    border-radius: 154px 0 0 154px;
+  }
+
+  .nav-dock .navigation::before {
+    right: -178px;
+    width: 356px;
+    height: 356px;
+  }
+
+  .nav-dock .nav-orbit {
+    right: -198px;
+    width: 396px;
+    height: 396px;
+  }
+
+  .nav-dock .nav-arc-item,
+  .nav-dock .nav-arc-dropdown {
+    width: 106px;
+  }
+
+  .nav-dock .nav-arc-item {
+    min-height: 42px;
+    grid-template-columns: 32px minmax(0, 1fr) 6px;
+    padding: 5px 9px 5px 5px;
+  }
+
+  .nav-dock .nav-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+  }
+
+  .nav-dock .nav-text {
+    font-size: 0.78rem;
+  }
+}
