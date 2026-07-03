@@ -27,6 +27,7 @@ import {
   reloadLayoutMaterialSelection,
   toggleLayoutMaterialSelection,
 } from '../utils/estimatorApi';
+import Footer from '../components/Footer';
 import './Estimator.css';
 
 const ESTIMATOR_DRAFT_KEY = 'trendyInteriorsEstimatorDraft';
@@ -1270,7 +1271,15 @@ const Estimator = () => {
   };
 
   return (
-    <div className="estimator-page">
+    <div
+      className="estimator-page"
+      style={{
+        backgroundImage: `linear-gradient(135deg, rgba(14, 14, 14, 0.72), rgba(14, 14, 14, 0.45)), url(${process.env.PUBLIC_URL}/images/hero-sectionn.png)`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       <div className="estimator-header-bg">
         <div className="container">
           <h1 className="estimator-page-title">Design Estimator</h1>
@@ -1345,6 +1354,7 @@ const Estimator = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
