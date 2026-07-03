@@ -19,6 +19,8 @@ const Header = () => {
   const [isLogoAnimating, setIsLogoAnimating] = useState(false);
   const wheelDeltaRef = useRef(0);
   const wheelLockRef = useRef(false);
+  const navDockRef = useRef(null);
+  const ignoreNextTriggerClickRef = useRef(false);
   const location = useLocation();
 
   const isActive = useCallback((path) => location.pathname === path, [location.pathname]);
@@ -71,20 +73,14 @@ const Header = () => {
     }, 420);
   }, [rotateNav]);
 
-  const handleDockWheel = (event) => {
-    event.preventDefault();
-    setIsDockOpen(true);
-    processWheelDelta(event.deltaY);
-  };
-
   const handleDockPointerEnter = (event) => {
-    if (event.pointerType === 'mouse') {
+    if (event.pointerType === 'mouse' && viewportWidth > 768) {
       setIsDockOpen(true);
     }
   };
 
   const handleDockPointerLeave = (event) => {
-    if (event.pointerType === 'mouse') {
+    if (event.pointerType === 'mouse' && viewportWidth > 768) {
       closeDock();
     }
   };
@@ -242,6 +238,23 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
+    const navDock = navDockRef.current;
+    if (!navDock) {
+      return undefined;
+    }
+
+    const handleNativeDockWheel = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setIsDockOpen(true);
+      processWheelDelta(event.deltaY);
+    };
+
+    navDock.addEventListener('wheel', handleNativeDockWheel, { passive: false });
+    return () => navDock.removeEventListener('wheel', handleNativeDockWheel);
+  }, [processWheelDelta]);
+
+  useEffect(() => {
     const isElementInNavDock = (target) => {
       let element = target;
 
@@ -307,9 +320,26 @@ const Header = () => {
     };
   }, [isDockOpen]);
 
+  useEffect(() => {
+    if (viewportWidth > 768 || !isDockOpen) {
+      return;
+    }
+
+    const handleOutsideClick = (event) => {
+      const navDock = document.querySelector('.nav-dock');
+      if (navDock && !navDock.contains(event.target)) {
+        closeDock();
+      }
+    };
+
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, [isDockOpen, viewportWidth, closeDock]);
+
   return (
-    <header className={`header ${isScrolled ? 'scrolled' : ''} ${isHomePage ? 'transparent' : ''}`}>
+    <>
       <div
+        ref={navDockRef}
         className={`nav-dock ${isDockOpen ? 'is-open' : ''}`}
         onPointerEnter={handleDockPointerEnter}
         onPointerLeave={handleDockPointerLeave}
@@ -319,17 +349,25 @@ const Header = () => {
             closeDock();
           }
         }}
-        onWheel={handleDockWheel}
         onKeyDown={handleDockKeyDown}
       >
         <button
           type="button"
           className="nav-edge-trigger"
           aria-label="Open navigation"
-          onClick={() => setIsDockOpen((open) => !open)}
+          onClick={(event) => {
+            event.stopPropagation();
+            if (ignoreNextTriggerClickRef.current) {
+              ignoreNextTriggerClickRef.current = false;
+              return;
+            }
+
+            setIsDockOpen((open) => !open);
+          }}
           onPointerDown={(event) => {
             if (event.pointerType !== 'mouse') {
-              setIsDockOpen(true);
+              ignoreNextTriggerClickRef.current = true;
+              setIsDockOpen((open) => !open);
             }
           }}
         />
@@ -371,31 +409,32 @@ const Header = () => {
               );
             })}
           </div>
-
         </nav>
       </div>
 
-      <div className="header-container">
-        <div className="logo">
-          <Link to="/">
-            <div className={`logo-wrapper ${isLogoAnimating ? 'logo-animating' : ''}`}>
-              <img src="/images/logo.png" alt="Trendy Interios Logo" className={`logo-image ${isLogoAnimating ? 'logo-spin' : ''}`} />
-              <span className={`logo-text ${isTyping ? 'typing' : ''}`}>
-                {typedCharacters.map(({ char, isAccent }, index) => (
-                  <span
-                    key={`${char}-${index}`}
-                    className={isAccent ? 'logo-accent' : 'logo-text-prefix'}
-                  >
-                    {char}
-                  </span>
-                ))}
-                {isTyping ? <span className="typing-cursor" aria-hidden="true">|</span> : null}
-              </span>
-            </div>
-          </Link>
+      <header className={`header ${isScrolled ? 'scrolled' : ''} ${isHomePage ? 'transparent' : ''}`}>
+        <div className="header-container">
+          <div className="logo">
+            <Link to="/">
+              <div className={`logo-wrapper ${isLogoAnimating ? 'logo-animating' : ''}`}>
+                <img src="/images/logo.png" alt="Trendy Interios Logo" className={`logo-image ${isLogoAnimating ? 'logo-spin' : ''}`} />
+                <span className={`logo-text ${isTyping ? 'typing' : ''}`}>
+                  {typedCharacters.map(({ char, isAccent }, index) => (
+                    <span
+                      key={`${char}-${index}`}
+                      className={isAccent ? 'logo-accent' : 'logo-text-prefix'}
+                    >
+                      {char}
+                    </span>
+                  ))}
+                  {isTyping ? <span className="typing-cursor" aria-hidden="true">|</span> : null}
+                </span>
+              </div>
+            </Link>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 };
 

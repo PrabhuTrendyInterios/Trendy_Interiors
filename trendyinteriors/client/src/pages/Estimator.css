@@ -2336,3 +2336,312 @@
     min-width: 68px !important;
   }
 }
+
+/* White glass estimator surface overrides */
+.estimator-page {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.14)),
+    url('../../public/images/hero-sectionn.png') center/cover fixed no-repeat;
+}
+
+.estimator-header-bg::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.32) 100%);
+}
+
+.estimator-page-title {
+  color: var(--color-white);
+}
+
+.estimator-page-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.estimator-wrapper,
+.budget-selection-container,
+.premium-design-control-panel,
+.premium-room-control-panel,
+.dimension-input-card,
+.room-dimensions-panel,
+.design-gallery-card,
+.budget-card,
+.size-preset-card,
+.premium-size-card,
+.premium-choice-card,
+.room-completion-item,
+.budget-summary,
+.dimensions-room-navigation,
+.dimensions-plan-pill,
+.custom-dimensions-inputs,
+.premium-room-selected,
+.selected-summary {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+  color: var(--color-charcoal-dark) !important;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.budget-card:hover,
+.budget-card.selected,
+.budget-card.popular,
+.budget-card.popular.selected,
+.size-preset-card:hover,
+.size-preset-card.selected,
+.premium-size-card:hover,
+.premium-size-card.selected,
+.premium-choice-card:hover,
+.premium-choice-card.selected,
+.room-completion-item.complete {
+  background: rgba(255, 255, 255, 0.24) !important;
+  border-color: rgba(212, 175, 55, 0.72) !important;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.16), var(--shadow-gold) !important;
+}
+
+.room-selection-header h2,
+.budget-selection-header h2,
+.dimensions-step-header h2,
+.premium-design-control-panel h3,
+.premium-room-control-panel h3,
+.dimension-input-card h3,
+.room-dimensions-panel h3,
+.design-gallery-card h3,
+.budget-plan-title,
+.budget-plan-price,
+.dimensions-plan-pill strong,
+.dimensions-room-status strong,
+.area-card strong,
+.size-match-card strong,
+.size-preset-title,
+.size-detail-value,
+.premium-design-section h4,
+.premium-size-card strong,
+.premium-choice-card,
+.premium-manual-input,
+.premium-room-selected,
+.selected-summary {
+  color: var(--color-charcoal-dark) !important;
+}
+
+.room-selection-header p,
+.budget-selection-header p,
+.dimensions-step-header p,
+.premium-design-control-panel p,
+.premium-room-control-panel p,
+.budget-plan-details li,
+.price-unit,
+.dimensions-room-status span,
+.area-card span,
+.size-match-card span,
+.size-detail-label,
+.premium-size-card p,
+.quote-progress-note {
+  color: rgba(26, 26, 26, 0.72) !important;
+}
+
+.selected-summary strong,
+.budget-card-icon,
+.premium-step-label,
+.premium-size-card span,
+.premium-panel-label {
+  color: var(--color-gold-dark) !important;
+}
+
+.plan-badge,
+.premium-step-label,
+.budget-card-cta,
+.premium-room-tab,
+.premium-room-tab span,
+.premium-layout-check {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(212, 175, 55, 0.48) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.budget-card-cta.active,
+.premium-room-tab.active,
+.premium-room-tab.completed,
+.premium-room-tab.active span,
+.premium-room-tab.completed span,
+.premium-layout-card.selected .premium-layout-check,
+.size-preset-card.selected .size-preset-checkmark {
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light)) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.room-counter {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-color: rgba(212, 175, 55, 0.58) !important;
+}
+
+.counter-value,
+.counter-btn {
+  color: var(--color-charcoal-dark) !important;
+}
+
+.counter-btn {
+  border-color: rgba(212, 175, 55, 0.7) !important;
+  background-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.dimensions-room-selector label,
+.dimension-field-grid label,
+.size-buttons-container label,
+.size-dropdown-container label,
+.custom-input-field label {
+  color: var(--color-charcoal-dark) !important;
+}
+
+.dimensions-room-selector select,
+.dimension-field-grid input,
+.size-button,
+.size-dropdown-container select,
+.custom-input-field input,
+.premium-manual-input input {
+  background-color: rgba(255, 255, 255, 0.24) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.dimensions-room-selector select option,
+.size-dropdown-container select option {
+  background: var(--color-white);
+  color: var(--color-charcoal-dark);
+}
+
+.dimensions-room-selector select:disabled,
+.size-dropdown-container select:disabled,
+.custom-input-field input:disabled {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  color: rgba(26, 26, 26, 0.45) !important;
+}
+
+.size-button:hover,
+.size-button.selected {
+  background: rgba(255, 255, 255, 0.28) !important;
+  border-color: rgba(212, 175, 55, 0.72) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.estimator-page .btn-primary,
+.estimator-page .btn-secondary {
+  border-radius: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.estimator-page .btn-primary {
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light)) !important;
+  color: var(--color-charcoal-dark) !important;
+  border: 1px solid rgba(212, 175, 55, 0.58) !important;
+  box-shadow: var(--shadow-gold) !important;
+}
+
+.estimator-page .btn-secondary,
+.estimator-page .estimator-back-btn {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: var(--color-charcoal-dark) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.estimator-page .btn-secondary:hover:not(:disabled),
+.estimator-page .estimator-back-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.review-container > div:first-child {
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+}
+
+.review-container > div:last-child,
+.review-container > div:last-child > div:not(:first-child):not(.estimator-actions),
+.review-container [style*="#fffdf3"],
+.review-container [style*="#eef4f9"],
+.review-container [style*="#fff0f0"],
+.review-container [style*="#eefaf0"],
+.review-container [style*="#fff4f4"],
+.review-container [style*="rgba(212, 175, 55, 0.1)"] {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.review-container > div:last-child > div:not(:first-child):not(.estimator-actions) {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+.review-container h2,
+.review-container h4,
+.review-container p,
+.review-container label,
+.review-container span,
+.review-container strong,
+.review-container button,
+.review-container [style*="var(--color-charcoal-dark)"],
+.review-container [style*="var(--color-gray)"],
+.review-container [style*="#1e5b7f"],
+.review-container [style*="#8b1f1f"],
+.review-container [style*="#1e5b2f"] {
+  color: var(--color-charcoal-dark) !important;
+}
+
+.review-container [style*="var(--color-gold-dark)"],
+.review-container button[style*="transparent"] strong {
+  color: var(--color-gold-dark) !important;
+}
+
+.review-container button[style*="white"] {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+@media (max-width: 768px) {
+  .estimator-page {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--color-charcoal-dark) !important;
+    background-color: var(--color-charcoal-dark);
+  }
+
+  .estimator-page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+      url('../../public/images/hero-sectionn.png') center top / cover no-repeat;
+  }
+
+  .estimator-page::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+  }
+
+  .estimator-page > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .estimator-header-bg::before {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.16) 0%, rgba(255, 255, 255, 0.02) 100%);
+  }
+
+  .estimator-wrapper {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
