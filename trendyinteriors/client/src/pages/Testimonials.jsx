@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { publicGet } from '../utils/publicApi';
 import { FaQuoteLeft, FaStar, FaPenNib } from 'react-icons/fa';
+import ScrollVideoBackground from '../components/ScrollVideoBackground';
 import './Testimonials.css';
 
 const Testimonials = () => {
@@ -64,6 +65,8 @@ const Testimonials = () => {
 
   return (
     <div className="testimonials-page">
+      <ScrollVideoBackground imageSrc="/images/kitchen-image.png" videoSrc="/video/kitchen-video.mp4" />
+
       {/* Hero Section */}
       <section className="testimonials-hero">
         <div className="hero-overlay"></div>

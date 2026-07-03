@@ -228,14 +228,14 @@
 }
 
   .estimator-actions .btn-secondary {
-    background-color: #ffffff !important;
-    color: #202124 !important;
-    border-color: rgba(0, 0, 0, 0.12) !important;
+    background-color: #ffffff;
+    color: #202124;
+    border-color: rgba(0, 0, 0, 0.12);
   }
 
   .estimator-actions .btn-secondary:hover:not(:disabled) {
-    background-color: #202124 !important;
-    color: #ffffff !important;
+    background-color: #202124;
+    color: #ffffff;
   }
 
 
@@ -723,21 +723,21 @@
 }
 
 .dimensions-room-navigation .btn-secondary {
-  background-color: #ffffff !important;
-  color: #202124 !important;
-  border-color: rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+  background-color: #ffffff;
+  color: #202124;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
 .dimensions-room-navigation .btn-secondary:hover:not(:disabled) {
-  background-color: #202124 !important;
-  color: #ffffff !important;
+  background-color: #202124;
+  color: #ffffff;
 }
 
 .dimensions-room-navigation .btn-secondary:disabled {
-  opacity: 0.75 !important;
-  color: #5f6368 !important;
-  background-color: rgba(255, 255, 255, 0.92) !important;
+  opacity: 0.75;
+  color: #5f6368;
+  background-color: rgba(255, 255, 255, 0.92);
 }
 
 .dimensions-room-status {
@@ -1998,7 +1998,7 @@
   }
 
   .review-container > div:first-child img {
-    height: 400px !important;
+    height: 400px;
   }
 }
 
@@ -2009,11 +2009,11 @@
   }
 
   .review-container > div:first-child {
-    display: none !important;
+    display: none;
   }
 
   .review-container h2 {
-    font-size: 1.5rem !important;
+    font-size: 1.5rem;
   }
 }
 
@@ -2024,11 +2024,11 @@
   }
 
   .review-container > div:first-child {
-    display: none !important;
+    display: none;
   }
 
   .review-container h2 {
-    font-size: 1.3rem !important;
+    font-size: 1.3rem;
   }
 }
 
@@ -2038,16 +2038,16 @@
   }
 
   .review-container > div:first-child {
-    display: none !important;
+    display: none;
   }
 
   .review-container h2 {
-    font-size: 1.1rem !important;
-    margin-bottom: 0.75rem !important;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
   }
 
   .review-container h4 {
-    font-size: 0.9rem !important;
+    font-size: 0.9rem;
   }
 }
 

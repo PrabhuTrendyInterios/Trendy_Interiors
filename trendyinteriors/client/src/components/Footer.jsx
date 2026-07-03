@@ -7,9 +7,15 @@ import './Footer.css';
 const Footer = () => {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  const footerBackgroundClass = (() => {
+    if (isHomePage) return 'transparent';
+    if (location.pathname === '/abouts' || location.pathname === '/testimonials') return 'page-background kitchen-background';
+    if (location.pathname === '/projects' || location.pathname === '/reachus') return 'page-background bedroom-background';
+    return 'page-background default-background';
+  })();
 
   return (
-    <footer className={`footer ${isHomePage ? 'transparent' : ''}`}>
+    <footer className={`footer ${footerBackgroundClass}`}>
       <div className="footer-container">
         {/* About Section */}
         <div className="footer-section">

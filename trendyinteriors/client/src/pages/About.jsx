@@ -5,6 +5,7 @@ import {
   FaLinkedin, FaInstagram, FaPhone, FaEye, FaBullseye
 } from 'react-icons/fa';
 import DesignCarousel from '../components/DesignCarousel';
+import ScrollVideoBackground from '../components/ScrollVideoBackground';
 import { publicGet, normalizeMemberForDisplay, getMemberImage, getMemberContact } from '../utils/publicApi';
 import './About.css';
 
@@ -53,6 +54,8 @@ const About = () => {
 
   return (
     <div className="about-page">
+      <ScrollVideoBackground imageSrc="/images/kitchen-image.png" videoSrc="/video/kitchen-video.mp4" />
+
       {/* Hero Section */}
       <section className="about-hero">
         <div className="hero-overlay"></div>

@@ -14,6 +14,7 @@ import Estimator from './pages/Estimator';
 import TourGuide from './components/TourGuide';
 import PopupCard from "./components/PopupCard";
 import './App.css';
+import './pages/PageTheme.css';
 
 const Layout = () => {
   const showFooter = true;
@@ -34,8 +35,8 @@ const Layout = () => {
           <Route path="/estimator" element={<Estimator />} />
         </Routes>
         <PopupCard />
+        {showFooter && <Footer />}
       </main>
-      {showFooter && <Footer />}
     </div>
   );
 };

@@ -117,7 +117,7 @@
 @media (max-width: 768px) {
   .section-name-line-left,
   .section-name-line-right {
-    display: none !important;
+    display: none;
   }
   
   .section-name {

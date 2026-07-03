@@ -9,14 +9,15 @@
 /* 1. HERO SECTION */
 .projects-hero {
   position: relative;
-  height: 400px;
-  background-image: url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop');
+  height: clamp(520px, 62vh, 700px);
+  background-color: #0b121f;
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  overflow: hidden;
 }
 
 .hero-overlay {
@@ -34,14 +35,16 @@
   color: #fff;
   opacity: 0;
   animation: fadeDown 0.8s ease-out forwards;
+  max-width: 940px;
+  padding: 0 1.5rem;
 }
 
 .hero-content h1 {
   font-family: 'Playfair Display', serif;
-  font-size: 3.5rem;
+  font-size: clamp(3rem, 5vw, 5rem);
   font-weight: 700;
-  letter-spacing: 2px;
-  margin-bottom: 15px;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
   color: #fff;
 }
 
@@ -94,16 +97,17 @@
 }
 
 .filter-btn {
-  background: transparent;
-  border: 1px solid #ddd;
-  padding: 12px 28px;
-  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  padding: 13px 30px;
+  border-radius: 999px;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #666;
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 120px;
+  backdrop-filter: blur(18px);
 }
 
 .filter-btn:hover {
@@ -113,10 +117,10 @@
 }
 
 .filter-btn.active {
-  background: #d4af37;
-  border-color: #d4af37;
-  color: #fff;
-  box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+  background: linear-gradient(135deg, #d4af37, #f1c40f);
+  border-color: transparent;
+  color: #111;
+  box-shadow: 0 8px 28px rgba(212, 175, 55, 0.3);
 }
 
 /* 4. PROJECTS GRID */
@@ -139,13 +143,14 @@
 
 /* 5. PREMIUM PROJECT CARD */
 .project-card-premium {
-  background: #fff;
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 32px;
   overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  transition: all 0.45s cubic-bezier(0.165, 0.84, 0.44, 1);
   position: relative;
-  border: 1px solid #f0f0f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
 }
 
 .project-card-premium::before {
@@ -168,9 +173,9 @@
 
 .project-card-premium:hover {
   transform: translateY(-15px);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(212, 175, 55, 0.2);
-  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(212, 175, 55, 0.3);
+  border-color: rgba(212, 175, 55, 0.5);
 }
 
 .project-image-wrapper {
@@ -188,8 +193,8 @@
   right: 0;
   bottom: 0;
   background: linear-gradient(to top,
-      rgba(0, 0, 0, 0.6) 0%,
-      rgba(0, 0, 0, 0.2) 40%,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.25) 35%,
       transparent 70%);
   z-index: 1;
   pointer-events: none;

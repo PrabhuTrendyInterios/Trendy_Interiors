@@ -30,6 +30,39 @@ function fmt(amount) {
   return (amount < 0 ? "Rs. -" : "Rs. ") + formatted;
 }
 
+function formatDimensionValue(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) return "";
+  return Number.isInteger(number) ? String(number) : String(Number(number.toFixed(2)));
+}
+
+function getSavedRoomDimensions(roomDimensionsByRoom = {}, roomId = "") {
+  if (!roomId) return {};
+  if (roomDimensionsByRoom instanceof Map) {
+    return roomDimensionsByRoom.get(roomId) || {};
+  }
+  return roomDimensionsByRoom[roomId] || {};
+}
+
+function getPositiveDimension(primary, fallback) {
+  const primaryNumber = Number(primary);
+  if (Number.isFinite(primaryNumber) && primaryNumber > 0) return primaryNumber;
+
+  const fallbackNumber = Number(fallback);
+  return Number.isFinite(fallbackNumber) && fallbackNumber > 0 ? fallbackNumber : 0;
+}
+
+function formatRoomMeasurements(item, roomDimensionsByRoom = {}) {
+  const savedDimensions = getSavedRoomDimensions(roomDimensionsByRoom, item.roomId);
+  const length = formatDimensionValue(getPositiveDimension(item.length, savedDimensions.length));
+  const width = formatDimensionValue(getPositiveDimension(item.width, savedDimensions.width));
+  const height = formatDimensionValue(getPositiveDimension(item.height, savedDimensions.height));
+  const values = [length, width, height].filter(Boolean);
+
+  if (values.length === 0) return "N/A";
+  return `${values.join(" x ")} ft`;
+}
+
 // Ensure there is space for the next element, otherwise add a page
 function checkSpace(doc, heightNeeded) {
   if (doc.y + heightNeeded > A4_H - 60) {
@@ -280,6 +313,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     const qs = estimator.quoteSummary || {};
     const ci = estimator.customerInfo || {};
     const lineItems = Array.isArray(qs.lineItems) ? qs.lineItems : [];
+    const roomDimensionsByRoom = estimator.roomDimensionsByRoom || {};
     
     const roomLineItems = lineItems.filter(it => it.roomId !== "global-addons");
     const globalAddonsItem = lineItems.find(it => it.roomId === "global-addons");
@@ -302,6 +336,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
 
       rooms[type].rooms.push({
         name: item.label || type,
+        measurements: formatRoomMeasurements(item, roomDimensionsByRoom),
         size: `${item.areaSqFt || 0} Sq.ft`,
         layout: item.layout || "Standard",
         qty: 1,
@@ -473,12 +508,12 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       doc.text(`  Rooms Included : ${roomData.rooms.length}`, MARGIN + 6, badgeY + 7);
       doc.y = badgeY + 22 + 4;
 
-      const roomRows = roomData.rooms.map(r => [r.name, r.size, r.layout, String(r.qty), fmt(r.cost)]);
+      const roomRows = roomData.rooms.map(r => [r.name, r.measurements, r.size, r.layout, String(r.qty), fmt(r.cost)]);
       drawDataTable(
         doc,
-        ["Room Name", "Room Size", "Layout Selected", "Qty", "Cost"],
+        ["Room Name", "Measurements", "Area", "Layout Selected", "Qty", "Cost"],
         roomRows,
-        [CONTENT_W * 0.30, CONTENT_W * 0.18, CONTENT_W * 0.27, CONTENT_W * 0.10, CONTENT_W * 0.15]
+        [CONTENT_W * 0.24, CONTENT_W * 0.18, CONTENT_W * 0.14, CONTENT_W * 0.21, CONTENT_W * 0.08, CONTENT_W * 0.15]
       );
 
       // (Addons within rooms are handled generally inside room cost logic above, but if they had separate addons array in new logic, we render them here)

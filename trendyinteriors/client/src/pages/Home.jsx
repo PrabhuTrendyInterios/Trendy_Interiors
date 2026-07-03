@@ -11,6 +11,9 @@ import './HomeEnhancements.css';
 const Home = () => {
   const { user } = useAuth();
   const videoRef = useRef(null);
+  const videoAnimationRef = useRef(null);
+  const targetProgressRef = useRef(0);
+  const currentProgressRef = useRef(0);
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [testimonials, setTestimonials] = useState([]);
@@ -97,37 +100,84 @@ const Home = () => {
     const video = videoRef.current;
     if (!video) return;
 
-    let animationFrameId;
-    let lastProgress = 0;
-
-    const handleScroll = () => {
+    const getScrollProgress = () => {
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = Math.min(window.scrollY / maxScroll, 1);
 
-      // Update isScrolled state only on threshold changes
-      if (progress > 0 && !isScrolled) {
-        setIsScrolled(true);
-      } else if (progress === 0 && isScrolled) {
-        setIsScrolled(false);
+      if (maxScroll <= 0) {
+        return 0;
       }
 
-      // Smooth video progress update using requestAnimationFrame
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = requestAnimationFrame(() => {
-        if (video && video.duration && Math.abs(progress - lastProgress) > 0.001) {
-          video.currentTime = progress * video.duration;
-          lastProgress = progress;
+      return Math.min(Math.max(window.scrollY / maxScroll, 0), 1);
+    };
+
+    const syncScrolledState = (progress) => {
+      setIsScrolled((wasScrolled) => {
+        if (progress > 0.002 && !wasScrolled) {
+          return true;
         }
+
+        if (progress <= 0.002 && wasScrolled) {
+          return false;
+        }
+
+        return wasScrolled;
       });
     };
 
+    const updateVideoFrame = () => {
+      videoAnimationRef.current = null;
+
+      if (!video.duration) {
+        return;
+      }
+
+      currentProgressRef.current = targetProgressRef.current;
+      const nextTime = targetProgressRef.current * video.duration;
+
+      if (Number.isFinite(nextTime) && Math.abs(video.currentTime - nextTime) > 0.006) {
+        video.currentTime = nextTime;
+      }
+    };
+
+    const requestVideoFrame = () => {
+      if (!videoAnimationRef.current) {
+        videoAnimationRef.current = requestAnimationFrame(updateVideoFrame);
+      }
+    };
+
+    const handleScroll = () => {
+      const progress = getScrollProgress();
+      targetProgressRef.current = progress;
+      syncScrolledState(progress);
+      requestVideoFrame();
+    };
+
+    const handleLoadedMetadata = () => {
+      const progress = getScrollProgress();
+      targetProgressRef.current = progress;
+      currentProgressRef.current = progress;
+      syncScrolledState(progress);
+
+      if (video.duration) {
+        video.currentTime = progress * video.duration;
+      }
+    };
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+    handleLoadedMetadata();
 
     return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
       window.removeEventListener('scroll', handleScroll);
-      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleScroll);
+
+      if (videoAnimationRef.current) {
+        cancelAnimationFrame(videoAnimationRef.current);
+      }
     };
-  }, [isScrolled]);
+  }, []);
 
   const designProcess = [
     { step: 'Meet Designer', icon: <FaHandshake />, description: 'Initial consultation to understand your vision' },
@@ -155,7 +205,7 @@ const Home = () => {
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed',
           opacity: isScrolled ? 0 : 1,
-          transition: 'opacity 0.3s ease-out',
+          transition: 'opacity 0.6s ease',
           zIndex: -2,
           pointerEvents: 'none'
         }}
@@ -169,7 +219,7 @@ const Home = () => {
         playsInline
         preload="auto"
         poster="/images/hero-sectionn.png"
-        style={{ opacity: isScrolled ? 1 : 0, transition: 'opacity 0.3s ease-out' }}
+        style={{ opacity: isScrolled ? 1 : 0, transition: 'opacity 0.6s ease' }}
       >
         <source src="/video/hero-section.mp4" type="video/mp4" />
       </video>

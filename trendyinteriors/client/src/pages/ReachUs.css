@@ -9,14 +9,15 @@
 
 .reach-hero {
   position: relative;
-  height: 400px;
-  background-image: url('https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=2069&auto=format&fit=crop');
+  height: clamp(520px, 62vh, 700px);
+  background-color: #0b121f;
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  overflow: hidden;
 }
 
 .hero-overlay {
@@ -44,10 +45,13 @@
 }
 
 .hero-subtitle {
-  font-size: 1.1rem;
+  font-size: clamp(1.1rem, 1.5vw, 1.3rem);
   font-weight: 300;
   margin-bottom: 25px;
   color: #ddd;
+  max-width: 780px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ================= BREADCRUMB ================= */
@@ -93,10 +97,13 @@
 /* ================= FORM CARD ================= */
 
 .form-card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f0f0f0;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 32px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  overflow: hidden;
 }
 
 .form-header {
@@ -107,23 +114,81 @@
   font-family: 'Playfair Display', serif;
   font-size: 1.8rem;
   margin-bottom: 10px;
-  color: #1a1a1a;
+  color: #ffffff;
 }
 
 .form-header p {
-  color: #666;
+  color: rgba(255, 255, 255, 0.86);
   font-size: 0.95rem;
+}
+
+.reach-us-page .form-card .contact-form-premium {
+  background: transparent;
+  padding: 40px;
+}
+
+.reach-us-page .form-card .form-group label {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.reach-us-page .form-card .input-with-icon input,
+.reach-us-page .form-card .input-with-icon select,
+.reach-us-page .form-card .input-with-icon textarea {
+  background: rgba(0, 0, 0, 0.26) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(212, 175, 55, 0.48) !important;
+  border-radius: 999px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.reach-us-page .form-card .input-with-icon textarea {
+  border-radius: 22px !important;
+  min-height: 150px;
+}
+
+.reach-us-page .form-card .input-with-icon input:focus,
+.reach-us-page .form-card .input-with-icon select:focus,
+.reach-us-page .form-card .input-with-icon textarea:focus {
+  background: rgba(0, 0, 0, 0.34) !important;
+  border-color: #d4af37 !important;
+  box-shadow:
+    0 0 0 3px rgba(212, 175, 55, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.reach-us-page .form-card .input-with-icon input::placeholder,
+.reach-us-page .form-card .input-with-icon textarea::placeholder {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.reach-us-page .form-card .input-with-icon select option {
+  color: #1a1a1a;
+}
+
+.reach-us-page .form-card .submit-btn-premium {
+  border-radius: 999px;
+  color: var(--color-charcoal-dark);
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light));
+  box-shadow: var(--shadow-gold);
+}
+
+.reach-us-page .form-card .privacy-note {
+  color: rgba(255, 255, 255, 0.68);
 }
 
 /* ================= INFO CARD ================= */
 
 .info-card {
-  background: #1a1a1a;
+  background: rgba(10, 11, 15, 0.92);
   color: #fff;
   padding: 40px;
-  border-radius: 12px;
+  border-radius: 32px;
   position: relative;
   overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.26);
 }
 
 .info-card::before {
@@ -139,9 +204,9 @@
 
 .info-card h2 {
   font-family: 'Playfair Display', serif;
-  font-size: 2rem;
+  font-size: clamp(2rem, 3vw, 2.6rem);
   margin-bottom: 15px;
-  color: #d4af37;
+  color: #f7d68d;
 }
 
 .info-intro {
@@ -459,7 +524,7 @@
   }
 
   .map-container iframe {
-    height: 350px !important;
+    height: 350px;
     border-radius: 12px;
   }
 }

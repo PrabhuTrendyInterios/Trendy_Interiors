@@ -1,22 +1,46 @@
 /* ===== PREMIUM LUXURY FOOTER ===== */
 .footer {
-  background: #1a1a1a;
+  background: transparent;
   color: #ffffff;
   padding-top: 5rem;
   position: relative;
   font-family: 'Inter', sans-serif;
   overflow: hidden;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top: 0;
   box-shadow: none;
 }
 
+.footer.page-background {
+  background: transparent;
+}
+
+.footer.page-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.34);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.footer.transparent::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.34);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .footer.transparent {
-  background: transparent !important;
-  background-color: transparent !important;
-  backdrop-filter: none !important;
+  background: transparent;
+  background-color: transparent;
+  backdrop-filter: none;
   color: rgba(255, 255, 255, 0.92);
-  border: none !important;
-  box-shadow: none !important;
+  border: none;
+  box-shadow: none;
 }
 
 /* Entrance Animation */
@@ -55,6 +79,11 @@
   grid-template-columns: 1.5fr 0.8fr 1fr 1.2fr;
   /* Optimized column widths */
   gap: 3rem;
+  position: relative;
+  z-index: 2;
+}
+
+.footer-bottom {
   position: relative;
   z-index: 2;
 }
@@ -297,12 +326,12 @@
 
 /* Footer Bottom Bar */
 .footer-bottom {
-  background: transparent !important;
-  background-color: transparent !important;
-  backdrop-filter: none !important;
+  background: transparent;
+  background-color: transparent;
+  backdrop-filter: none;
   padding: 1.5rem 0;
-  border: none !important;
-  box-shadow: none !important;
+  border: none;
+  box-shadow: none;
   font-size: 0.85rem;
   color: #666;
 }

@@ -9,8 +9,8 @@
 /* 1. HERO SECTION */
 .about-hero {
   position: relative;
-  height: 450px;
-  background-image: url('https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1974&auto=format&fit=crop');
+  height: clamp(520px, 65vh, 700px);
+  background-color: #0b121f;
   background-size: cover;
   background-position: center;
   display: flex;
@@ -18,15 +18,13 @@
   justify-content: center;
   text-align: center;
   margin-bottom: 0;
+  overflow: hidden;
 }
 
 .hero-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(20, 30, 48, 0.85), rgba(36, 59, 85, 0.7));
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 10, 10, 0.55), rgba(12, 12, 12, 0.72));
 }
 
 .hero-content {
@@ -35,14 +33,16 @@
   color: #fff;
   opacity: 0;
   animation: fadeDown 0.8s ease-out forwards;
+  max-width: 920px;
+  padding: 0 1.5rem;
 }
 
 .hero-content h1 {
   font-family: 'Playfair Display', serif;
-  font-size: 3.5rem;
+  font-size: clamp(3rem, 5vw, 5rem);
   font-weight: 700;
-  letter-spacing: 2px;
-  margin-bottom: 20px;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
   color: #fff;
 }
 
@@ -82,13 +82,13 @@
 /* 2. ABOUT MAIN CONTENT */
 .about-main-section {
   padding: 100px 0;
-  background: #fff;
+  background: linear-gradient(180deg, #070b11 0%, #0f151f 25%, rgba(255,255,255,0.04) 100%);
 }
 
 .about-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
+  grid-template-columns: minmax(320px, 1.2fr) minmax(320px, 0.8fr);
+  gap: 4rem;
   align-items: center;
 }
 
@@ -103,10 +103,10 @@
 
 .about-text-content h2 {
   font-family: 'Playfair Display', serif;
-  font-size: 2.8rem;
-  line-height: 1.25;
+  font-size: clamp(2.8rem, 4vw, 4.25rem);
+  line-height: 1.12;
   margin-bottom: 25px;
-  color: #1a1a1a;
+  color: #ffffff;
 }
 
 .text-gold {
@@ -155,17 +155,22 @@
 
 .about-image-wrapper {
   position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 32px;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
 }
 
 .about-feature-img {
   width: 100%;
-  border-radius: 8px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  transition: transform 0.4s ease;
+  border-radius: 32px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  transition: transform 0.4s ease, filter 0.4s ease;
 }
 
 .about-image-wrapper:hover .about-feature-img {
-  transform: scale(1.02);
+  transform: scale(1.03);
 }
 
 .experience-badge {

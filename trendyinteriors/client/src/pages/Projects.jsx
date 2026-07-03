@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaMapMarkerAlt, FaLongArrowAltRight } from 'react-icons/fa';
 import ProjectSlideshow from '../components/ProjectSlideshow';
+import ScrollVideoBackground from '../components/ScrollVideoBackground';
 import { publicGet, normalizeProjectForDisplay, getProjectCover } from '../utils/publicApi';
 import './Projects.css';
 
@@ -88,6 +89,8 @@ const Projects = () => {
 
   return (
     <div className="projects-page">
+      <ScrollVideoBackground imageSrc="/images/bedroom-image.png" videoSrc="/video/bedroom-video.mp4" />
+
       <section className="projects-hero">
         <div className="hero-overlay"></div>
         <div className="hero-content">
