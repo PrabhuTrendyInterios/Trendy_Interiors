@@ -163,15 +163,34 @@ const Header = () => {
 
   useEffect(() => {
     const fullLogoText = 'Trendy Interios';
-    const spinDuration = 800;
-    const typingIntervalMs = 90;
-    const loopDelay = 5000;
+    // shorter spin so typing begins sooner, and slightly faster typing
+    const spinDuration = 600; // ms
+    const typingIntervalMs = 80; // ms per character
+    const postCycleDelay = 900; // wait after typing before next cycle
 
-    let spinTimer;
-    let typingTimer;
-    let loopTimer;
+    let spinTimer = null;
+    let typingTimer = null;
+    let loopTimer = null;
+
+    const clearAll = () => {
+      if (spinTimer) {
+        window.clearTimeout(spinTimer);
+        spinTimer = null;
+      }
+      if (typingTimer) {
+        window.clearInterval(typingTimer);
+        typingTimer = null;
+      }
+      if (loopTimer) {
+        window.clearTimeout(loopTimer);
+        loopTimer = null;
+      }
+    };
 
     const startCycle = () => {
+      // ensure any previous timers are cleared before starting
+      clearAll();
+
       setIsLogoAnimating(true);
       setIsTyping(false);
       setTypedText('');
@@ -186,20 +205,27 @@ const Header = () => {
           setTypedText(fullLogoText.slice(0, currentLength));
 
           if (currentLength >= fullLogoText.length) {
-            window.clearInterval(typingTimer);
+            // typing complete
+            if (typingTimer) {
+              window.clearInterval(typingTimer);
+              typingTimer = null;
+            }
             setIsTyping(false);
+
+            // schedule next cycle after a short pause
+            loopTimer = window.setTimeout(() => {
+              startCycle();
+            }, postCycleDelay);
           }
         }, typingIntervalMs);
       }, spinDuration);
     };
 
+    // kick off the first cycle
     startCycle();
-    loopTimer = window.setInterval(startCycle, loopDelay);
 
     return () => {
-      window.clearTimeout(spinTimer);
-      window.clearInterval(typingTimer);
-      window.clearInterval(loopTimer);
+      clearAll();
     };
   }, []);
 
