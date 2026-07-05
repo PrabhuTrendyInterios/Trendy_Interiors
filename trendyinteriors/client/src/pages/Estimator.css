@@ -20,7 +20,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0.42) 100%);
+  background: transparent;
   z-index: 0;
 }
 
@@ -2345,7 +2345,7 @@
 }
 
 .estimator-header-bg::before {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.32) 100%);
+  background: transparent;
 }
 
 .estimator-page-title {

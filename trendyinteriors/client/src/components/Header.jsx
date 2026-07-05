@@ -6,6 +6,7 @@ import {
   FaInfoCircle,
   FaPhoneAlt,
   FaQuoteLeft,
+  FaCalculator,
 } from 'react-icons/fa';
 import './Header.css';
 
@@ -29,6 +30,7 @@ const Header = () => {
   const navItems = useMemo(() => [
     { type: 'link', to: '/', label: 'Home', icon: <FaHome />, active: isActive('/') },
     { type: 'link', to: '/abouts', label: 'About Us', icon: <FaInfoCircle />, active: isActive('/abouts') },
+    {type: 'link', to: '/estimators', label: 'Estimators', icon: <FaCalculator />, active: isActive('/estimators') },
     { type: 'project', to: '/projects', label: 'Project', icon: <FaImages />, active: location.pathname.includes('/projects') },
     { type: 'link', to: '/testimonials', label: 'Testimonial', icon: <FaQuoteLeft />, active: isActive('/testimonials') },
     { type: 'link', to: '/reachus', label: 'Reach Us', icon: <FaPhoneAlt />, active: isActive('/reachus') },
