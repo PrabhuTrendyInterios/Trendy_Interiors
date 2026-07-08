@@ -300,16 +300,24 @@ const DimensionsSelection = ({
       selectedDesign.addons && selectedDesign.addons.length > 0
         ? selectedDesign.addons.join(', ')
         : '';
+        
+    const len = selectedRoomDimensions.length;
+    const wid = selectedRoomDimensions.width;
+    const dimText = (len && wid) ? `(${len} x ${wid})` : '';
 
     if (layoutText && addonsText) {
-      return `${layoutText} with ${addonsText} for ${currentRoomLabel}`;
+      return `${layoutText} with ${addonsText} for ${currentRoomLabel} ${dimText}`.trim();
     }
 
     if (layoutText) {
-      return `${layoutText} for ${currentRoomLabel}`;
+      return `${layoutText} for ${currentRoomLabel} ${dimText}`.trim();
     }
 
-    return `${addonsText} for ${currentRoomLabel}`;
+    if (addonsText) {
+      return `${addonsText} for ${currentRoomLabel} ${dimText}`.trim();
+    }
+    
+    return `Measurements provided for ${currentRoomLabel} ${dimText}`.trim();
   };
 
   return (
@@ -622,6 +630,11 @@ const DimensionsSelection = ({
           {!currentOptions.showLayout && !currentOptions.showAddons && (
             <div className="selected-summary">
               Only measurement inputs are required for this room.
+              {Number(selectedRoomDimensions.length) > 0 && Number(selectedRoomDimensions.width) > 0 && (
+                <div style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>
+                  Dimensions: {selectedRoomDimensions.length} x {selectedRoomDimensions.width}
+                </div>
+              )}
             </div>
           )}
         </div>

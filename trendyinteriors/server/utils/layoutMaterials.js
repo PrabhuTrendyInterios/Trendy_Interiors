@@ -59,7 +59,8 @@ const findLayoutConfiguration = (layout, dimension, sizeCategory = '') => {
 
       return (
         (dimensionId && configDimensionId === dimensionId) ||
-        (sizeCategory && configDimensionId === String(sizeCategory))
+        (sizeCategory && configDimensionId === String(sizeCategory)) ||
+        (dimension?.name && configDimensionId === String(dimension?.name))
       );
     }) || null
   );

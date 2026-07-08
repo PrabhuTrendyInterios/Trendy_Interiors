@@ -94,14 +94,19 @@ const getPackageComponentsForDimension = (roomDoc, sizeCategory = '') => {
   return packageComponents;
 };
 
-const formatPackageComponents = (packageComponents = []) => {
-  return packageComponents.map((component) => ({
-    id: component._id?.toString() || component.id || '',
-    name: component.name || '',
-    description: component.description || '',
-    price: Number(component.price) || 0,
-    mandatory: Boolean(component.mandatory),
-  }));
+const formatPackageComponents = (packageComponents = [], selectedIds = []) => {
+  return packageComponents.map((component) => {
+    const id = component._id?.toString() || component.id || '';
+    const isMandatory = Boolean(component.mandatory);
+    const isSelected = isMandatory || selectedIds.includes(id);
+    return {
+      id,
+      name: component.name || '',
+      price: Number(component.price) || 0,
+      mandatory: isMandatory,
+      isSelected
+    };
+  });
 };
 
 const resolveGlobalAddon = (globalAddons = [], addonId) =>
@@ -131,6 +136,7 @@ const calculateEstimate = ({
   const lineItems = [];
   let totalAreaSqFt = 0;
   let roomTotals = 0;
+  let globalPackageComponentsTotal = 0;
 
   roomInstances.forEach((room) => {
     const dimensions = normalizedDimensions[room.id] || {};
@@ -199,6 +205,21 @@ const calculateEstimate = ({
       getLayoutMaterialsTotal(layoutMaterialsArray, selectedLayoutMaterials[room.id] || {})
     );
 
+    // Build detailed addon objects
+    const roomAddonDetails = [];
+    if (Array.isArray(selectedDesignIdea.addons) && roomDoc?.addons?.length) {
+      selectedDesignIdea.addons.forEach(addonName => {
+        const addon = roomDoc.addons.find((item) => item.name === addonName);
+        if (addon) {
+          roomAddonDetails.push({
+            id: addon._id?.toString() || addon.name,
+            name: addon.name,
+            price: Number(addon.price) || 0
+          });
+        }
+      });
+    }
+
     // New calculation: baseCost + packageComponentsTotal + layoutCost + addonsCost
     const estimatedCost = roundMoney(
       baseCost + packageComponentsTotal + layoutCost + addonsCost + layoutMaterialsCost
@@ -206,6 +227,7 @@ const calculateEstimate = ({
 
     totalAreaSqFt = roundMoney(totalAreaSqFt + areaSqFt);
     roomTotals = roundMoney(roomTotals + estimatedCost);
+    globalPackageComponentsTotal = roundMoney(globalPackageComponentsTotal + packageComponentsTotal);
 
     lineItems.push({
       roomId: room.id,
@@ -220,8 +242,9 @@ const calculateEstimate = ({
       layout: selectedDesignIdea.layout || '',
       layoutCost,
       addons: selectedDesignIdea.addons || [],
+      addonDetails: roomAddonDetails,
       addonsCost,
-      packageComponents: formatPackageComponents(packageComponentsArray),
+      packageComponents: formatPackageComponents(packageComponentsArray, selectedIds),
       packageComponentsTotal,
       layoutMaterials: formatLayoutMaterials(layoutMaterialsArray),
       layoutMaterialsCost,
@@ -265,9 +288,10 @@ const calculateEstimate = ({
   }
 
   return {
-    totalAreaSqFt,
-    roomTotals,
-    globalAddonsTotal,
+    totalAreaSqFt: roundMoney(totalAreaSqFt),
+    roomTotals: roundMoney(roomTotals),
+    globalPackageComponentsTotal: roundMoney(globalPackageComponentsTotal),
+    globalAddonsTotal: roundMoney(globalAddonsTotal),
     estimatedAmount: roundMoney(roomTotals + globalAddonsTotal),
     currency: 'INR',
     lineItems,

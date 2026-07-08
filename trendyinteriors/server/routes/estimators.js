@@ -157,8 +157,12 @@ router.post("/calculate", async (req, res) => {
     const validation = validateEstimatorPayload(req.body, roomsCatalog, { requireCompleteRooms: false });
 
     if (validation.errors.length > 0) {
+      console.log('Validation Errors:', validation.errors);
       return res.status(400).json({ success: false, message: "Validation failed", errors: validation.errors });
     }
+
+    console.log('Room Instances:', validation.roomInstances);
+    console.log('Normalized Dimensions:', validation.normalizedDimensions);
 
     const selectedPackageComponents = req.body?.selectedPackageComponents || {};
     const selectedLayoutMaterials = req.body?.selectedLayoutMaterials || {};

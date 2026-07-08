@@ -573,8 +573,9 @@ const Estimator = () => {
       if (Array.isArray(item.packageComponents) && item.packageComponents.length > 0) {
         const selectedIds = selectedComponents[item.roomId] || [];
         packageComponentsTotal = item.packageComponents.reduce((sum, component) => {
-          if (!component.id) return sum;
-          const isIncluded = component.mandatory === true || selectedIds.includes(component.id);
+          const compId = component._id || component.id;
+          if (!compId) return sum;
+          const isIncluded = component.mandatory === true || selectedIds.includes(compId);
           return isIncluded ? sum + (component.price || 0) : sum;
         }, 0);
       }
@@ -923,11 +924,34 @@ const Estimator = () => {
                                   This room is priced by selected layout only because dimensions are optional for this room.
                                 </p>
                               )}
-                              {item.addonsCost > 0 && (
+                              
+                              {/* Room Add-ons Breakdown */}
+                              {Array.isArray(item.addonDetails) && item.addonDetails.length > 0 ? (
+                                <div style={{ marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px dashed rgba(212, 175, 55, 0.2)' }}>
+                                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', fontWeight: '600', color: 'var(--color-charcoal-dark)' }}>
+                                    Room Add-ons:
+                                  </p>
+                                  {item.addonDetails.map((addon) => (
+                                    <div key={addon.id || addon.name} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem', paddingLeft: '0.5rem' }}>
+                                      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
+                                        • {addon.name}
+                                      </p>
+                                      <p style={{ margin: 0, fontWeight: '500', color: 'var(--color-charcoal-dark)', fontSize: '0.8rem' }}>
+                                        ₹{(addon.price || 0).toLocaleString('en-IN')}
+                                      </p>
+                                    </div>
+                                  ))}
+                                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.2rem' }}>
+                                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: '600', color: 'var(--color-charcoal-dark)' }}>
+                                      Total Add-ons: +₹{(item.addonsCost || 0).toLocaleString('en-IN')}
+                                    </p>
+                                  </div>
+                                </div>
+                              ) : item.addonsCost > 0 ? (
                                 <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
                                   Room Add-ons: +₹{item.addonsCost.toLocaleString('en-IN')}
                                 </p>
-                              )}
+                              ) : null}
                               
                               {/* Package Components Section */}
                               {item.roomId && Array.isArray(item.packageComponents) && item.packageComponents.length > 0 ? (
@@ -935,21 +959,22 @@ const Estimator = () => {
                                   <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', fontWeight: '600', color: 'var(--color-charcoal-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Package Components</p>
                                   
                                   {item.packageComponents.map((component) => {
+                                    const compId = component._id || component.id;
                                     // Skip components without valid IDs
-                                    if (!component.id) {
+                                    if (!compId) {
                                       console.warn('[PackageComponents] Component missing ID:', component.name);
                                       return null;
                                     }
                                     
-                                    const isSelected = selectedPackageComponents[item.roomId]?.includes(component.id);
+                                    const isSelected = selectedPackageComponents[item.roomId]?.includes(compId);
                                     
                                     return (
-                                      <div key={component.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.5rem' }}>
+                                      <div key={compId} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.5rem' }}>
                                         {component.mandatory ? (
                                           <span style={{ fontSize: '0.9rem', color: 'var(--color-gold-dark)' }}>🔒</span>
                                         ) : (
                                           <button
-                                            onClick={() => item.roomId && component.id && togglePackageComponent(item.roomId, component.id)}
+                                            onClick={() => item.roomId && compId && togglePackageComponent(item.roomId, compId)}
                                             style={{ 
                                               cursor: 'pointer',
                                               width: '20px',

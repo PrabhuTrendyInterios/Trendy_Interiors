@@ -1,13 +1,16 @@
-const DIMENSION_TEMPLATES = [
+// ─── BEDROOM DIMENSIONS ───────────────────────────────────────────────────────
+const BEDROOM_DIMENSIONS = [
   {
     name: 'Low',
     length: 10,
     width: 10,
     height: 9,
     packageComponents: [
-      { name: 'Hinges', price: 2000, mandatory: true, displayOrder: 1 },
-      { name: 'Handles', price: 1500, mandatory: true, displayOrder: 2 },
-      { name: 'Internal Rods', price: 3000, mandatory: false, displayOrder: 3 },
+      { name: 'Wardrobe (4ft)',         price: 85000,  mandatory: false, displayOrder: 1 },
+      { name: 'Storage Unit',           price: 18000,  mandatory: false, displayOrder: 2 },
+      { name: 'Loft Shuttering',        price: 22000,  mandatory: false, displayOrder: 3 },
+      { name: 'Bed Side Table',         price: 5500,   mandatory: false, displayOrder: 4 },
+      { name: 'TV Ledge & Paneling',    price: 14000,  mandatory: false, displayOrder: 5 },
     ],
   },
   {
@@ -16,9 +19,13 @@ const DIMENSION_TEMPLATES = [
     width: 12,
     height: 10,
     packageComponents: [
-      { name: 'Hinges', price: 2500, mandatory: true, displayOrder: 1 },
-      { name: 'Handles', price: 2000, mandatory: true, displayOrder: 2 },
-      { name: 'Internal Rods', price: 4000, mandatory: false, displayOrder: 3 },
+      { name: 'Wardrobe (6ft)',         price: 128998, mandatory: false, displayOrder: 1 },
+      { name: 'Storage Unit',           price: 23400,  mandatory: false, displayOrder: 2 },
+      { name: 'Loft Shuttering',        price: 31500,  mandatory: false, displayOrder: 3 },
+      { name: 'Dressing Unit',          price: 22200,  mandatory: false, displayOrder: 4 },
+      { name: 'King Size Cot',          price: 39000,  mandatory: false, displayOrder: 5 },
+      { name: 'TV Ledge & Paneling',    price: 18599,  mandatory: false, displayOrder: 6 },
+      { name: 'Bed Side Table',         price: 7200,   mandatory: false, displayOrder: 7 },
     ],
   },
   {
@@ -27,12 +34,137 @@ const DIMENSION_TEMPLATES = [
     width: 16,
     height: 11,
     packageComponents: [
-      { name: 'Hinges', price: 3000, mandatory: true, displayOrder: 1 },
-      { name: 'Handles', price: 2500, mandatory: true, displayOrder: 2 },
-      { name: 'Internal Rods', price: 5000, mandatory: false, displayOrder: 3 },
+      { name: 'Wardrobe (8ft)',         price: 165000, mandatory: false, displayOrder: 1 },
+      { name: 'Storage Unit',           price: 28000,  mandatory: false, displayOrder: 2 },
+      { name: 'Loft Shuttering',        price: 38000,  mandatory: false, displayOrder: 3 },
+      { name: 'Dressing Unit',          price: 28500,  mandatory: false, displayOrder: 4 },
+      { name: 'King Size Cot',          price: 45000,  mandatory: false, displayOrder: 5 },
+      { name: 'TV Ledge & Paneling',    price: 22000,  mandatory: false, displayOrder: 6 },
+      { name: 'Bed Side Table',         price: 9000,   mandatory: false, displayOrder: 7 },
+      { name: 'Study Table & Shelf',    price: 18000,  mandatory: false, displayOrder: 8 },
     ],
   },
 ];
+
+// ─── KITCHEN DIMENSIONS ───────────────────────────────────────────────────────
+const KITCHEN_DIMENSIONS = [
+  {
+    name: 'Low',
+    length: 10,
+    width: 10,
+    height: 9,
+    packageComponents: [
+      { name: 'Base Cabinets',          price: 45000,  mandatory: false, displayOrder: 1 },
+      { name: 'Wall Cabinets',          price: 30000,  mandatory: false, displayOrder: 2 },
+      { name: 'Counter Top (Granite)',  price: 18000,  mandatory: false, displayOrder: 3 },
+      { name: 'Sink & Faucet',          price: 8000,   mandatory: false, displayOrder: 4 },
+    ],
+  },
+  {
+    name: 'Mid',
+    length: 14,
+    width: 12,
+    height: 10,
+    packageComponents: [
+      { name: 'Base Cabinets',          price: 65000,  mandatory: false, displayOrder: 1 },
+      { name: 'Wall Cabinets',          price: 42000,  mandatory: false, displayOrder: 2 },
+      { name: 'Counter Top (Granite)',  price: 24000,  mandatory: false, displayOrder: 3 },
+      { name: 'Sink & Faucet',          price: 10000,  mandatory: false, displayOrder: 4 },
+      { name: 'Breakfast Counter',      price: 18000,  mandatory: false, displayOrder: 5 },
+    ],
+  },
+  {
+    name: 'Large',
+    length: 18,
+    width: 16,
+    height: 11,
+    packageComponents: [
+      { name: 'Base Cabinets',          price: 90000,  mandatory: false, displayOrder: 1 },
+      { name: 'Wall Cabinets',          price: 58000,  mandatory: false, displayOrder: 2 },
+      { name: 'Counter Top (Granite)',  price: 32000,  mandatory: false, displayOrder: 3 },
+      { name: 'Sink & Faucet',          price: 12000,  mandatory: false, displayOrder: 4 },
+      { name: 'Breakfast Counter',      price: 22000,  mandatory: false, displayOrder: 5 },
+      { name: 'Pantry Unit',            price: 28000,  mandatory: false, displayOrder: 6 },
+    ],
+  },
+];
+
+// ─── HALL DIMENSIONS ──────────────────────────────────────────────────────────
+const HALL_DIMENSIONS = [
+  {
+    name: 'Low',
+    length: 10,
+    width: 10,
+    height: 9,
+    packageComponents: [
+      { name: 'TV Unit',                price: 22000,  mandatory: false, displayOrder: 1 },
+      { name: 'Shoe Rack',              price: 8000,   mandatory: false, displayOrder: 2 },
+    ],
+  },
+  {
+    name: 'Mid',
+    length: 14,
+    width: 12,
+    height: 10,
+    packageComponents: [
+      { name: 'TV Unit',                price: 30000,  mandatory: false, displayOrder: 1 },
+      { name: 'Storage Cabinet',        price: 18000,  mandatory: false, displayOrder: 2 },
+      { name: 'Shoe Rack',              price: 10000,  mandatory: false, displayOrder: 3 },
+      { name: 'Display Shelves',        price: 12000,  mandatory: false, displayOrder: 4 },
+    ],
+  },
+  {
+    name: 'Large',
+    length: 18,
+    width: 16,
+    height: 11,
+    packageComponents: [
+      { name: 'TV Unit',                price: 42000,  mandatory: false, displayOrder: 1 },
+      { name: 'Storage Cabinet',        price: 24000,  mandatory: false, displayOrder: 2 },
+      { name: 'Shoe Rack',              price: 12000,  mandatory: false, displayOrder: 3 },
+      { name: 'Display Shelves',        price: 16000,  mandatory: false, displayOrder: 4 },
+      { name: 'Bar Unit',               price: 35000,  mandatory: false, displayOrder: 5 },
+    ],
+  },
+];
+
+// ─── POOJA ROOM DIMENSIONS ────────────────────────────────────────────────────
+const POOJA_DIMENSIONS = [
+  {
+    name: 'Low',
+    length: 10,
+    width: 10,
+    height: 9,
+    packageComponents: [
+      { name: 'Pooja Cabinet',          price: 28000,  mandatory: false, displayOrder: 1 },
+      { name: 'Marble Platform',        price: 12000,  mandatory: false, displayOrder: 2 },
+    ],
+  },
+  {
+    name: 'Mid',
+    length: 14,
+    width: 12,
+    height: 10,
+    packageComponents: [
+      { name: 'Pooja Cabinet',          price: 38000,  mandatory: false, displayOrder: 1 },
+      { name: 'Marble Platform',        price: 18000,  mandatory: false, displayOrder: 2 },
+      { name: 'Jali Work (Decorative)', price: 15000,  mandatory: false, displayOrder: 3 },
+    ],
+  },
+  {
+    name: 'Large',
+    length: 18,
+    width: 16,
+    height: 11,
+    packageComponents: [
+      { name: 'Pooja Cabinet',          price: 52000,  mandatory: false, displayOrder: 1 },
+      { name: 'Marble Platform',        price: 24000,  mandatory: false, displayOrder: 2 },
+      { name: 'Jali Work (Decorative)', price: 20000,  mandatory: false, displayOrder: 3 },
+      { name: 'Storage Drawers',        price: 14000,  mandatory: false, displayOrder: 4 },
+    ],
+  },
+];
+
 
 const roomsCatalog = [
   {
@@ -42,7 +174,7 @@ const roomsCatalog = [
       'https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800',
     pricePerSqFt: 1350,
     status: 'active',
-    dimensions: DIMENSION_TEMPLATES,
+    dimensions: KITCHEN_DIMENSIONS,
     layouts: [
       {
         name: 'L Shape',
@@ -164,7 +296,7 @@ const roomsCatalog = [
       'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=800',
     pricePerSqFt: 1000,
     status: 'active',
-    dimensions: DIMENSION_TEMPLATES,
+    dimensions: BEDROOM_DIMENSIONS,
     layouts: [
       {
         name: 'Sliding Wardrobe',
@@ -267,7 +399,7 @@ const roomsCatalog = [
       'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800',
     pricePerSqFt: 1150,
     status: 'active',
-    dimensions: DIMENSION_TEMPLATES,
+    dimensions: HALL_DIMENSIONS,
     layouts: [],
     addons: [
       {
@@ -299,7 +431,7 @@ const roomsCatalog = [
     imageUrl: '/images/estimator/poojaroom.png',
     pricePerSqFt: 1200,
     status: 'active',
-    dimensions: DIMENSION_TEMPLATES,
+    dimensions: POOJA_DIMENSIONS,
     layouts: [],
     addons: [],
   },

@@ -134,6 +134,7 @@ const roomLineItemSchema = new mongoose.Schema(
           description: String,
           price: Number,
           mandatory: Boolean,
+          isSelected: Boolean,
         },
       ],
       default: [],
@@ -176,6 +177,11 @@ const quoteSummarySchema = new mongoose.Schema(
       min: 0,
     },
     roomTotals: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    globalPackageComponentsTotal: {
       type: Number,
       default: 0,
       min: 0,
