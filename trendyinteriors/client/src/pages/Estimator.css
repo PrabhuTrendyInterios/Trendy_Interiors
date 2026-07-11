@@ -2614,20 +2614,38 @@
   .estimator-page::before {
     content: '';
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100lvh;
+    min-height: 100svh;
     z-index: 0;
     background:
       linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
       url('../../public/images/hero-sectionn.png') center top / cover no-repeat;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
   }
 
   .estimator-page::after {
     content: '';
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100lvh;
+    min-height: 100svh;
     z-index: 0;
     background: rgba(0, 0, 0, 0.1);
     pointer-events: none;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
   }
 
   .estimator-page > * {

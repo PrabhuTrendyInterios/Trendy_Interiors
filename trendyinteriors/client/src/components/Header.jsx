@@ -22,6 +22,8 @@ const Header = () => {
   const wheelLockRef = useRef(false);
   const navDockRef = useRef(null);
   const ignoreNextTriggerClickRef = useRef(false);
+  const suppressFocusOpenRef = useRef(false);
+  const touchLastYRef = useRef(null);
   const location = useLocation();
 
   const isActive = useCallback((path) => location.pathname === path, [location.pathname]);
@@ -59,10 +61,10 @@ const Header = () => {
     ) % navItems.length);
   }, [navItems.length]);
 
-  const processWheelDelta = useCallback((deltaY) => {
+  const processWheelDelta = useCallback((deltaY, threshold = 120, lockMs = 420) => {
     wheelDeltaRef.current += deltaY;
 
-    if (wheelLockRef.current || Math.abs(wheelDeltaRef.current) < 120) {
+    if (wheelLockRef.current || Math.abs(wheelDeltaRef.current) < threshold) {
       return;
     }
 
@@ -72,7 +74,7 @@ const Header = () => {
 
     window.setTimeout(() => {
       wheelLockRef.current = false;
-    }, 420);
+    }, lockMs);
   }, [rotateNav]);
 
   const handleDockPointerEnter = (event) => {
@@ -101,6 +103,14 @@ const Header = () => {
     if (event.key === 'Escape') {
       closeDock();
     }
+  };
+
+  const handleDockFocus = () => {
+    if (suppressFocusOpenRef.current) {
+      return;
+    }
+
+    setIsDockOpen(true);
   };
 
   const arcNavItems = useMemo(() => {
@@ -252,9 +262,48 @@ const Header = () => {
       processWheelDelta(event.deltaY);
     };
 
+    const handleNativeDockTouchStart = (event) => {
+      if (viewportWidth > 768 || event.touches.length === 0) {
+        return;
+      }
+
+      touchLastYRef.current = event.touches[0].clientY;
+    };
+
+    const handleNativeDockTouchMove = (event) => {
+      if (viewportWidth > 768 || !isDockOpen || event.touches.length === 0) {
+        return;
+      }
+
+      const nextY = event.touches[0].clientY;
+      const lastY = touchLastYRef.current ?? nextY;
+      const deltaY = lastY - nextY;
+
+      event.preventDefault();
+      event.stopPropagation();
+      touchLastYRef.current = nextY;
+      processWheelDelta(deltaY * 2.2, 54, 170);
+    };
+
+    const handleNativeDockTouchEnd = () => {
+      touchLastYRef.current = null;
+      wheelDeltaRef.current = 0;
+    };
+
     navDock.addEventListener('wheel', handleNativeDockWheel, { passive: false });
-    return () => navDock.removeEventListener('wheel', handleNativeDockWheel);
-  }, [processWheelDelta]);
+    navDock.addEventListener('touchstart', handleNativeDockTouchStart, { passive: true });
+    navDock.addEventListener('touchmove', handleNativeDockTouchMove, { passive: false });
+    navDock.addEventListener('touchend', handleNativeDockTouchEnd);
+    navDock.addEventListener('touchcancel', handleNativeDockTouchEnd);
+
+    return () => {
+      navDock.removeEventListener('wheel', handleNativeDockWheel);
+      navDock.removeEventListener('touchstart', handleNativeDockTouchStart);
+      navDock.removeEventListener('touchmove', handleNativeDockTouchMove);
+      navDock.removeEventListener('touchend', handleNativeDockTouchEnd);
+      navDock.removeEventListener('touchcancel', handleNativeDockTouchEnd);
+    };
+  }, [isDockOpen, processWheelDelta, viewportWidth]);
 
   useEffect(() => {
     const isElementInNavDock = (target) => {
@@ -288,9 +337,7 @@ const Header = () => {
 
       const isInNavDock = isElementInNavDock(event.target);
 
-      if (isInNavDock) {
-        event.preventDefault();
-      } else {
+      if (!isInNavDock) {
         event.preventDefault();
       }
     };
@@ -310,7 +357,7 @@ const Header = () => {
 
     if (isDockOpen) {
       document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
+      document.body.style.touchAction = viewportWidth > 768 ? 'none' : originalTouchAction || '';
     } else {
       document.body.style.overflow = originalOverflow || '';
       document.body.style.touchAction = originalTouchAction || '';
@@ -320,7 +367,7 @@ const Header = () => {
       document.body.style.overflow = originalOverflow || '';
       document.body.style.touchAction = originalTouchAction || '';
     };
-  }, [isDockOpen]);
+  }, [isDockOpen, viewportWidth]);
 
   useEffect(() => {
     if (viewportWidth > 768 || !isDockOpen) {
@@ -345,7 +392,7 @@ const Header = () => {
         className={`nav-dock ${isDockOpen ? 'is-open' : ''}`}
         onPointerEnter={handleDockPointerEnter}
         onPointerLeave={handleDockPointerLeave}
-        onFocus={() => setIsDockOpen(true)}
+        onFocus={handleDockFocus}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) {
             closeDock();
@@ -369,7 +416,11 @@ const Header = () => {
           onPointerDown={(event) => {
             if (event.pointerType !== 'mouse') {
               ignoreNextTriggerClickRef.current = true;
+              suppressFocusOpenRef.current = true;
               setIsDockOpen((open) => !open);
+              window.setTimeout(() => {
+                suppressFocusOpenRef.current = false;
+              }, 0);
             }
           }}
         />

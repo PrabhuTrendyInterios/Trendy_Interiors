@@ -108,6 +108,7 @@ const Home = () => {
     <div className="home-page">
       {/* Background image that fades out on scroll */}
       <div
+        className="home-fixed-bg"
         style={{
           position: 'fixed',
           top: 0,

@@ -1085,7 +1085,9 @@
   transform: translateY(-50%);
   z-index: 1300;
   pointer-events: auto;
-  transition: width 0.01s linear 0.28s;
+  transition: width 0.28s cubic-bezier(0.2, 0.85, 0.2, 1);
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .nav-dock:hover,
@@ -1200,6 +1202,8 @@
   overflow: visible;
   max-height: none;
   scrollbar-width: none;
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .nav-dock .nav-scroll::-webkit-scrollbar {
@@ -1419,16 +1423,32 @@
     height: 352px;
   }
 
-  .nav-dock:hover,
   .nav-dock.is-open,
   .nav-dock:focus-within {
     width: 340px;
+  }
+
+  .nav-dock:hover:not(.is-open):not(:focus-within) {
+    width: 22px;
+  }
+
+  .nav-dock:focus-within:not(.is-open) {
+    width: 22px;
+  }
+
+  .nav-dock:focus-within:not(.is-open) .nav-edge-trigger::after {
+    width: 4px;
+    opacity: 0.78;
   }
 
   .nav-dock .navigation {
     width: 176px;
     height: 352px;
     border-radius: 176px 0 0 176px;
+    transition:
+      transform 0.38s cubic-bezier(0.2, 0.85, 0.2, 1),
+      opacity 0.24s ease,
+      visibility 0.24s ease;
   }
 
   .nav-dock .navigation::before {
@@ -1446,6 +1466,10 @@
   .nav-dock .nav-arc-item,
   .nav-dock .nav-arc-dropdown {
     width: 118px;
+    transition:
+      transform 0.34s cubic-bezier(0.2, 0.85, 0.2, 1),
+      opacity 0.3s ease,
+      filter 0.24s ease;
   }
 
   .nav-dock .nav-project-menu {
@@ -1461,10 +1485,17 @@
     height: 308px;
   }
 
-  .nav-dock:hover,
   .nav-dock.is-open,
   .nav-dock:focus-within {
     width: min(310px, 100vw);
+  }
+
+  .nav-dock:hover:not(.is-open):not(:focus-within) {
+    width: 22px;
+  }
+
+  .nav-dock:focus-within:not(.is-open) {
+    width: 22px;
   }
 
   .nav-dock .navigation {

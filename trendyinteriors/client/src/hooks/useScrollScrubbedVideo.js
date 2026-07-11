@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 
 const clamp01 = (value) => Math.min(Math.max(value, 0), 1);
+const MIN_SCRUB_VIEWPORTS = 1.6;
 
 const getScrollProgress = () => {
-  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  const viewportHeight = window.innerHeight || 1;
+  const maxScroll = document.documentElement.scrollHeight - viewportHeight;
 
   if (maxScroll <= 0) {
     return 0;
   }
 
-  return clamp01(window.scrollY / maxScroll);
+  const scrubDistance = Math.max(maxScroll, viewportHeight * MIN_SCRUB_VIEWPORTS);
+  return clamp01(window.scrollY / scrubDistance);
 };
 
 const getEaseFactor = (distance) => {
@@ -23,6 +26,8 @@ const useScrollScrubbedVideo = (videoRef) => {
   const animationRef = useRef(null);
   const targetProgressRef = useRef(0);
   const renderedProgressRef = useRef(0);
+  const pendingSeekProgressRef = useRef(null);
+  const lastSeekAtRef = useRef(0);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -37,16 +42,41 @@ const useScrollScrubbedVideo = (videoRef) => {
       });
     };
 
+    const getMinSeekInterval = () => (window.innerWidth <= 768 ? 48 : 34);
+
+    const pauseIfPlaying = () => {
+      if (!video.paused) {
+        video.pause();
+      }
+    };
+
     const setVideoTime = (progress, immediate = false) => {
-      if (!video.duration) return false;
+      if (!Number.isFinite(video.duration) || video.duration <= 0) return false;
 
       const nextTime = progress * video.duration;
       const timeDiff = Math.abs(video.currentTime - nextTime);
 
-      if (Number.isFinite(nextTime) && (immediate || timeDiff > 0.004)) {
-        video.currentTime = nextTime;
+      if (!Number.isFinite(nextTime)) {
+        return false;
       }
 
+      if (!immediate && video.seeking) {
+        pendingSeekProgressRef.current = progress;
+        return false;
+      }
+
+      const now = performance.now();
+      if (!immediate && now - lastSeekAtRef.current < getMinSeekInterval()) {
+        pendingSeekProgressRef.current = progress;
+        return false;
+      }
+
+      if (immediate || timeDiff > 0.016) {
+        video.currentTime = nextTime;
+        lastSeekAtRef.current = now;
+      }
+
+      pendingSeekProgressRef.current = null;
       return true;
     };
 
@@ -70,14 +100,20 @@ const useScrollScrubbedVideo = (videoRef) => {
       const absDistance = Math.abs(distance);
 
       if (absDistance < 0.0007) {
-        renderedProgressRef.current = target;
-        setVideoTime(target);
+        if (setVideoTime(target)) {
+          renderedProgressRef.current = target;
+        } else {
+          animationRef.current = requestAnimationFrame(scrubFrame);
+        }
         return;
       }
 
       const nextProgress = clamp01(current + distance * getEaseFactor(absDistance));
-      renderedProgressRef.current = nextProgress;
-      setVideoTime(nextProgress);
+      const didSeek = setVideoTime(nextProgress);
+
+      if (didSeek) {
+        renderedProgressRef.current = nextProgress;
+      }
 
       animationRef.current = requestAnimationFrame(scrubFrame);
     };
@@ -108,12 +144,19 @@ const useScrollScrubbedVideo = (videoRef) => {
       targetProgressRef.current = progress;
       renderedProgressRef.current = progress;
       syncScrolledState(progress);
-      video.pause();
+      pauseIfPlaying();
       setVideoTime(progress, true);
     };
 
-    video.pause();
+    const handleSeeked = () => {
+      if (pendingSeekProgressRef.current !== null) {
+        requestScrub();
+      }
+    };
+
+    pauseIfPlaying();
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('seeked', handleSeeked);
     window.addEventListener('scroll', syncTargetFromScroll, { passive: true });
     window.addEventListener('resize', syncTargetFromScroll);
     document.addEventListener('visibilitychange', syncTargetFromScroll);
@@ -122,6 +165,7 @@ const useScrollScrubbedVideo = (videoRef) => {
 
     return () => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('seeked', handleSeeked);
       window.removeEventListener('scroll', syncTargetFromScroll);
       window.removeEventListener('resize', syncTargetFromScroll);
       document.removeEventListener('visibilitychange', syncTargetFromScroll);
