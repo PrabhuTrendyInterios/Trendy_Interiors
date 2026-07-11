@@ -114,11 +114,17 @@ const Header = () => {
   };
 
   const arcNavItems = useMemo(() => {
-    const arcDegrees = viewportWidth <= 768 ? 112 : viewportWidth <= 1024 ? 118 : 124;
-    const radius = viewportWidth <= 768 ? 158 : viewportWidth <= 1024 ? 178 : 198;
-    const centerX = viewportWidth <= 768 ? -48 : viewportWidth <= 1024 ? -58 : -68;
+    const isCompactDock = navItems.length > 0;
+    const arcDegrees = isCompactDock ? 140 : 124;
+    const radius = viewportWidth <= 480 ? 170 : viewportWidth <= 768 ? 184 : viewportWidth <= 1280 ? 214 : 198;
+    const centerX = viewportWidth <= 480 ? -72 : viewportWidth <= 768 ? -80 : viewportWidth <= 1280 ? -96 : -68;
+    const compactItemGap = viewportWidth <= 480 ? 66 : viewportWidth <= 768 ? 70 : 82;
     const maxOffset = Math.max(1, Math.floor(navItems.length / 2));
-    const angleStep = navItems.length > 1 ? arcDegrees / (navItems.length - 1) : 0;
+    const angleStep = isCompactDock && navItems.length > 1
+      ? arcDegrees / navItems.length
+      : navItems.length > 1
+        ? arcDegrees / (navItems.length - 1)
+        : 0;
 
     return navItems.map((item, index) => {
       let offset = index - activeNavIndex;
@@ -131,22 +137,29 @@ const Header = () => {
         offset += navItems.length;
       }
 
+      const y = isCompactDock
+        ? Math.max(-radius * 0.86, Math.min(radius * 0.86, offset * compactItemGap))
+        : null;
       const angle = offset * angleStep;
-      const radians = (angle * Math.PI) / 180;
+      const radians = isCompactDock ? Math.asin(y / radius) : (angle * Math.PI) / 180;
       const distance = Math.min(Math.abs(offset), maxOffset);
+      const isVisible = !isCompactDock || Math.abs(offset) <= 1;
       const emphasis = 1 - (distance / maxOffset);
-      const scale = 0.78 + (emphasis * 0.24);
-      const opacity = 0.36 + (emphasis * 0.64);
+      const scale = isCompactDock ? 0.86 + (emphasis * 0.14) : 0.78 + (emphasis * 0.24);
+      const opacity = isVisible
+        ? isCompactDock ? 0.5 + (emphasis * 0.5) : 0.36 + (emphasis * 0.64)
+        : 0;
       const x = centerX + (Math.cos(radians) * radius);
-      const y = Math.sin(radians) * radius;
+      const arcY = isCompactDock ? y : Math.sin(radians) * radius;
 
       return {
         item,
         index,
         offset,
+        isVisible,
         style: {
           '--arc-x': `${x.toFixed(2)}px`,
-          '--arc-y': `${y.toFixed(2)}px`,
+          '--arc-y': `${arcY.toFixed(2)}px`,
           '--arc-scale': scale.toFixed(3),
           '--arc-opacity': opacity.toFixed(3),
           '--arc-z': String(100 - distance),
@@ -428,8 +441,8 @@ const Header = () => {
         <nav className="navigation" aria-label="Primary navigation">
           <div className="nav-orbit" aria-hidden="true" />
           <div className="nav-scroll" aria-live="polite">
-            {arcNavItems.map(({ item, index, style }) => {
-              const itemClassName = `nav-link nav-arc-item ${index === activeNavIndex ? 'active' : ''} ${item.active ? 'route-active' : ''}`;
+            {arcNavItems.map(({ item, index, isVisible, style }) => {
+              const itemClassName = `nav-link nav-arc-item ${index === activeNavIndex ? 'active' : ''} ${item.active ? 'route-active' : ''} ${isVisible ? '' : 'is-arc-hidden'}`;
 
               if (item.type === 'project') {
                 return (
@@ -440,6 +453,8 @@ const Header = () => {
                     onClick={closeDock}
                     key={item.label}
                     title="Project"
+                    aria-hidden={!isVisible}
+                    tabIndex={isVisible ? undefined : -1}
                   >
                     <span className="nav-icon">{item.icon}</span>
                     <span className="nav-text">{item.label}</span>
@@ -455,6 +470,8 @@ const Header = () => {
                   onClick={closeDock}
                   title={item.label}
                   key={item.to}
+                  aria-hidden={!isVisible}
+                  tabIndex={isVisible ? undefined : -1}
                 >
                   <span className="nav-icon">{item.icon}</span>
                   <span className="nav-text">{item.label}</span>

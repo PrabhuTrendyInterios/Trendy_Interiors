@@ -1150,7 +1150,7 @@
   background:
     radial-gradient(circle at 100% 50%, rgba(255, 255, 255, 0.2), transparent 48%),
     rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  border: 2px solid rgba(212, 175, 55, 0.7);
   border-right: 0;
   border-radius: 218px 0 0 218px;
   clip-path: ellipse(100% 50% at 100% 50%);
@@ -1177,7 +1177,7 @@
   right: -266px;
   width: 532px;
   height: 532px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.2);
   border-radius: 50%;
   transform: translateY(-50%);
   pointer-events: none;
@@ -1189,7 +1189,7 @@
   right: -298px;
   width: 596px;
   height: 596px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(212, 175, 55, 0.16);
   border-radius: 50%;
   transform: translateY(-50%);
   pointer-events: none;
@@ -1226,7 +1226,13 @@
   transition:
     transform 0.46s cubic-bezier(0.2, 0.85, 0.2, 1),
     opacity 0.46s ease,
-    filter 0.28s ease;
+    filter 0.28s ease,
+    visibility 0.28s ease;
+}
+
+.nav-dock .nav-arc-item.is-arc-hidden {
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .nav-dock .nav-arc-item {
@@ -1382,36 +1388,109 @@
   font-size: 0.72rem;
 }
 
+@media (max-width: 1280px) {
+  .nav-dock,
+  .nav-dock:hover,
+  .nav-dock.is-open,
+  .nav-dock:focus-within {
+    height: 360px;
+  }
+
+  .nav-dock:hover,
+  .nav-dock.is-open,
+  .nav-dock:focus-within {
+    width: 300px;
+  }
+
+  .nav-dock .navigation {
+    width: 244px;
+    height: 360px;
+    overflow: hidden;
+    border: 2px solid rgba(212, 175, 55, 0.76);
+    border-right: 0;
+    border-radius: 244px 0 0 244px;
+    clip-path: ellipse(100% 50% at 100% 50%);
+    box-shadow:
+      inset 0 0 0 10px rgba(255, 255, 255, 0.08),
+      0 10px 34px rgba(0, 0, 0, 0.18);
+  }
+
+  .nav-dock .navigation::before {
+    right: -200px;
+    width: 400px;
+    height: 400px;
+    border-color: rgba(212, 175, 55, 0.22);
+  }
+
+  .nav-dock .nav-orbit {
+    right: -226px;
+    width: 452px;
+    height: 452px;
+    border-color: rgba(212, 175, 55, 0.16);
+  }
+
+  .nav-dock .nav-scroll {
+    overflow: hidden;
+  }
+
+  .nav-dock .nav-arc-item,
+  .nav-dock .nav-arc-dropdown {
+    width: 150px;
+  }
+
+  .nav-dock .nav-arc-item {
+    min-height: 52px;
+    grid-template-columns: 36px minmax(0, 1fr) 8px;
+    gap: 0.45rem;
+    padding: 6px 9px 6px 6px;
+  }
+
+  .nav-dock .nav-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+  }
+
+  .nav-dock .nav-text {
+    font-size: 0.86rem;
+  }
+}
+
 @media (max-width: 1024px) {
   .nav-dock,
   .nav-dock:hover,
   .nav-dock.is-open,
   .nav-dock:focus-within {
-    height: 396px;
+    height: 340px;
   }
 
   .nav-dock:hover,
   .nav-dock.is-open,
   .nav-dock:focus-within {
-    width: 390px;
+    width: 278px;
   }
 
   .nav-dock .navigation {
-    width: 198px;
-    height: 396px;
-    border-radius: 0 198px 198px 0;
+    width: 224px;
+    height: 340px;
+    border-radius: 224px 0 0 224px;
   }
 
   .nav-dock .navigation::before {
-    left: -238px;
-    width: 476px;
-    height: 476px;
+    right: -184px;
+    width: 368px;
+    height: 368px;
   }
 
   .nav-dock .nav-orbit {
-    left: -266px;
-    width: 532px;
-    height: 532px;
+    right: -208px;
+    width: 416px;
+    height: 416px;
+  }
+
+  .nav-dock .nav-arc-item,
+  .nav-dock .nav-arc-dropdown {
+    width: 144px;
   }
 }
 
@@ -1420,12 +1499,12 @@
   .nav-dock:hover,
   .nav-dock.is-open,
   .nav-dock:focus-within {
-    height: 352px;
+    height: clamp(272px, 48svh, 330px);
   }
 
   .nav-dock.is-open,
   .nav-dock:focus-within {
-    width: 340px;
+    width: min(228px, 60vw);
   }
 
   .nav-dock:hover:not(.is-open):not(:focus-within) {
@@ -1442,9 +1521,16 @@
   }
 
   .nav-dock .navigation {
-    width: 176px;
-    height: 352px;
-    border-radius: 176px 0 0 176px;
+    width: min(184px, 49vw);
+    height: clamp(272px, 48svh, 330px);
+    overflow: hidden;
+    border: 2px solid rgba(212, 175, 55, 0.76);
+    border-right: 0;
+    border-radius: min(184px, 49vw) 0 0 min(184px, 49vw);
+    clip-path: ellipse(100% 50% at 100% 50%);
+    box-shadow:
+      inset 0 0 0 8px rgba(255, 255, 255, 0.08),
+      0 10px 34px rgba(0, 0, 0, 0.18);
     transition:
       transform 0.38s cubic-bezier(0.2, 0.85, 0.2, 1),
       opacity 0.24s ease,
@@ -1452,20 +1538,26 @@
   }
 
   .nav-dock .navigation::before {
-    right: -206px;
-    width: 412px;
-    height: 412px;
+    right: calc(min(184px, 49vw) * -0.82);
+    width: calc(min(184px, 49vw) * 1.64);
+    height: calc(min(184px, 49vw) * 1.64);
+    border-color: rgba(212, 175, 55, 0.22);
   }
 
   .nav-dock .nav-orbit {
-    right: -228px;
-    width: 456px;
-    height: 456px;
+    right: calc(min(184px, 49vw) * -0.94);
+    width: calc(min(184px, 49vw) * 1.88);
+    height: calc(min(184px, 49vw) * 1.88);
+    border-color: rgba(212, 175, 55, 0.16);
+  }
+
+  .nav-dock .nav-scroll {
+    overflow: hidden;
   }
 
   .nav-dock .nav-arc-item,
   .nav-dock .nav-arc-dropdown {
-    width: 118px;
+    width: min(134px, calc(100vw - 104px));
     transition:
       transform 0.34s cubic-bezier(0.2, 0.85, 0.2, 1),
       opacity 0.3s ease,
@@ -1473,7 +1565,29 @@
   }
 
   .nav-dock .nav-project-menu {
-    width: min(220px, calc(100vw - 128px));
+    width: min(196px, calc(100vw - 126px));
+  }
+
+  .nav-dock .nav-arc-item {
+    box-sizing: border-box;
+    grid-template-columns: 32px minmax(0, 1fr) 8px;
+    gap: 0.38rem;
+    min-height: 48px;
+    padding: 5px 8px 5px 5px;
+  }
+
+  .nav-dock .nav-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.92rem;
+  }
+
+  .nav-dock .nav-text {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1.08;
+    font-size: 0.82rem;
   }
 }
 
@@ -1482,12 +1596,12 @@
   .nav-dock:hover,
   .nav-dock.is-open,
   .nav-dock:focus-within {
-    height: 308px;
+    height: clamp(254px, 46svh, 306px);
   }
 
   .nav-dock.is-open,
   .nav-dock:focus-within {
-    width: min(310px, 100vw);
+    width: min(206px, 58vw);
   }
 
   .nav-dock:hover:not(.is-open):not(:focus-within) {
@@ -1499,41 +1613,47 @@
   }
 
   .nav-dock .navigation {
-    width: 154px;
-    height: 308px;
-    border-radius: 154px 0 0 154px;
+    width: min(168px, 46vw);
+    height: clamp(254px, 46svh, 306px);
+    border: 2px solid rgba(212, 175, 55, 0.76);
+    border-right: 0;
+    border-radius: min(168px, 46vw) 0 0 min(168px, 46vw);
   }
 
   .nav-dock .navigation::before {
-    right: -178px;
-    width: 356px;
-    height: 356px;
+    right: calc(min(168px, 46vw) * -0.82);
+    width: calc(min(168px, 46vw) * 1.64);
+    height: calc(min(168px, 46vw) * 1.64);
+    border-color: rgba(212, 175, 55, 0.22);
   }
 
   .nav-dock .nav-orbit {
-    right: -198px;
-    width: 396px;
-    height: 396px;
+    right: calc(min(168px, 46vw) * -0.94);
+    width: calc(min(168px, 46vw) * 1.88);
+    height: calc(min(168px, 46vw) * 1.88);
+    border-color: rgba(212, 175, 55, 0.16);
   }
 
   .nav-dock .nav-arc-item,
   .nav-dock .nav-arc-dropdown {
-    width: 106px;
+    width: min(124px, calc(100vw - 96px));
   }
 
   .nav-dock .nav-arc-item {
-    min-height: 42px;
-    grid-template-columns: 32px minmax(0, 1fr) 6px;
-    padding: 5px 9px 5px 5px;
+    min-height: 46px;
+    grid-template-columns: 30px minmax(0, 1fr) 6px;
+    gap: 0.34rem;
+    padding: 5px 7px 5px 5px;
   }
 
   .nav-dock .nav-icon {
-    width: 32px;
-    height: 32px;
-    font-size: 0.95rem;
+    width: 30px;
+    height: 30px;
+    font-size: 0.88rem;
   }
 
   .nav-dock .nav-text {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
+    line-height: 1.05;
   }
 }
