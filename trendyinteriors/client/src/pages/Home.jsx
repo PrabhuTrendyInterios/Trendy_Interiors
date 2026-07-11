@@ -9,9 +9,16 @@ import './Home.css';
 import './PremiumSectionHeader.css';
 import './HomeEnhancements.css';
 
+const HERO_IMAGE = '/images/hero-sectionn.webp';
+const HERO_IMAGE_FALLBACK = '/images/hero-sectionn.png';
+const HERO_IMAGE_PLACEHOLDER = '/images/hero-sectionn-placeholder.webp';
+
 const Home = () => {
   const { user } = useAuth();
   const videoRef = useRef(null);
+  const [heroImageSrc, setHeroImageSrc] = useState(HERO_IMAGE_PLACEHOLDER);
+  const [isHeroImageLoaded, setIsHeroImageLoaded] = useState(false);
+  const [isHeroVideoReady, setIsHeroVideoReady] = useState(false);
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [testimonials, setTestimonials] = useState([]);
@@ -19,6 +26,43 @@ const Home = () => {
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
   const isScrolled = useScrollScrubbedVideo(videoRef);
+  const shouldShowVideo = isScrolled && isHeroVideoReady;
+
+  useEffect(() => {
+    let isCancelled = false;
+    const image = new Image();
+
+    const commitLoadedImage = (src) => {
+      if (isCancelled) {
+        return;
+      }
+
+      setHeroImageSrc(src);
+      setIsHeroImageLoaded(true);
+    };
+
+    image.decoding = 'async';
+    image.fetchPriority = 'high';
+    image.onload = () => {
+      if (image.decode) {
+        image.decode().then(
+          () => commitLoadedImage(HERO_IMAGE),
+          () => commitLoadedImage(HERO_IMAGE)
+        );
+        return;
+      }
+
+      commitLoadedImage(HERO_IMAGE);
+    };
+    image.onerror = () => commitLoadedImage(HERO_IMAGE_FALLBACK);
+    image.src = HERO_IMAGE;
+
+    return () => {
+      isCancelled = true;
+      image.onload = null;
+      image.onerror = null;
+    };
+  }, []);
 
   const defaultServices = [
     {
@@ -115,13 +159,13 @@ const Home = () => {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundImage: 'url(/images/hero-sectionn.png)',
+          backgroundImage: `url(${heroImageSrc})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed',
-          opacity: isScrolled ? 0 : 1,
+          opacity: shouldShowVideo ? 0 : 1,
           transition: 'opacity 0.6s ease',
-          zIndex: -2,
+          zIndex: 0,
           pointerEvents: 'none'
         }}
       />
@@ -132,9 +176,11 @@ const Home = () => {
         className="home-bg-video"
         muted
         playsInline
-        preload="auto"
-        poster="/images/hero-sectionn.png"
-        style={{ opacity: isScrolled ? 1 : 0, transition: 'opacity 0.6s ease' }}
+        preload="metadata"
+        poster={isHeroImageLoaded ? HERO_IMAGE : HERO_IMAGE_PLACEHOLDER}
+        onLoadedData={() => setIsHeroVideoReady(true)}
+        onCanPlay={() => setIsHeroVideoReady(true)}
+        style={{ opacity: shouldShowVideo ? 1 : 0, transition: 'opacity 0.6s ease' }}
       >
         <source src="/video/hero-section.mp4" type="video/mp4" />
       </video>

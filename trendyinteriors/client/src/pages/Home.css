@@ -5,6 +5,8 @@
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
+  background: #17120c;
+  isolation: isolate;
 }
 
 .home-bg-video {
@@ -14,7 +16,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   opacity: 1;
   filter: none;
@@ -25,6 +27,13 @@
 .home-fixed-bg {
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
+  background-color: #17120c;
+}
+
+.home-page section,
+.home-page footer {
+  position: relative;
+  z-index: 1;
 }
 
 @media (max-width: 768px) {
