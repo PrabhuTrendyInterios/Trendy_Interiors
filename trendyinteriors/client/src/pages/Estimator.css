@@ -2602,6 +2602,27 @@
   background-color: rgba(255, 255, 255, 0.18) !important;
 }
 
+.review-container [style*="#3a2b08"],
+.review-container [style*="#4b5563"] {
+  color: inherit !important;
+}
+
+.review-container [style*="#3a2b08"] {
+  color: #3a2b08 !important;
+  font-weight: 700 !important;
+}
+
+.review-container [style*="#4b5563"] {
+  color: #4b5563 !important;
+  font-weight: 600 !important;
+}
+
+.review-container input + span,
+.review-container [style*="Room Add-ons"],
+.review-container [style*="Layout Materials"] {
+  text-shadow: none !important;
+}
+
 @media (max-width: 768px) {
   .estimator-page {
     position: relative;

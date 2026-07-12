@@ -11,7 +11,6 @@ import GiveTestimonial from './pages/GiveTestimonial';
 import Projects from './pages/Projects';
 import BuyOnline from './pages/BuyOnline';
 import Estimator from './pages/Estimator';
-import TourGuide from './components/TourGuide';
 import PopupCard from "./components/PopupCard";
 import './App.css';
 import './pages/PageTheme.css';
@@ -23,7 +22,6 @@ const Layout = () => {
   return (
     <div className="app-wrapper">
       <Header />
-      <TourGuide />
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />

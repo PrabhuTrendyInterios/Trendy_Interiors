@@ -164,7 +164,7 @@ const Projects = () => {
             <h2>Have a project in mind?</h2>
             <p>Let's collaborate to create something extraordinary for your space.</p>
             <Link to="/estimator" style={{ textDecoration: 'none' }}>
-              <button className="btn-cta-gold">Get Free Consultation</button>
+              <button className="btn-cta-gold">Quote Interior Yourself</button>
             </Link>
           </div>
         </div>

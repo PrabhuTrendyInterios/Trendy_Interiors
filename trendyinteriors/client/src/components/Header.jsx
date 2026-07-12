@@ -24,6 +24,7 @@ const Header = () => {
   const ignoreNextTriggerClickRef = useRef(false);
   const suppressFocusOpenRef = useRef(false);
   const touchLastYRef = useRef(null);
+  const dockUserInteractedRef = useRef(false);
   const location = useLocation();
 
   const isActive = useCallback((path) => location.pathname === path, [location.pathname]);
@@ -32,7 +33,7 @@ const Header = () => {
   const navItems = useMemo(() => [
     { type: 'link', to: '/', label: 'Home', icon: <FaHome />, active: isActive('/') },
     { type: 'link', to: '/abouts', label: 'About Us', icon: <FaInfoCircle />, active: isActive('/abouts') },
-    {type: 'link', to: '/estimators', label: 'Estimators', icon: <FaCalculator />, active: isActive('/estimators') },
+    { type: 'link', to: '/estimator', label: 'Quote Interior Yourself', icon: <FaCalculator />, active: isActive('/estimator') },
     { type: 'project', to: '/projects', label: 'Project', icon: <FaImages />, active: location.pathname.includes('/projects') },
     { type: 'link', to: '/testimonials', label: 'Testimonial', icon: <FaQuoteLeft />, active: isActive('/testimonials') },
     { type: 'link', to: '/reachus', label: 'Reach Us', icon: <FaPhoneAlt />, active: isActive('/reachus') },
@@ -78,18 +79,22 @@ const Header = () => {
   }, [rotateNav]);
 
   const handleDockPointerEnter = (event) => {
+    dockUserInteractedRef.current = true;
     if (event.pointerType === 'mouse' && viewportWidth > 768) {
       setIsDockOpen(true);
     }
   };
 
   const handleDockPointerLeave = (event) => {
+    dockUserInteractedRef.current = true;
     if (event.pointerType === 'mouse' && viewportWidth > 768) {
       closeDock();
     }
   };
 
   const handleDockKeyDown = (event) => {
+    dockUserInteractedRef.current = true;
+
     if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
       event.preventDefault();
       rotateNav(1);
@@ -106,6 +111,8 @@ const Header = () => {
   };
 
   const handleDockFocus = () => {
+    dockUserInteractedRef.current = true;
+
     if (suppressFocusOpenRef.current) {
       return;
     }
@@ -175,6 +182,19 @@ const Header = () => {
       setActiveNavIndex(currentRouteIndex);
     }
   }, [navItems]);
+
+  useEffect(() => {
+    dockUserInteractedRef.current = false;
+    setIsDockOpen(true);
+
+    const hideTimer = window.setTimeout(() => {
+      if (!dockUserInteractedRef.current) {
+        setIsDockOpen(false);
+      }
+    }, 3600);
+
+    return () => window.clearTimeout(hideTimer);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -269,6 +289,7 @@ const Header = () => {
     }
 
     const handleNativeDockWheel = (event) => {
+      dockUserInteractedRef.current = true;
       event.preventDefault();
       event.stopPropagation();
       setIsDockOpen(true);
@@ -276,6 +297,7 @@ const Header = () => {
     };
 
     const handleNativeDockTouchStart = (event) => {
+      dockUserInteractedRef.current = true;
       if (viewportWidth > 768 || event.touches.length === 0) {
         return;
       }
@@ -368,7 +390,7 @@ const Header = () => {
     const originalOverflow = document.body.style.overflow;
     const originalTouchAction = document.body.style.touchAction;
 
-    if (isDockOpen) {
+    if (isDockOpen && viewportWidth <= 768) {
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = viewportWidth > 768 ? 'none' : originalTouchAction || '';
     } else {
@@ -418,6 +440,7 @@ const Header = () => {
           className="nav-edge-trigger"
           aria-label="Open navigation"
           onClick={(event) => {
+            dockUserInteractedRef.current = true;
             event.stopPropagation();
             if (ignoreNextTriggerClickRef.current) {
               ignoreNextTriggerClickRef.current = false;
@@ -427,6 +450,7 @@ const Header = () => {
             setIsDockOpen((open) => !open);
           }}
           onPointerDown={(event) => {
+            dockUserInteractedRef.current = true;
             if (event.pointerType !== 'mouse') {
               ignoreNextTriggerClickRef.current = true;
               suppressFocusOpenRef.current = true;

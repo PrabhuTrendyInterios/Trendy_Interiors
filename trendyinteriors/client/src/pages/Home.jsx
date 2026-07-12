@@ -208,7 +208,7 @@ const Home = () => {
               className="btn-secondary tour-estimator-btn"
               style={{ textDecoration: 'none' }}
             >
-              Quote Your Interior
+              Quote Interior Yourself
             </Link>
           </div>
         </div>

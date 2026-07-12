@@ -141,6 +141,18 @@
   transform: translateY(0);
 }
 
+.empty-projects {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.empty-projects p {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
 /* 5. PREMIUM PROJECT CARD */
 .project-card-premium {
   background: rgba(255, 255, 255, 0.08);

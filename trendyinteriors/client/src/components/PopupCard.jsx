@@ -89,6 +89,22 @@ const PopupCard = () => {
       navigate("/estimator");
     }, 400);
   };
+  const handleViewProjects = () => {
+    setClosing(true);
+
+    setTimeout(() => {
+      navigate("/projects");
+    }, 400);
+  };
+  const handleChatbot = () => {
+    setClosing(true);
+
+    setTimeout(() => {
+      setVisible(false);
+      setClosing(false);
+      window.dispatchEvent(new Event("open-chatbot"));
+    }, 400);
+  };
 
   const handleCancel = () => {
     setClosing(true);
@@ -139,9 +155,21 @@ const PopupCard = () => {
 
         <button
           className="popup-estimate-btn"
+          onClick={handleViewProjects}
+        >
+          View Projects
+        </button>
+        <button
+          className="popup-estimate-btn"
           onClick={handleEstimate}
         >
-          Quote Your Interior
+          Quote Interior Yourself
+        </button>
+        <button
+          className="popup-estimate-btn"
+          onClick={handleChatbot}
+        >
+          Chatbot
         </button>
       </div>
     </div>

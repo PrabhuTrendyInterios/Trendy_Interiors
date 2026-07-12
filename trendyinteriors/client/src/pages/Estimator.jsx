@@ -234,7 +234,7 @@ const Estimator = () => {
         console.error(error);
         setRoomsCatalog([]);
         setGlobalAddonsOptions([]);
-        setLoadConfigError('Unable to load estimator data. Please refresh and try again.');
+        setLoadConfigError('Unable to load quote data. Please refresh and try again.');
       } finally {
         setLoadingEstimatorData(false);
       }
@@ -948,7 +948,7 @@ const Estimator = () => {
 
                                   return (
                                     <div key={addon.id || addon.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', paddingLeft: '1.25rem' }}>
-                                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0, cursor: 'pointer', color: isSelected ? 'var(--color-gold-dark)' : 'var(--color-gray)' }}>
+                                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0, cursor: 'pointer', color: isSelected ? 'var(--color-charcoal-dark)' : '#4b5563', fontWeight: isSelected ? 700 : 600 }}>
                                         <input
                                           type="checkbox"
                                           checked={isSelected}
@@ -974,26 +974,26 @@ const Estimator = () => {
                                 <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.95rem' }}>{item.label}</p>
                                 <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '1rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
                               </div>
-                              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-gray)' }}>
+                              <p style={{ margin: 0, fontSize: '0.8rem', color: '#4b5563', fontWeight: 600 }}>
                                 {item.areaSqFt} sq. ft × ₹{item.ratePerSqFt}/sq. ft = ₹{(item.baseCost ?? item.areaSqFt * item.ratePerSqFt).toLocaleString('en-IN')}
                               </p>
                               {item.layout && (
-                                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
+                                <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#3a2b08', fontWeight: 700 }}>
                                   {item.layout} Layout{item.layoutCost > 0 ? `: +₹${item.layoutCost.toLocaleString('en-IN')}` : ''}
                                 </p>
                               )}
                               {(item.layoutMaterialsCost ?? 0) > 0 && (
-                                <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
+                                <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#3a2b08', fontWeight: 700 }}>
                                   Layout Materials: +₹{item.layoutMaterialsCost.toLocaleString('en-IN')}
                                 </p>
                               )}
                               {item.areaSqFt === 0 && item.layout && (
-                                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gray)' }}>
+                                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#4b5563', fontWeight: 600 }}>
                                   This room is priced by selected layout only because dimensions are optional for this room.
                                 </p>
                               )}
                               {item.addonsCost > 0 && (
-                                <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: 'var(--color-gold-dark)' }}>
+                                <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#3a2b08', fontWeight: 700 }}>
                                   Room Add-ons: +₹{item.addonsCost.toLocaleString('en-IN')}
                                 </p>
                               )}
@@ -1242,7 +1242,7 @@ const Estimator = () => {
 
               {submissionResult && (
                 <div style={{ padding: '1.5rem', backgroundColor: '#eefaf0', borderRadius: '12px', border: '1px solid #9fd5aa', color: '#1e5b2f' }}>
-                  <p style={{ margin: 0, fontWeight: '600' }}>✓ Estimator submitted successfully!</p>
+                  <p style={{ margin: 0, fontWeight: '600' }}>✓ Quote Interior Yourself request submitted successfully!</p>
                   <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem' }}>Reference ID: {submissionResult._id}</p>
                 </div>
               )}
@@ -1303,7 +1303,7 @@ const Estimator = () => {
     >
       <div className="estimator-header-bg">
         <div className="container">
-          <h1 className="estimator-page-title">Design Estimator</h1>
+          <h1 className="estimator-page-title">Quote Interior Yourself</h1>
           <p className="estimator-page-subtitle">Configure your space step by step and get a premium customized quote.</p>
         </div>
       </div>

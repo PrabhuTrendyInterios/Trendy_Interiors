@@ -15,8 +15,8 @@ const steps = [
   },
   {
     selector: ".tour-estimator-btn",
-    title: "Dream Interior",
-    text: "Design your dream interior and get a quick estimate."
+    title: "Quote Interior Yourself",
+    text: "Design your dream interior and build your quote step by step."
   },
   {
     selector: ".chatbot-toggle",

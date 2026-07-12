@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './TermsAndCondition.css';
 
 const TermsAndCondition = ({ isOpen, onClose, onAccept, hasAccepted = false }) => {
@@ -24,6 +25,19 @@ const TermsAndCondition = ({ isOpen, onClose, onAccept, hasAccepted = false }) =
     return () => window.clearTimeout(timer);
   }, [hasAccepted, isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
   if (!isOpen) {
     return null;
   }
@@ -40,14 +54,14 @@ const TermsAndCondition = ({ isOpen, onClose, onAccept, hasAccepted = false }) =
   const canAccept = hasReachedEnd || hasAccepted;
 
   const terms = [
-    'By submitting this design estimate request, you acknowledge that the quotation is a preliminary proposal based on the information provided during the estimator process.',
+    'By submitting this design estimate request, you acknowledge that the quotation is a preliminary proposal based on the information provided during the Quote Interior Yourself process.',
     'All pricing is indicative and may change after site inspection, final measurements, material selection, or scope clarification. Final pricing will be confirmed during the official consultation or project discussion.',
     'Selected add-ons, package components, and layout materials are treated as optional choices and will only be included in the final scope if they remain confirmed at the time of project confirmation.',
     'Trendy Interiors reserves the right to revise the estimate if additional requirements, site conditions, or customization requests are introduced after submission.',
     'By ticking the confirmation box below, you confirm that you have reviewed the estimate and understand that the final project cost may be adjusted before execution.',
   ];
 
-  return (
+  return createPortal(
     <div className="terms-overlay" onClick={onClose}>
       <div className="terms-dialog" role="dialog" aria-modal="true" aria-labelledby="terms-title" onClick={(e) => e.stopPropagation()}>
         <div className="terms-header">
@@ -83,7 +97,8 @@ const TermsAndCondition = ({ isOpen, onClose, onAccept, hasAccepted = false }) =
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
