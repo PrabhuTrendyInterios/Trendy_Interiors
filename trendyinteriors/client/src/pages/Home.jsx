@@ -1,6 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FaHandshake, FaPalette, FaFileInvoiceDollar, FaClipboardCheck, FaTruck, FaTools, FaCheckCircle, FaKey } from 'react-icons/fa';
+import {
+  FaBuilding,
+  FaCheckCircle,
+  FaClipboardCheck,
+  FaDraftingCompass,
+  FaFileInvoiceDollar,
+  FaGem,
+  FaHandshake,
+  FaKey,
+  FaPalette,
+  FaStar,
+  FaTools,
+  FaTrophy,
+  FaTruck,
+} from 'react-icons/fa';
 import PremiumSectionHeader from '../components/PremiumSectionHeader';
 import { useAuth } from '../context/AuthContext';
 import { publicGet, normalizeProjectForDisplay, getProjectCover } from '../utils/publicApi';
@@ -69,19 +83,19 @@ const Home = () => {
       title: 'Interior Design',
       description:
         'Transform your space with our expert interior design services. We create personalized environments that reflect your style and enhance your lifestyle with meticulous attention to detail.',
-      icon: '🏛️',
+      icon: null,
     },
     {
       title: 'Modern Design',
       description:
         'Experience contemporary aesthetics with our modern design solutions. We blend functionality with cutting-edge style to create spaces that are both beautiful and practical.',
-      icon: '✨',
+      icon: null,
     },
     {
       title: 'Planning & Consultation',
       description:
         'Comprehensive planning services from concept to completion. Our expert consultants guide you through every step, ensuring your vision becomes reality with precision and care.',
-      icon: '📐',
+      icon: null,
     },
   ];
 
@@ -148,6 +162,34 @@ const Home = () => {
     { step: 'Site Handover', icon: <FaKey />, description: 'Final walkthrough and project completion' },
   ];
 
+  const getServiceIcon = (service, index) => {
+    const title = `${service?.title || ''}`.toLowerCase();
+
+    if (title.includes('plan') || title.includes('consult')) {
+      return <FaDraftingCompass aria-hidden="true" />;
+    }
+
+    if (title.includes('modern') || title.includes('luxury')) {
+      return <FaGem aria-hidden="true" />;
+    }
+
+    if (title.includes('delivery') || title.includes('material')) {
+      return <FaTruck aria-hidden="true" />;
+    }
+
+    if (title.includes('install') || title.includes('implement') || title.includes('execute')) {
+      return <FaTools aria-hidden="true" />;
+    }
+
+    const fallbackIcons = [
+      <FaBuilding aria-hidden="true" />,
+      <FaGem aria-hidden="true" />,
+      <FaDraftingCompass aria-hidden="true" />,
+    ];
+
+    return fallbackIcons[index % fallbackIcons.length];
+  };
+
   return (
     <div className="home-page">
       {/* Background image that fades out on scroll */}
@@ -190,7 +232,7 @@ const Home = () => {
         <div className="tagline">
           {user && (
             <div className="welcome-message">
-              <p className="welcome-text">Welcome to Trendy Interiors! 👋</p>
+              <p className="welcome-text">Welcome to Trendy Interiors</p>
             </div>
           )}
           <h1>Filling the Heart, Not Just Space</h1>
@@ -225,7 +267,7 @@ const Home = () => {
           <div className="services-grid">
             {defaultServices.map((service, index) => (
               <div key={index} className="service-card">
-                <div className="service-icon">{service.icon}</div>
+                <div className="service-icon">{getServiceIcon(service, index)}</div>
                 <h3>{service.title}</h3>
                 <p>{service.description}</p>
               </div>
@@ -314,7 +356,11 @@ const Home = () => {
               testimonials.map((t, idx) => (
                 <div key={idx} className="testimonial-card">
                   <div className="quote-icon">"</div>
-                  <div className="stars">{'★'.repeat(t.rating || 5)}</div>
+                  <div className="stars" aria-label={`${t.rating || 5} star rating`}>
+                    {Array.from({ length: t.rating || 5 }, (_, starIndex) => (
+                      <FaStar key={starIndex} aria-hidden="true" />
+                    ))}
+                  </div>
                   <p className="testimonial-text">"{t.testimonialText}"</p>
                   <div className="customer-info">
                     <div className="customer-avatar">{t.name ? t.name.charAt(0).toUpperCase() : '?'}</div>
@@ -330,21 +376,21 @@ const Home = () => {
 
           <div className="trust-badges">
             <div className="trust-badge">
-              <div className="badge-icon">🏆</div>
+              <div className="badge-icon"><FaTrophy aria-hidden="true" /></div>
               <div className="badge-text">
                 <h3>200+</h3>
                 <p>Happy Clients</p>
               </div>
             </div>
             <div className="trust-badge">
-              <div className="badge-icon">⭐</div>
+              <div className="badge-icon"><FaStar aria-hidden="true" /></div>
               <div className="badge-text">
                 <h3>4.9/5</h3>
                 <p>Average Rating</p>
               </div>
             </div>
             <div className="trust-badge">
-              <div className="badge-icon">✓</div>
+              <div className="badge-icon"><FaCheckCircle aria-hidden="true" /></div>
               <div className="badge-text">
                 <h3>100%</h3>
                 <p>Satisfaction</p>
@@ -371,7 +417,7 @@ const Home = () => {
               services.map((service, index) => (
                 <div key={service._id || index} className="service-detail">
                   <div className="service-icon" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
-                    {service.icon}
+                    {getServiceIcon(service, index)}
                   </div>
                   <h3>{service.title}</h3>
                   <p>{service.description}</p>

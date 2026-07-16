@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { FaHome, FaLightbulb, FaRegClock } from "react-icons/fa";
 import "./PopupCard.css";
 
 const PopupCard = () => {
@@ -142,15 +143,17 @@ const PopupCard = () => {
         </button>
 
         <p>
-          🐧 <strong>Still thinking?</strong>
+          <span className="popup-lead">
+            <FaLightbulb aria-hidden="true" /> <strong>Still thinking?</strong>
+          </span>
           <br />
-          Looks like you've gone quiet for a bit! 🤔
+          <FaRegClock className="popup-copy-icon" aria-hidden="true" /> Looks like you've gone quiet for a bit.
           <br />
-          Sometimes the perfect design needs a moment to sink in. ✨
+          Sometimes the perfect design needs a moment to sink in.
           <br />
           Ready to see what your dream interior might cost?
           <br />
-          Let's turn that inspiration into reality! 🏡
+          <FaHome className="popup-copy-icon" aria-hidden="true" /> Let's turn that inspiration into reality.
         </p>
 
         <button

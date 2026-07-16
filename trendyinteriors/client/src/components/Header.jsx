@@ -216,14 +216,11 @@ const Header = () => {
 
   useEffect(() => {
     const fullLogoText = 'Trendy Interios';
-    // shorter spin so typing begins sooner, and slightly faster typing
-    const spinDuration = 600; // ms
-    const typingIntervalMs = 80; // ms per character
-    const postCycleDelay = 900; // wait after typing before next cycle
+    const spinDuration = 600;
+    const typingIntervalMs = 80;
 
     let spinTimer = null;
     let typingTimer = null;
-    let loopTimer = null;
 
     const clearAll = () => {
       if (spinTimer) {
@@ -234,53 +231,33 @@ const Header = () => {
         window.clearInterval(typingTimer);
         typingTimer = null;
       }
-      if (loopTimer) {
-        window.clearTimeout(loopTimer);
-        loopTimer = null;
-      }
     };
 
-    const startCycle = () => {
-      // ensure any previous timers are cleared before starting
-      clearAll();
+    setIsLogoAnimating(true);
+    setIsTyping(false);
+    setTypedText('');
 
-      setIsLogoAnimating(true);
-      setIsTyping(false);
-      setTypedText('');
+    spinTimer = window.setTimeout(() => {
+      setIsLogoAnimating(false);
+      setIsTyping(true);
 
-      spinTimer = window.setTimeout(() => {
-        setIsLogoAnimating(false);
-        setIsTyping(true);
+      let currentLength = 0;
+      typingTimer = window.setInterval(() => {
+        currentLength += 1;
+        setTypedText(fullLogoText.slice(0, currentLength));
 
-        let currentLength = 0;
-        typingTimer = window.setInterval(() => {
-          currentLength += 1;
-          setTypedText(fullLogoText.slice(0, currentLength));
-
-          if (currentLength >= fullLogoText.length) {
-            // typing complete
-            if (typingTimer) {
-              window.clearInterval(typingTimer);
-              typingTimer = null;
-            }
-            setIsTyping(false);
-
-            // schedule next cycle after a short pause
-            loopTimer = window.setTimeout(() => {
-              startCycle();
-            }, postCycleDelay);
-          }
-        }, typingIntervalMs);
-      }, spinDuration);
-    };
-
-    // kick off the first cycle
-    startCycle();
+        if (currentLength >= fullLogoText.length) {
+          clearAll();
+          setTypedText(fullLogoText);
+          setIsTyping(false);
+        }
+      }, typingIntervalMs);
+    }, spinDuration);
 
     return () => {
       clearAll();
     };
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     const navDock = navDockRef.current;

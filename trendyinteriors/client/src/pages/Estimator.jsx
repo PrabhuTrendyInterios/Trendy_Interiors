@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaDownload } from 'react-icons/fa';
+import { FaCheck, FaDownload, FaExclamationTriangle, FaLock } from 'react-icons/fa';
 import RoomSelection from '../components/estimator/RoomSelection';
 import DimensionsSelection from '../components/estimator/DimensionsSelection';
 import ExtraAddons from '../components/estimator/ExtraAddons';
@@ -1015,7 +1015,9 @@ const Estimator = () => {
                                     return (
                                       <div key={component.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.5rem' }}>
                                         {component.mandatory ? (
-                                          <span style={{ fontSize: '0.9rem', color: 'var(--color-gold-dark)' }}>🔒</span>
+                                          <span style={{ fontSize: '0.9rem', color: 'var(--color-gold-dark)', display: 'inline-flex' }}>
+                                            <FaLock aria-hidden="true" />
+                                          </span>
                                         ) : (
                                           <button
                                             onClick={() => item.roomId && component.id && togglePackageComponent(item.roomId, component.id)}
@@ -1038,12 +1040,15 @@ const Estimator = () => {
                                             title={isSelected ? 'Click to deselect' : 'Click to select'}
                                           >
                                             {isSelected && (
-                                              <span style={{ 
-                                                fontSize: '12px', 
-                                                color: 'white', 
+                                              <span style={{
+                                                fontSize: '12px',
+                                                color: 'white',
                                                 fontWeight: 'bold',
-                                                lineHeight: 1
-                                              }}>✓</span>
+                                                lineHeight: 1,
+                                                display: 'inline-flex',
+                                              }}>
+                                                <FaCheck aria-hidden="true" />
+                                              </span>
                                             )}
                                           </button>
                                         )}
@@ -1145,8 +1150,9 @@ const Estimator = () => {
                                                     color: 'white',
                                                     fontWeight: 'bold',
                                                     lineHeight: 1,
+                                                    display: 'inline-flex',
                                                   }}>
-                                                    ✓
+                                                    <FaCheck aria-hidden="true" />
                                                   </span>
                                                 )}
                                               </button>
@@ -1236,13 +1242,17 @@ const Estimator = () => {
 
               {apiError && (
                 <div style={{ padding: '1.5rem', backgroundColor: '#fff0f0', borderRadius: '12px', border: '1px solid #f5a5a5', color: '#8b1f1f' }}>
-                  <p style={{ margin: 0, fontWeight: '600' }}>⚠ Error: {apiError}</p>
+                  <p style={{ margin: 0, fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FaExclamationTriangle aria-hidden="true" /> Error: {apiError}
+                  </p>
                 </div>
               )}
 
               {submissionResult && (
                 <div style={{ padding: '1.5rem', backgroundColor: '#eefaf0', borderRadius: '12px', border: '1px solid #9fd5aa', color: '#1e5b2f' }}>
-                  <p style={{ margin: 0, fontWeight: '600' }}>✓ Quote Interior Yourself request submitted successfully!</p>
+                  <p style={{ margin: 0, fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FaCheck aria-hidden="true" /> Quote Interior Yourself request submitted successfully!
+                  </p>
                   <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem' }}>Reference ID: {submissionResult._id}</p>
                 </div>
               )}

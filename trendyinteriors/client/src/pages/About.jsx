@@ -86,15 +86,15 @@ const About = () => {
 
               <div className="key-highlights">
                 <div className="highlight-item">
-                  <span className="highlight-check">✓</span>
+                  <span className="highlight-check"><FaCheckCircle aria-hidden="true" /></span>
                   <span>10+ Years of Design Excellence</span>
                 </div>
                 <div className="highlight-item">
-                  <span className="highlight-check">✓</span>
+                  <span className="highlight-check"><FaCheckCircle aria-hidden="true" /></span>
                   <span>Certified Professional Team</span>
                 </div>
                 <div className="highlight-item">
-                  <span className="highlight-check">✓</span>
+                  <span className="highlight-check"><FaCheckCircle aria-hidden="true" /></span>
                   <span>End-to-End Project Management</span>
                 </div>
               </div>

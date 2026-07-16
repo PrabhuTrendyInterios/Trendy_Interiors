@@ -9,7 +9,7 @@ const ChatBot = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: 'Hello! 👋 Welcome to TrendyInterios. How can we help you today?',
+      text: 'Hello! Welcome to TrendyInterios. How can we help you today?',
       sender: 'bot',
       timestamp: new Date()
     }
@@ -213,7 +213,9 @@ const ChatBot = () => {
               <div key={msg.id} className={`message ${msg.sender}`}>
                 <div className="message-content">
                   {msg.attachmentName && (
-                    <div className="message-attachment-chip">📎 {msg.attachmentName}</div>
+                    <div className="message-attachment-chip">
+                      <FaPaperclip aria-hidden="true" /> {msg.attachmentName}
+                    </div>
                   )}
                   <MarkdownText>{msg.text}</MarkdownText>
                   <small className="message-time">
@@ -293,7 +295,9 @@ const ChatBot = () => {
           </form>
           {selectedFile && (
             <div className="selected-file-row">
-              <span className="selected-file-name">📎 {selectedFile.name}</span>
+              <span className="selected-file-name">
+                <FaPaperclip aria-hidden="true" /> {selectedFile.name}
+              </span>
               <button type="button" className="clear-file-btn" onClick={clearSelectedFile} disabled={loading}>
                 Remove
               </button>

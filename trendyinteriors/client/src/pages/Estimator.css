@@ -235,17 +235,17 @@
   border: 1px solid rgba(212, 175, 55, 0.15);
   border-radius: 16px;
 
-  height: 320px; /* ✅ keep this */
+  height: 320px; /* keep this */
 
-  padding: var(--spacing-lg); /* ✅ restore padding */
+  padding: var(--spacing-lg); /* restore padding */
 
   display: flex;
-  flex-direction: column; /* ✅ IMPORTANT (your issue) */
+  flex-direction: column; /* keeps the card content stacked */
 
   align-items: center;
   justify-content: center;
 
-  gap: var(--spacing-md); /* ✅ ensures vertical spacing */
+  gap: var(--spacing-md); /* ensures vertical spacing */
 
   text-align: center;
   cursor: pointer;

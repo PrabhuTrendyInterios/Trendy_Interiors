@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { publicGet } from '../utils/publicApi';
-import { FaQuoteLeft, FaStar, FaPenNib } from 'react-icons/fa';
+import { FaComments, FaPenNib, FaQuoteLeft, FaStar } from 'react-icons/fa';
 import ScrollVideoBackground from '../components/ScrollVideoBackground';
 import './Testimonials.css';
 
@@ -139,7 +139,7 @@ const Testimonials = () => {
                     </div>
                     <div className="client-info">
                       <h4>{t.name}</h4>
-                      <span>{t.element || t.role || 'Client'} • {t.postalAddress || t.location || 'India'}</span>
+                      <span>{t.element || t.role || 'Client'} | {t.postalAddress || t.location || 'India'}</span>
                     </div>
                   </div>
                 </div>
@@ -150,7 +150,7 @@ const Testimonials = () => {
           {/* Empty State Fallback (if no testimonials) */}
           {!loading && displayTestimonials.length === 0 && (
             <div className="no-testimonials">
-              <div className="empty-icon">💬</div>
+              <div className="empty-icon"><FaComments aria-hidden="true" /></div>
               <h3>No stories yet</h3>
               <p>Be the first one to share your experience with us.</p>
             </div>

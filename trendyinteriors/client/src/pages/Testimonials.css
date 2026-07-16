@@ -365,7 +365,7 @@
 }
 /* CTA Give Testimonial Button */
 .testimonial-cta .btn-gold-outline {
-  background: transparent;              /* 🔥 White remove */
+  background: transparent;              /* remove white fill */
   color: #d4af37;                        /* Gold text */
   border: 2px solid #d4af37;             /* Gold border */
   padding: 12px 26px;
