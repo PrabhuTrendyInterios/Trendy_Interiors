@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaHome, FaLightbulb, FaRegClock } from "react-icons/fa";
+import { FaComments, FaHome, FaImages, FaTimes } from "react-icons/fa";
 import "./PopupCard.css";
 
 const PopupCard = () => {
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [entranceStage, setEntranceStage] = useState("idle");
   const inactivityTimerRef = React.useRef(null);
+  const revealTimerRef = React.useRef(null);
+  const hideTimerRef = React.useRef(null);
+  const closeTimerRef = React.useRef(null);
+  const visibleRef = React.useRef(false);
+  const closingRef = React.useRef(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,28 +26,51 @@ const PopupCard = () => {
       "/quotation",
     ];
 
+    const clearTimer = (timerRef) => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+
+    const finishClosing = () => {
+      visibleRef.current = false;
+      closingRef.current = false;
+      setVisible(false);
+      setClosing(false);
+      setEntranceStage("idle");
+    };
+
+    const showPopup = () => {
+      if (visibleRef.current || closingRef.current) return;
+
+      visibleRef.current = true;
+      setVisible(true);
+      setClosing(false);
+      setEntranceStage("peeking");
+
+      revealTimerRef.current = setTimeout(() => {
+        setEntranceStage("holding");
+
+        hideTimerRef.current = setTimeout(() => {
+          closingRef.current = true;
+          setClosing(true);
+          closeTimerRef.current = setTimeout(finishClosing, 520);
+        }, 8500);
+      }, 900);
+    };
+
     const resetInactivityTimer = () => {
       if (inactivityTimerRef.current) {
         clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
       }
 
+      if (visibleRef.current || closingRef.current) return;
+
       inactivityTimerRef.current = setTimeout(() => {
-        // Only show popup if not already visible and not closing
-        if (!visible && !closing) {
-          setVisible(true);
-
-          const hideTimer = setTimeout(() => {
-            setClosing(true);
-
-            setTimeout(() => {
-              setVisible(false);
-              setClosing(false);
-            }, 400);
-          }, 6000);
-
-          return () => clearTimeout(hideTimer);
-        }
-      }, 10000); // 10 seconds of inactivity
+        showPopup();
+      }, 10000);
     };
 
     const isExcluded = excludedRoutes.some((route) =>
@@ -49,9 +78,11 @@ const PopupCard = () => {
     );
 
     if (isExcluded) {
-      if (inactivityTimerRef.current) {
-        clearTimeout(inactivityTimerRef.current);
-      }
+      clearTimer(inactivityTimerRef);
+      clearTimer(revealTimerRef);
+      clearTimer(hideTimerRef);
+      clearTimer(closeTimerRef);
+      finishClosing();
       return;
     }
 
@@ -79,50 +110,57 @@ const PopupCard = () => {
       if (inactivityTimerRef.current) {
         clearTimeout(inactivityTimerRef.current);
       }
+      clearTimer(revealTimerRef);
+      clearTimer(hideTimerRef);
+      clearTimer(closeTimerRef);
     };
-  }, [location.pathname, visible, closing]);
+  }, [location.pathname]);
 
+  const closePopup = (onClosed) => {
+    [revealTimerRef, hideTimerRef, closeTimerRef].forEach((timerRef) => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    });
 
-  const handleEstimate = () => {
+    closingRef.current = true;
     setClosing(true);
 
-    setTimeout(() => {
-      navigate("/estimator");
-    }, 400);
-  };
-  const handleViewProjects = () => {
-    setClosing(true);
-
-    setTimeout(() => {
-      navigate("/projects");
-    }, 400);
-  };
-  const handleChatbot = () => {
-    setClosing(true);
-
-    setTimeout(() => {
+    closeTimerRef.current = setTimeout(() => {
+      visibleRef.current = false;
+      closingRef.current = false;
       setVisible(false);
       setClosing(false);
+      setEntranceStage("idle");
+      onClosed?.();
+    }, 520);
+  };
+
+  const handleEstimate = () => {
+    closePopup(() => navigate("/estimator"));
+  };
+  const handleViewProjects = () => {
+    closePopup(() => navigate("/projects"));
+  };
+  const handleChatbot = () => {
+    closePopup(() => {
       window.dispatchEvent(new Event("open-chatbot"));
-    }, 400);
+    });
   };
 
   const handleCancel = () => {
-    setClosing(true);
-
-    setTimeout(() => {
-      setVisible(false);
-      setClosing(false);
-    }, 400);
+    closePopup();
   };
 
   if (!visible) return null;
 
   return (
     <div
-      className={`popup-container ${
+      className={`popup-container popup-${entranceStage} ${
         closing ? "popup-closing" : ""
       }`}
+      aria-live="polite"
     >
 
       <div className="penguin-wrapper">
@@ -133,48 +171,50 @@ const PopupCard = () => {
         />
       </div>
 
-      <div className="speech-bubble">
+      <aside className="speech-bubble" aria-label="Interior design offer">
         <button
           className="popup-close"
           onClick={handleCancel}
           aria-label="Close popup"
         >
-          x
+          <FaTimes aria-hidden="true" />
         </button>
 
-        <p>
+        <div className="popup-copy">
           <span className="popup-lead">
-            <FaLightbulb aria-hidden="true" /> <strong>Still thinking?</strong>
+            <FaHome aria-hidden="true" />
+            <strong>Bring your dream interior to life</strong>
           </span>
-          <br />
-          <FaRegClock className="popup-copy-icon" aria-hidden="true" /> Looks like you've gone quiet for a bit.
-          <br />
-          Sometimes the perfect design needs a moment to sink in.
-          <br />
-          Ready to see what your dream interior might cost?
-          <br />
-          <FaHome className="popup-copy-icon" aria-hidden="true" /> Let's turn that inspiration into reality.
-        </p>
+          <p>
+            Explore completed spaces or create a personalized quote in minutes.
+          </p>
+        </div>
 
-        <button
-          className="popup-estimate-btn"
-          onClick={handleViewProjects}
-        >
-          View Projects
-        </button>
-        <button
-          className="popup-estimate-btn"
-          onClick={handleEstimate}
-        >
-          Quote Interior Yourself
-        </button>
-        <button
-          className="popup-estimate-btn"
-          onClick={handleChatbot}
-        >
-          Chatbot
-        </button>
-      </div>
+        <div className="popup-actions">
+          <button
+            className="popup-estimate-btn popup-secondary-btn"
+            onClick={handleViewProjects}
+          >
+            <FaImages aria-hidden="true" />
+            View Projects
+          </button>
+          <button
+            className="popup-estimate-btn"
+            onClick={handleEstimate}
+          >
+            <FaHome aria-hidden="true" />
+            Quote Interior Yourself
+          </button>
+          <button
+            className="popup-chat-btn"
+            onClick={handleChatbot}
+            aria-label="Open chatbot"
+            title="Chat with us"
+          >
+            <FaComments aria-hidden="true" />
+          </button>
+        </div>
+      </aside>
     </div>
   );
 };

@@ -526,3 +526,67 @@
   color: #ffffff;
   text-shadow: 0 0 8px rgba(255, 122, 162, 0.6);
 }
+
+/* Keep footer copy legible over every page background. */
+.footer.page-background::before,
+.footer.transparent::before,
+.footer.estimator-transparent::before {
+  background: rgba(0, 0, 0, 0.64);
+}
+
+.footer,
+.footer p,
+.footer li,
+.footer a,
+.footer span,
+.footer button,
+.footer-section h3,
+.footer-tagline,
+.footer-description,
+.contact-item p,
+.footer-bottom,
+.brand-name,
+.footer-credit,
+.footer-credit a.footer-link {
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 2px 7px rgba(0, 0, 0, 0.72);
+}
+
+.footer-section h3 {
+  font-weight: 800;
+}
+
+.footer-section a:hover,
+.footer-credit a.footer-link:hover,
+.back-to-top:hover {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.65);
+}
+
+.footer-social a,
+.contact-icon {
+  color: #d4af37;
+  text-shadow: none;
+}
+
+.footer-social a:hover {
+  color: #171717;
+}
+
+.back-to-top {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-color: rgba(255, 255, 255, 0.72);
+  font-weight: 800;
+}
+
+.footer-section h3,
+.footer-section a,
+.footer-credit a.footer-link,
+.footer-bottom-container > p,
+.footer-bottom-container > p .brand-name {
+  color: #f3cf45;
+}

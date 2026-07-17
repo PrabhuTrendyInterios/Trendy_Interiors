@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaWhatsapp, FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaYoutube, FaStore } from 'react-icons/fa';
+import { FaArrowUp, FaWhatsapp, FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaYoutube, FaStore } from 'react-icons/fa';
 import ChatBot from './ChatBot';
 import './Footer.css';
 
@@ -136,7 +136,7 @@ const Footer = () => {
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             aria-label="Back to Top"
           >
-            Back to Top ↑
+            Back to Top <FaArrowUp aria-hidden="true" />
           </button>
         </div>
       </div>
