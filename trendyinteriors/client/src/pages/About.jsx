@@ -104,15 +104,29 @@ const About = () => {
               <div className="about-youtube-card">
                 <div className="about-youtube-heading">
                   <FaYoutube aria-hidden="true" />
-                  <span>Watch Our Story</span>
+                  <span>About Us</span>
                 </div>
                 <iframe
                   src="https://www.youtube.com/embed?listType=user_uploads&list=prabul7047"
-                  title="Trendy Interios YouTube"
+                  title="About Trendy Interios"
                   loading="lazy"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                 />
+                <div className="about-client-review-link">
+                  <div>
+                    <strong>Client Review</strong>
+                    <span>See what our clients say about their interiors.</span>
+                  </div>
+                  <a
+                    href="https://www.youtube.com/@prabul7047"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Watch Here
+                    <FaYoutube aria-hidden="true" />
+                  </a>
+                </div>
               </div>
             </div>
           </div>

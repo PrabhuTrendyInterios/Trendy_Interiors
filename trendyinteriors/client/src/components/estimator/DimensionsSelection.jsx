@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { buildRoomInstances, findRoomByName } from '../../utils/estimatorApi';
 
 const DEFAULT_ROOM_IMAGE =
@@ -79,7 +78,6 @@ const DimensionsSelection = ({
   isCalculating = false,
 }) => {
   const [customOpenByRoom, setCustomOpenByRoom] = useState({});
-  const [activeRoomIndex, setActiveRoomIndex] = useState(0);
 
   const roomEntries = useMemo(() => {
     const selected = selectedRooms || {};
@@ -113,8 +111,6 @@ const DimensionsSelection = ({
   }, [roomEntries, roomTypeEntries, selectedRoom]);
 
   const visibleRoomEntries = roomEntries.filter((room) => room.roomName === selectedRoomType);
-  const selectedRoomIndex = visibleRoomEntries.findIndex((room) => room.id === selectedRoom);
-  const activeRoomEntry = visibleRoomEntries[activeRoomIndex] || visibleRoomEntries[0];
   const selectedRoomData = findRoomByName(roomsCatalog, selectedRoomType);
   const requiresDimensions = selectedRoomData?.requiresDimensions !== false;
   const allowCustomDimensions = Boolean(selectedRoomData?.allowCustomDimensions);
@@ -132,16 +128,6 @@ const DimensionsSelection = ({
       onSelectRoom(fallbackRoom.id);
     }
   }, [onSelectRoom, roomEntries, selectedRoom, selectedRoomType]);
-
-  useEffect(() => {
-    setActiveRoomIndex(selectedRoomIndex >= 0 ? selectedRoomIndex : 0);
-  }, [selectedRoomIndex, selectedRoomType]);
-
-  useEffect(() => {
-    if (activeRoomIndex >= visibleRoomEntries.length) {
-      setActiveRoomIndex(Math.max(visibleRoomEntries.length - 1, 0));
-    }
-  }, [activeRoomIndex, visibleRoomEntries.length]);
 
   const getDimensions = (roomId) => roomDimensions?.[roomId] || getDefaultDimensions();
 
@@ -171,41 +157,45 @@ const DimensionsSelection = ({
   const completedRoomCount = roomEntries.filter(roomIsComplete).length;
   const completedCategoryRoomCount = visibleRoomEntries.filter(roomIsComplete).length;
   const selectedCategoryIndex = roomTypeEntries.indexOf(selectedRoomType);
-  const isLastRoomInCategory = activeRoomIndex === visibleRoomEntries.length - 1;
+  const currentCategoryComplete =
+    visibleRoomEntries.length > 0 && visibleRoomEntries.every(roomIsComplete);
   const hasPreviousCategory = selectedCategoryIndex > 0;
-  const hasNextCategory = selectedCategoryIndex >= 0 && selectedCategoryIndex < roomTypeEntries.length - 1;
-  const canGoBackward = activeRoomIndex > 0 || hasPreviousCategory;
-  const hasForwardTarget = !isLastRoomInCategory || hasNextCategory;
-  const canGoForward = Boolean(activeRoomEntry) && roomIsComplete(activeRoomEntry) && hasForwardTarget;
-  const forwardLabel = isLastRoomInCategory ? 'Next category' : 'Next room';
+  const hasNextCategory =
+    selectedCategoryIndex >= 0 && selectedCategoryIndex < roomTypeEntries.length - 1;
 
-  const navigateBackward = () => {
-    if (activeRoomIndex > 0) {
-      onSelectRoom(visibleRoomEntries[activeRoomIndex - 1].id);
+  const selectCategoryAtIndex = (categoryIndex) => {
+    const roomType = roomTypeEntries[categoryIndex];
+    if (!roomType) {
       return;
     }
 
-    if (hasPreviousCategory) {
-      const previousType = roomTypeEntries[selectedCategoryIndex - 1];
-      const previousCategoryRooms = roomEntries.filter((room) => room.roomName === previousType);
-      onSelectRoom(previousCategoryRooms[previousCategoryRooms.length - 1].id);
+    const categoryRooms = roomEntries.filter((room) => room.roomName === roomType);
+    if (categoryRooms[0]) {
+      onSelectRoom(categoryRooms[0].id);
     }
   };
 
+  const navigateBackward = () => {
+    if (hasPreviousCategory) {
+      selectCategoryAtIndex(selectedCategoryIndex - 1);
+      return;
+    }
+
+    onPrev();
+  };
+
   const navigateForward = () => {
-    if (!canGoForward) {
+    if (!currentCategoryComplete || isCalculating) {
       return;
     }
 
-    if (!isLastRoomInCategory) {
-      onSelectRoom(visibleRoomEntries[activeRoomIndex + 1].id);
+    if (hasNextCategory) {
+      selectCategoryAtIndex(selectedCategoryIndex + 1);
       return;
     }
 
-    const nextType = roomTypeEntries[selectedCategoryIndex + 1];
-    const nextCategoryRoom = roomEntries.find((room) => room.roomName === nextType);
-    if (nextCategoryRoom) {
-      onSelectRoom(nextCategoryRoom.id);
+    if (allRoomsConfigured) {
+      onNext();
     }
   };
 
@@ -245,9 +235,9 @@ const DimensionsSelection = ({
     const canChooseLayout = !requiresDimensions || hasDimensions;
 
     return (
-      <div className="premium-design-control-panel" key={room.id}>
+      <section className="dimensions-room-section" key={room.id} aria-labelledby={`room-title-${room.id}`}>
         <span className="premium-panel-label">Room Configuration</span>
-        <h3>{room.label}</h3>
+        <h3 id={`room-title-${room.id}`}>{room.label}</h3>
 
         {requiresDimensions && (
           <div className="dimension-input-card">
@@ -335,7 +325,7 @@ const DimensionsSelection = ({
             <h4>{currentOptions.layoutTitle}</h4>
             {!canChooseLayout && <p className="dimension-lock-note">Select room size before choosing layout.</p>}
 
-            <div className="premium-image-option-grid">
+            <div className="dimension-text-option-grid">
               {currentOptions.layouts.map((layout) => {
                 const layoutLabel = layout.label || layout.name;
                 const layoutKey = layout.name || String(layout._id || '');
@@ -345,16 +335,12 @@ const DimensionsSelection = ({
                   <button
                     type="button"
                     key={layoutKey}
-                    className={`premium-image-option ${selectedDesign.layout === layoutKey ? 'selected' : ''}`}
-                    style={{ backgroundImage: layout.image ? `url(${layout.image})` : undefined }}
+                    className={`dimension-text-option ${selectedDesign.layout === layoutKey ? 'selected' : ''}`}
                     onClick={() => canChooseLayout && saveDesign(room, { ...selectedDesign, layout: layoutKey })}
                     disabled={!canChooseLayout}
                   >
-                    <div className="premium-image-option-overlay"></div>
                     <span>{layoutLabel}</span>
-                    <div style={{ fontSize: '0.75rem', marginTop: '4px', fontWeight: 'bold', color: '#f7df8c' }}>
-                      ₹{layoutCost.toLocaleString('en-IN')}
-                    </div>
+                    <strong>₹{layoutCost.toLocaleString('en-IN')}</strong>
                   </button>
                 );
               })}
@@ -365,7 +351,7 @@ const DimensionsSelection = ({
         {currentOptions.showAddons && (
           <div className="premium-design-section">
             <h4>{currentOptions.addonTitle}</h4>
-            <div className="premium-image-option-grid">
+            <div className="dimension-text-option-grid">
               {currentOptions.addons.map((addon) => {
                 const addonLabel = addon.label || addon.name;
                 const addonCost = Number(addon.price) || 0;
@@ -374,10 +360,9 @@ const DimensionsSelection = ({
                   <button
                     type="button"
                     key={addonLabel}
-                    className={`premium-image-option ${
+                    className={`dimension-text-option ${
                       selectedDesign.addons?.includes(addonLabel) ? 'selected' : ''
                     }`}
-                    style={{ backgroundImage: addon.image ? `url(${addon.image})` : undefined }}
                     onClick={() => {
                       const currentAddons = selectedDesign.addons || [];
                       const updatedAddons = currentAddons.includes(addonLabel)
@@ -386,18 +371,15 @@ const DimensionsSelection = ({
                       saveDesign(room, { ...selectedDesign, addons: updatedAddons });
                     }}
                   >
-                    <div className="premium-image-option-overlay"></div>
                     <span>{addonLabel}</span>
-                    <div style={{ fontSize: '0.75rem', marginTop: '4px', fontWeight: 'bold', color: '#f7df8c' }}>
-                      ₹{addonCost.toLocaleString('en-IN')}
-                    </div>
+                    <strong>₹{addonCost.toLocaleString('en-IN')}</strong>
                   </button>
                 );
               })}
             </div>
           </div>
         )}
-      </div>
+      </section>
     );
   };
 
@@ -405,7 +387,27 @@ const DimensionsSelection = ({
     <div className="dimensions-step-container">
       <div className="dimensions-step-header">
         <h2>Room Dimensions & Design Options</h2>
-        <p>Configure each selected room in order. Complete the required options to continue.</p>
+        <p>Swipe through every room in this category, configure each one, then continue to the next category.</p>
+      </div>
+
+      <div className="dimensions-category-progress" aria-label="Room category progress">
+        {roomTypeEntries.map((roomType, index) => {
+          const categoryRooms = roomEntries.filter((room) => room.roomName === roomType);
+          const completedCount = categoryRooms.filter(roomIsComplete).length;
+          const isCurrent = index === selectedCategoryIndex;
+          const isComplete = completedCount === categoryRooms.length;
+
+          return (
+            <div
+              key={roomType}
+              className={`dimensions-category-tab ${isCurrent ? 'selected' : ''} ${isComplete ? 'complete' : ''}`}
+              aria-current={isCurrent ? 'step' : undefined}
+            >
+              <span>{roomType}</span>
+              <strong>{completedCount}/{categoryRooms.length}</strong>
+            </div>
+          );
+        })}
       </div>
 
       <div className="premium-design-focus">
@@ -421,40 +423,11 @@ const DimensionsSelection = ({
           </div>
         </div>
 
-        <div className="dimensions-room-carousel">
-          {hasForwardTarget && (
-            <button
-              type="button"
-              className="room-carousel-arrow room-carousel-next"
-              onClick={navigateForward}
-              disabled={!canGoForward}
-              aria-label={forwardLabel}
-              title={forwardLabel}
-            >
-              <FaChevronLeft />
-            </button>
-          )}
-
-          <div className="dimensions-room-panels">
-            {activeRoomEntry ? renderRoomPanel(activeRoomEntry) : null}
-            {activeRoomEntry && (
-              <span className="room-carousel-position">
-                {activeRoomIndex + 1} / {visibleRoomEntries.length}
-              </span>
-            )}
-          </div>
-
-          {canGoBackward && (
-            <button
-              type="button"
-              className="room-carousel-arrow room-carousel-prev"
-              onClick={navigateBackward}
-              aria-label="Previous room"
-              title="Previous room"
-            >
-              <FaChevronRight />
-            </button>
-          )}
+        <div
+          className="premium-design-control-panel dimensions-category-room-scroll"
+          aria-label={`${selectedRoomType} rooms`}
+        >
+          {visibleRoomEntries.map(renderRoomPanel)}
         </div>
       </div>
 
@@ -463,16 +436,16 @@ const DimensionsSelection = ({
       </div>
 
       <div className="estimator-actions">
-        <button className="btn-secondary" onClick={onPrev}>
-          Back
+        <button className="btn-secondary" onClick={navigateBackward}>
+          {hasPreviousCategory ? 'Previous Category' : 'Back'}
         </button>
         <button
           type="button"
           className="btn-primary"
-          onClick={onNext}
-          disabled={!allRoomsConfigured || isCalculating}
+          onClick={navigateForward}
+          disabled={!currentCategoryComplete || isCalculating}
         >
-          Next
+          {hasNextCategory ? 'Next Category' : 'Next'}
         </button>
       </div>
     </div>

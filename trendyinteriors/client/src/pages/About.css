@@ -203,6 +203,57 @@
   border: 0;
 }
 
+.about-client-review-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.45);
+  background: rgba(0, 0, 0, 0.36);
+  color: #ffffff;
+}
+
+.about-client-review-link > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.about-client-review-link strong {
+  color: var(--color-gold);
+  font-size: 1.05rem;
+}
+
+.about-client-review-link span {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.about-client-review-link a {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 42px;
+  padding: 0.65rem 0.9rem;
+  border: 2px solid var(--color-gold);
+  border-radius: 8px;
+  background: var(--color-gold);
+  color: var(--color-charcoal-dark);
+  font-weight: 800;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.about-client-review-link a:hover,
+.about-client-review-link a:focus-visible {
+  background: transparent;
+  color: #ffffff;
+}
+
 .experience-badge {
   position: absolute;
   bottom: -30px;
@@ -686,6 +737,15 @@
 @media (max-width: 768px) {
   .hero-content h1 {
     font-size: 2.5rem;
+  }
+
+  .about-client-review-link {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .about-client-review-link a {
+    width: 100%;
   }
 
   .about-text-content h2 {

@@ -35,17 +35,11 @@ const ExtraAddons = ({
           <h3>{addon.name}</h3>
           {addon.description && <p>{addon.description}</p>}
         </div>
-        <span className="addon-list-size">{addon.size || 'Standard'}</span>
+        {addon.size && addon.size.trim().toLowerCase() !== 'standard' && (
+          <span className="addon-list-size">{addon.size}</span>
+        )}
         <span className="addon-list-price">₹{Number(addon.price || 0).toLocaleString('en-IN')}</span>
         <div className="addon-quantity-control" onClick={(event) => event.stopPropagation()}>
-          <button
-            type="button"
-            onClick={() => onUpdateAddonQuantity(addon.id, 1)}
-            aria-label={`Increase ${addon.name}`}
-          >
-            <FaPlus />
-          </button>
-          <strong>{count}</strong>
           <button
             type="button"
             onClick={() => onUpdateAddonQuantity(addon.id, -1)}
@@ -53,6 +47,14 @@ const ExtraAddons = ({
             aria-label={`Decrease ${addon.name}`}
           >
             <FaMinus />
+          </button>
+          <strong>{count}</strong>
+          <button
+            type="button"
+            onClick={() => onUpdateAddonQuantity(addon.id, 1)}
+            aria-label={`Increase ${addon.name}`}
+          >
+            <FaPlus />
           </button>
         </div>
         <span className="addon-list-total">₹{total.toLocaleString('en-IN')}</span>
@@ -75,7 +77,12 @@ const ExtraAddons = ({
         ) : availableAddons.length === 0 ? (
           <div className="selected-summary">No global add-ons are available right now. You can skip this step.</div>
         ) : (
-          <div className="addons-list">
+          <div
+            className="addons-list"
+            role="region"
+            aria-label="Available global add-ons"
+            tabIndex={0}
+          >
             {availableAddons.map((addon) => renderAddonRow(addon))}
           </div>
         )}

@@ -31,7 +31,35 @@
 .addons-list {
   display: grid;
   gap: 14px;
+  max-height: min(58vh, 640px);
+  padding: 14px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.85) transparent;
   margin-bottom: 40px;
+  border: 3px solid var(--color-gold);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.addons-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.addons-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.addons-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.85);
+}
+
+.addons-list:focus-visible {
+  outline: 3px solid rgba(212, 175, 55, 0.38);
+  outline-offset: 3px;
 }
 
 .addon-list-row {
@@ -135,10 +163,62 @@
 .estimator-actions { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid rgba(212, 175, 55, 0.28); }
 
 @media (max-width: 768px) {
+  .addons-header h2 {
+    color: #3b2c13;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  }
+
+  .addons-header p {
+    color: #4b4032;
+    font-weight: 600;
+  }
+
+  .addons-section > h3 {
+    color: #302619;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .addons-list {
+    gap: 10px;
+    max-height: 54vh;
+    padding: 9px;
+    margin-bottom: 24px;
+  }
+
   .addon-list-row {
     grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 14px;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .addon-list-row.selected {
+    border-color: #d82323;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 10px 30px rgba(216, 35, 35, 0.14);
+  }
+
+  .addon-list-main h3,
+  .addon-list-price,
+  .addon-list-total,
+  .addon-quantity-control strong {
+    color: #2f271d;
+  }
+
+  .addon-list-main p {
+    color: #554a3d;
+  }
+
+  .addon-list-size {
+    color: #806200;
+  }
+
+  .addon-quantity-control button {
+    background: rgba(255, 255, 255, 0.56);
+    color: #806200;
   }
 
   .addon-list-size,

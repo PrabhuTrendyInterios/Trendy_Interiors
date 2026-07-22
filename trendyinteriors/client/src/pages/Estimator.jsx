@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FaCheck, FaExclamationTriangle, FaLock } from 'react-icons/fa';
 import RoomSelection from '../components/estimator/RoomSelection';
 import DimensionsSelection from '../components/estimator/DimensionsSelection';
@@ -168,6 +168,8 @@ const Estimator = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsReviewed, setTermsReviewed] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [termsPromptActive, setTermsPromptActive] = useState(false);
+  const termsPromptTimerRef = useRef(null);
   const [selectedPackageComponents, setSelectedPackageComponents] = useState(() => {
     try {
       const storedPackageComponents = localStorage.getItem('estimatorSelectedPackageComponents');
@@ -213,6 +215,17 @@ const Estimator = () => {
       leadData: { name: '', email: '', phone: '', location: '', message: '' },
     };
   });
+
+  useEffect(() => () => window.clearTimeout(termsPromptTimerRef.current), []);
+
+  const promptTermsReview = () => {
+    window.clearTimeout(termsPromptTimerRef.current);
+    setTermsPromptActive(false);
+    termsPromptTimerRef.current = window.setTimeout(() => {
+      setTermsPromptActive(true);
+      termsPromptTimerRef.current = window.setTimeout(() => setTermsPromptActive(false), 1800);
+    }, 0);
+  };
 
   const [roomsCatalog, setRoomsCatalog] = useState([]);
   const [globalAddonsOptions, setGlobalAddonsOptions] = useState([]);
@@ -912,9 +925,9 @@ const Estimator = () => {
         return (
           <div className="review-container">
             {/* Left Side - Image */}
-            <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-lg)' }}>
+            <div className="review-image-card" style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-lg)' }}>
               <img 
-                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=500&q=80"
+                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=900&q=82"
                 alt="Interior Design"
                 style={{ width: '100%', height: '500px', objectFit: 'cover', display: 'block' }}
               />
@@ -922,15 +935,15 @@ const Estimator = () => {
             </div>
 
             {/* Right Side - Details & Quote */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div>
+            <div className="review-quote-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="review-quote-header">
                 <h2 style={{ color: 'var(--color-charcoal-dark)', marginBottom: '1rem', fontSize: '2rem' }}>Your Design Quote</h2>
                 <p style={{ color: 'var(--color-gray)', marginBottom: '1.5rem', fontSize: '1rem' }}>Review your selections and get your personalized estimate</p>
               </div>
 
               {/* Summary Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
-                <div style={{ padding: '1rem', backgroundColor: '#fffdf3', borderRadius: '8px', borderLeft: '4px solid var(--color-gold)' }}>
+              <div className="review-summary-section" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                <div className="review-summary-card" style={{ padding: '1rem', backgroundColor: '#fffdf3', borderRadius: '8px', borderLeft: '4px solid var(--color-gold)' }}>
                   <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Configured Rooms</p>
                   <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-charcoal-dark)' }}>
                     {quoteSummary ? quoteSummary.lineItems.filter((item) => item.roomId !== 'global-addons').length : 0}
@@ -939,7 +952,7 @@ const Estimator = () => {
               </div>
 
               {/* Selected Rooms */}
-              <div>
+              <div className="review-selected-rooms">
                 <h4 style={{ color: 'var(--color-charcoal-dark)', marginBottom: '0.75rem', fontSize: '0.95rem', fontWeight: '600' }}>Selected Rooms</h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {Object.entries(formData.rooms).map(([room, count]) => (
@@ -961,18 +974,18 @@ const Estimator = () => {
                 <>
                   <div className="quote-review-panel" style={{ padding: '2rem', backgroundColor: '#fffdf3', borderRadius: '12px', border: '2px solid var(--color-gold)' }}>
                     <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '600' }}>Estimated Total Cost</p>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                    <div className="quote-total-row" style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '1.5rem' }}>
                       <span style={{ fontSize: '1.5rem', color: 'var(--color-gold-dark)' }}>₹</span>
-                      <p style={{ margin: 0, fontSize: '3rem', fontWeight: '800', color: 'var(--color-charcoal-dark)' }}>
+                      <p className="quote-total-amount" style={{ margin: 0, fontSize: '3rem', fontWeight: '800', color: 'var(--color-charcoal-dark)' }}>
                         {quoteSummary.estimatedAmount.toLocaleString('en-IN')}
                       </p>
                     </div>
                   {/* Detailed Breakdown */}
                   {Array.isArray(quoteSummary.lineItems) && quoteSummary.lineItems.length > 0 && (
-                    <div style={{ borderTop: '1px solid rgba(212, 175, 55, 0.2)', paddingTop: '1.5rem' }}>
+                    <div className="quote-cost-breakdown" style={{ borderTop: '1px solid rgba(212, 175, 55, 0.2)', paddingTop: '1.5rem' }}>
                       <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', fontWeight: '600', color: 'var(--color-charcoal-dark)' }}>Cost Breakdown</p>
                       {quoteSummary.lineItems.map((item) => (
-                        <div key={item.roomId} style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(212, 175, 55, 0.15)' }}>
+                        <div className="quote-line-item" key={item.roomId} style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(212, 175, 55, 0.15)' }}>
                           {item.roomId === 'global-addons' || item.roomId === 'extra-addons' ? (
                             // Extra Add-ons Display - Show each with individual cost
                             <>
@@ -992,7 +1005,7 @@ const Estimator = () => {
                                   const displayedPrice = isSelected ? (Number(addon.price) || 0) * count : 0;
 
                                   return (
-                                    <div key={addon.id || addon.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', paddingLeft: '1.25rem' }}>
+                                    <div className="quote-addon-row" key={addon.id || addon.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', paddingLeft: '1.25rem' }}>
                                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0, cursor: 'pointer', color: isSelected ? 'var(--color-charcoal-dark)' : '#4b5563', fontWeight: isSelected ? 700 : 600 }}>
                                         <input
                                           type="checkbox"
@@ -1015,7 +1028,7 @@ const Estimator = () => {
                           ) : (
                             // Room Items Display
                             <>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                              <div className="quote-room-cost-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                                 <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.95rem' }}>{item.label}</p>
                                 <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '1rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
                               </div>
@@ -1058,7 +1071,7 @@ const Estimator = () => {
                                     const isSelected = selectedPackageComponents[item.roomId]?.includes(component.id);
                                     
                                     return (
-                                      <div key={component.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.5rem' }}>
+                                      <div className="quote-option-cost-row" key={component.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.5rem' }}>
                                         {component.mandatory ? (
                                           <span style={{ fontSize: '0.9rem', color: 'var(--color-gold-dark)', display: 'inline-flex' }}>
                                             <FaLock aria-hidden="true" />
@@ -1160,7 +1173,7 @@ const Estimator = () => {
                                           );
 
                                           return (
-                                            <div key={material.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.5rem' }}>
+                                            <div className="quote-option-cost-row" key={material.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.5rem' }}>
                                               <button
                                                 type="button"
                                                 onClick={() =>
@@ -1237,29 +1250,34 @@ const Estimator = () => {
                       ))}
                     </div>
                   )}
-                    <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                    <div className="quote-acceptance-section" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
                           <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', cursor: 'pointer', flex: 1 }}>
                             <input
                               type="checkbox"
                               checked={termsAccepted}
-                              disabled={!termsReviewed}
                               onChange={(event) => {
                                 if (!termsReviewed) {
-                                  setIsTermsOpen(true);
+                                  promptTermsReview();
                                   return;
                                 }
 
                                 setTermsAccepted(event.target.checked);
                               }}
-                              style={{ width: '18px', height: '18px', marginTop: '3px', accentColor: 'var(--color-gold)', cursor: termsReviewed ? 'pointer' : 'not-allowed' }}
+                              aria-describedby="quote-terms-prompt"
+                              style={{ width: '18px', height: '18px', marginTop: '3px', accentColor: 'var(--color-gold)', cursor: 'pointer' }}
                             />
                             <span style={{ fontSize: '0.95rem', color: 'var(--color-charcoal-dark)', lineHeight: 1.4 }}>
                               {termsReviewed ? 'I agree to the ' : 'Read the '}
                               <button
                                 type="button"
-                                onClick={() => setIsTermsOpen(true)}
+                                className={`quote-terms-link ${termsPromptActive ? 'needs-attention' : ''}`}
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  setTermsPromptActive(false);
+                                  setIsTermsOpen(true);
+                                }}
                                 style={{ border: 'none', backgroundColor: 'transparent', color: 'var(--color-gold-dark)', cursor: 'pointer' }}
                               >
                                 <strong>terms and conditions</strong>
@@ -1267,6 +1285,13 @@ const Estimator = () => {
                               {termsReviewed ? '.' : ' before accepting.'}
                             </span>
                           </label>
+                          <span
+                            id="quote-terms-prompt"
+                            className={`quote-terms-prompt ${termsPromptActive ? 'visible' : ''}`}
+                            aria-live="polite"
+                          >
+                            {termsPromptActive ? 'Please open and read the terms and conditions first.' : ''}
+                          </span>
                         </div>
                         <div className="quote-terms-notes">
                           <p>This price includes manufacturing and execution process.</p>

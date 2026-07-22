@@ -125,49 +125,40 @@ describe('client/components/estimator/DimensionsSelection', () => {
     expect(screen.queryByRole('combobox', { name: /selected room type/i })).not.toBeInTheDocument();
   });
 
-  test('shows room instances for multiple rooms', () => {
-    const { container } = render(
-      <DimensionsSelection
-        {...baseProps}
-        selectedRooms={{ Bedroom: 2 }}
-      />
-    );
-
-    expect(container).toBeInTheDocument();
-  });
-
-  test('locks the next room action until the current room is complete', () => {
+  test('shows every room instance in the category on the same page', () => {
     render(
       <DimensionsSelection
         {...baseProps}
         selectedRooms={{ Bedroom: 2 }}
         roomDimensions={{
-          'Bedroom-1': { length: '', width: '', height: '', selectedDesignIdea: null },
+          'Bedroom-1': { length: '10', width: '12', height: '9', selectedDesignIdea: null },
           'Bedroom-2': { length: '', width: '', height: '', selectedDesignIdea: null },
         }}
       />
     );
 
-    expect(screen.getByRole('button', { name: /next room/i })).toBeDisabled();
+    expect(screen.getByRole('heading', { name: 'Bedroom 1' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Bedroom 2' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /next room/i })).not.toBeInTheDocument();
   });
 
-  test('advances to the next room after completing the current room', () => {
+  test('locks category navigation until every room in the category is complete', () => {
     render(
       <DimensionsSelection
         {...baseProps}
-        selectedRooms={{ Bedroom: 2 }}
+        selectedRooms={{ Bedroom: 2, Kitchen: 1 }}
         roomDimensions={{
-          ...baseProps.roomDimensions,
+          'Bedroom-1': { length: '10', width: '12', height: '9', selectedDesignIdea: null },
           'Bedroom-2': { length: '', width: '', height: '', selectedDesignIdea: null },
+          'Kitchen-1': { length: '', width: '', height: '', selectedDesignIdea: null },
         }}
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /next room/i }));
-    expect(baseProps.onSelectRoom).toHaveBeenCalledWith('Bedroom-2');
+    expect(screen.getByRole('button', { name: /next category/i })).toBeDisabled();
   });
 
-  test('advances to the next category in catalog order after its final room', () => {
+  test('advances to the next category after every room on the page is complete', () => {
     const orderedCatalog = [
       sampleRoomsCatalog[0],
       {
