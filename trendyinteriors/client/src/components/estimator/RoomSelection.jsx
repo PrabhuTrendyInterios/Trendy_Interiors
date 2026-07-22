@@ -3,6 +3,12 @@ import { FaPlus, FaMinus, FaHome } from 'react-icons/fa';
 
 const RoomSelection = ({ rooms = [], loading = false, selectedRooms, isStepCompleted, onUpdateRoomCount, onNext }) => {
   const hasSelection = Object.keys(selectedRooms).length > 0 || isStepCompleted;
+  const getRoomLimit = (room = {}) => Math.max(
+    1,
+    Number(room.maxSelectableRooms) || (
+      String(room.name || '').toLowerCase().includes('bedroom') ? 6 : 2
+    ),
+  );
 
   return (
     <div className="room-selection-container">
@@ -23,6 +29,7 @@ const RoomSelection = ({ rooms = [], loading = false, selectedRooms, isStepCompl
         <div className="room-grid">
           {rooms.map((room) => {
             const count = selectedRooms[room.name] || 0;
+            const maxCount = getRoomLimit(room);
             return (
               <div
                 key={room._id || room.id}
@@ -46,8 +53,10 @@ const RoomSelection = ({ rooms = [], loading = false, selectedRooms, isStepCompl
                   <span className="counter-value">{count}</span>
                   <button
                     className="counter-btn"
-                    onClick={() => onUpdateRoomCount(room.name, count + 1)}
+                    onClick={() => onUpdateRoomCount(room.name, Math.min(maxCount, count + 1))}
+                    disabled={count >= maxCount}
                     aria-label="Increase quantity"
+                    title={`Maximum ${maxCount}`}
                   >
                     <FaPlus size={10} />
                   </button>

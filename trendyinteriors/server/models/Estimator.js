@@ -121,7 +121,10 @@ const roomLineItemSchema = new mongoose.Schema(
         {
           id: String,
           name: String,
+          size: String,
+          count: Number,
           price: Number,
+          totalPrice: Number,
         },
       ],
       default: [],
@@ -271,7 +274,13 @@ const estimatorSchema = new mongoose.Schema(
       default: "submitted",
     },
     extraAddons: {
-      type: [String],
+      type: [
+        {
+          id: String,
+          size: String,
+          count: Number,
+        },
+      ],
       default: [],
     },
   },

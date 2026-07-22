@@ -1,11 +1,17 @@
 import React from 'react';
-import { formatGlobalAddonForCard, isGlobalAddonSelected } from '../../utils/estimatorApi';
+import { FaMinus, FaPlus } from 'react-icons/fa';
+import {
+  formatGlobalAddonForCard,
+  getSelectedGlobalAddonEntry,
+  isGlobalAddonSelected,
+} from '../../utils/estimatorApi';
 import './ExtraAddons.css';
 
 const ExtraAddons = ({
   selectedAddons = [],
   isStepCompleted,
   onToggleAddon,
+  onUpdateAddonQuantity,
   onNext,
   onPrev,
   addonsOptions = [],
@@ -13,28 +19,43 @@ const ExtraAddons = ({
 }) => {
   const availableAddons = addonsOptions.map(formatGlobalAddonForCard);
 
-  const renderAddonCard = (addon) => {
+  const renderAddonRow = (addon) => {
     const isSelected = isGlobalAddonSelected(selectedAddons, addon.id);
+    const selectedEntry = getSelectedGlobalAddonEntry(selectedAddons, addon.id);
+    const count = selectedEntry?.count || 0;
+    const total = (Number(addon.price) || 0) * count;
 
     return (
       <div
         key={addon.id}
-        className={`addon-card ${isSelected ? 'selected' : ''}`}
+        className={`addon-list-row ${isSelected ? 'selected' : ''}`}
         onClick={() => onToggleAddon(addon.id)}
       >
-        <div className="addon-image-wrapper">
-          {addon.image ? (
-            <img src={addon.image} alt={addon.name} />
-          ) : (
-            <div className="addon-placeholder">+</div>
-          )}
-          {isSelected && <div className="addon-selected-badge">Selected</div>}
-        </div>
-        <div className="addon-content">
-          <span className="addon-price-hint">{addon.priceHint}</span>
+        <div className="addon-list-main">
           <h3>{addon.name}</h3>
-          <p>{addon.description}</p>
+          {addon.description && <p>{addon.description}</p>}
         </div>
+        <span className="addon-list-size">{addon.size || 'Standard'}</span>
+        <span className="addon-list-price">₹{Number(addon.price || 0).toLocaleString('en-IN')}</span>
+        <div className="addon-quantity-control" onClick={(event) => event.stopPropagation()}>
+          <button
+            type="button"
+            onClick={() => onUpdateAddonQuantity(addon.id, 1)}
+            aria-label={`Increase ${addon.name}`}
+          >
+            <FaPlus />
+          </button>
+          <strong>{count}</strong>
+          <button
+            type="button"
+            onClick={() => onUpdateAddonQuantity(addon.id, -1)}
+            disabled={!isSelected}
+            aria-label={`Decrease ${addon.name}`}
+          >
+            <FaMinus />
+          </button>
+        </div>
+        <span className="addon-list-total">₹{total.toLocaleString('en-IN')}</span>
       </div>
     );
   };
@@ -54,8 +75,8 @@ const ExtraAddons = ({
         ) : availableAddons.length === 0 ? (
           <div className="selected-summary">No global add-ons are available right now. You can skip this step.</div>
         ) : (
-          <div className="addons-grid">
-            {availableAddons.map((addon) => renderAddonCard(addon))}
+          <div className="addons-list">
+            {availableAddons.map((addon) => renderAddonRow(addon))}
           </div>
         )}
       </div>

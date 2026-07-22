@@ -111,17 +111,24 @@ const resolveGlobalAddon = (globalAddons = [], addonId) =>
       addon.name === addonId
   );
 
-const normalizeExtraAddonIds = (extraAddons = []) => {
+const normalizeExtraAddonEntries = (extraAddons = []) => {
   const seen = new Set();
 
   return (Array.isArray(extraAddons) ? extraAddons : [])
-    .map((addonId) => (addonId != null ? String(addonId).trim() : ''))
-    .filter((addonId) => {
-      if (!addonId || seen.has(addonId)) {
+    .map((entry) => {
+      const addonId = entry?.id || entry?._id || entry;
+      const id = addonId != null ? String(addonId).trim() : '';
+      const count = Math.max(0, Number(entry?.count ?? 1) || 0);
+      const size = typeof entry?.size === 'string' ? entry.size.trim() : '';
+
+      return { id, count, size };
+    })
+    .filter((entry) => {
+      if (!entry.id || seen.has(entry.id) || entry.count <= 0) {
         return false;
       }
 
-      seen.add(addonId);
+      seen.add(entry.id);
       return true;
     });
 };
@@ -246,18 +253,23 @@ const calculateEstimate = ({
 
   const addonDetails = [];
   let globalAddonsTotal = 0;
-  const normalizedExtraAddons = normalizeExtraAddonIds(extraAddons);
+  const normalizedExtraAddons = normalizeExtraAddonEntries(extraAddons);
 
   if (normalizedExtraAddons.length > 0) {
-    normalizedExtraAddons.forEach((addonId) => {
-      const addon = resolveGlobalAddon(globalAddons, addonId);
+    normalizedExtraAddons.forEach((selectedAddon) => {
+      const addon = resolveGlobalAddon(globalAddons, selectedAddon.id);
       if (addon && addon.active !== false) {
         const price = Number(addon.price) || 0;
-        globalAddonsTotal = roundMoney(globalAddonsTotal + price);
+        const count = Math.max(1, Number(selectedAddon.count) || 1);
+        const totalPrice = roundMoney(price * count);
+        globalAddonsTotal = roundMoney(globalAddonsTotal + totalPrice);
         addonDetails.push({
-          id: addon._id?.toString() || String(addonId),
+          id: addon._id?.toString() || String(selectedAddon.id),
           name: addon.name,
+          size: selectedAddon.size || addon.size || '',
+          count,
           price,
+          totalPrice,
         });
       }
     });

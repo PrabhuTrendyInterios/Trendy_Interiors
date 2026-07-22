@@ -204,6 +204,11 @@ const roomSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    maxSelectableRooms: {
+      type: Number,
+      min: [1, 'Maximum selectable rooms must be at least 1'],
+      max: [20, 'Maximum selectable rooms cannot exceed 20'],
+    },
     dimensions: {
       type: [dimensionSchema],
       default: [],

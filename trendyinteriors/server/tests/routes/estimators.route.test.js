@@ -89,6 +89,25 @@ describe('server/routes/estimators', () => {
       expect(res.body.success).toBe(false);
     });
 
+    test('enforces the room quantity configured in CMS', async () => {
+      Room.find.mockReturnValue({
+        sort: jest.fn().mockResolvedValue([
+          { ...mockRoomsCatalog[0], maxSelectableRooms: 2 },
+        ]),
+      });
+
+      const res = await request(app).post('/api/estimators/calculate').send({
+        rooms: { Bedroom: 3 },
+        selectedRoomForDimensions: 'Bedroom-1',
+        roomDimensionsByRoom: {},
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toEqual(
+        expect.arrayContaining([expect.stringContaining('cannot exceed 2')]),
+      );
+    });
+
     test('handles server error during calculation', async () => {
       // Send invalid data that would cause calculation error
       const res = await request(app).post('/api/estimators/calculate').send({

@@ -1076,6 +1076,65 @@
   color: var(--color-gold);
 }
 
+.home-page .tour-estimator-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  animation: quote-cta-attention 8s cubic-bezier(0.22, 1, 0.36, 1) 1.8s infinite;
+  will-change: transform, box-shadow;
+}
+
+.home-page .tour-estimator-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 25%, rgba(255, 226, 122, 0.34) 50%, transparent 75%);
+  transform: translateX(-120%);
+  pointer-events: none;
+  animation: quote-cta-shimmer 8s ease-in-out 1.8s infinite;
+}
+
+.home-page .tour-estimator-btn:hover,
+.home-page .tour-estimator-btn:focus-visible {
+  animation-play-state: paused;
+}
+
+@keyframes quote-cta-attention {
+  0%, 72%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  76% {
+    transform: translateY(-10px) scale(1.015);
+    box-shadow: 0 14px 34px rgba(212, 175, 55, 0.42);
+  }
+
+  80% {
+    transform: translateY(2px) scale(1);
+  }
+
+  84% {
+    transform: translateY(-4px) scale(1.008);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.34);
+  }
+
+  89% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes quote-cta-shimmer {
+  0%, 72%, 100% {
+    transform: translateX(-120%);
+  }
+
+  84%, 90% {
+    transform: translateX(120%);
+  }
+}
+
 @media (max-width: 768px) {
   .home-page .hero-section {
     height: 100svh;

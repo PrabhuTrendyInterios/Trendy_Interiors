@@ -27,11 +27,16 @@ const formatLayoutResponse = (layout = {}) => ({
 
 const formatRoomResponse = (room) => {
   const doc = room?.toObject ? room.toObject() : { ...room };
+  const legacyLimit = String(doc.name || '').toLowerCase().includes('bedroom') ? 6 : 2;
+  const configuredLimit = Number(doc.maxSelectableRooms);
 
   return {
     ...doc,
     allowCustomDimensions: doc.allowCustomDimensions ?? false,
     requiresDimensions: doc.requiresDimensions ?? true,
+    maxSelectableRooms: Number.isInteger(configuredLimit) && configuredLimit > 0
+      ? configuredLimit
+      : legacyLimit,
     layouts: (doc.layouts || []).map(formatLayoutResponse),
   };
 };

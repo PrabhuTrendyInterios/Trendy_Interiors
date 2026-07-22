@@ -15,7 +15,8 @@
     "seed:rooms": "node seedRooms.js",
     "seed:global-addons": "node seedGlobalAddons.js",
     "seed:estimator": "node seedEstimator.js",
-    "migrate:estimator": "node scripts/migrateEstimatorData.js"
+    "migrate:estimator": "node scripts/migrateEstimatorData.js",
+    "migrate:room-settings": "node scripts/migrateRoomSettings.js"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",

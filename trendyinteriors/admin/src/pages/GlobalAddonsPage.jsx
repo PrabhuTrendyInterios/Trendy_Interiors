@@ -16,6 +16,8 @@ const emptyAddon = {
 
   price: 0,
 
+  size: '',
+
   description: '',
 
   imageUrl: '',
@@ -88,6 +90,8 @@ const GlobalAddonsPage = () => {
 
         price: Number(form.price) || 0,
 
+        size: form.size || '',
+
         order: Number(form.order) || 0,
 
       };
@@ -133,6 +137,8 @@ const GlobalAddonsPage = () => {
       name: addon.name,
 
       price: addon.price,
+
+      size: addon.size || '',
 
       description: addon.description || '',
 
@@ -245,6 +251,28 @@ const GlobalAddonsPage = () => {
                   required
 
                   className="form-input"
+
+                />
+
+              </div>
+
+              <div className="form-group">
+
+                <label htmlFor="addon-size">Size / Unit</label>
+
+                <input
+
+                  id="addon-size"
+
+                  type="text"
+
+                  value={form.size}
+
+                  onChange={(e) => setForm({ ...form, size: e.target.value })}
+
+                  className="form-input"
+
+                  placeholder="e.g. 4 X 6 sqft, per unit"
 
                 />
 
@@ -425,6 +453,16 @@ const GlobalAddonsPage = () => {
                       ₹{Number(addon.price).toLocaleString('en-IN')}
 
                     </p>
+
+                    {addon.size && (
+
+                      <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', fontWeight: 600, margin: '0 0 0.5rem' }}>
+
+                        Size: {addon.size}
+
+                      </p>
+
+                    )}
 
                     <p>{addon.description || 'No description'}</p>
 

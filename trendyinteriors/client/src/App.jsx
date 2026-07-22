@@ -14,6 +14,7 @@ import Estimator from './pages/Estimator';
 import PopupCard from "./components/PopupCard";
 import './App.css';
 import './pages/PageTheme.css';
+import './MobileFirst.css';
 
 const Layout = () => {
   const location = useLocation();

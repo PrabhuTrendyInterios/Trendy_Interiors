@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  FaTrophy, FaSmile, FaStopwatch, FaCheckCircle, FaQuoteLeft,
-  FaLinkedin, FaInstagram, FaPhone, FaEye, FaBullseye
+  FaTrophy, FaSmile, FaStopwatch, FaCheckCircle, FaQuoteLeft, FaHandshake, FaGem,
+  FaLinkedin, FaInstagram, FaPhone, FaEye, FaBullseye, FaYoutube
 } from 'react-icons/fa';
 import DesignCarousel from '../components/DesignCarousel';
 import ScrollVideoBackground from '../components/ScrollVideoBackground';
@@ -80,35 +80,39 @@ const About = () => {
               <p className="lead-text">
                 Trendy Interiors is one of the premier design firms in Erode, known for our exquisite craftsmanship and attention to detail.
               </p>
-              <p className="body-text">
-                With a passion for creating spaces that are both functional and beautiful, we have established ourselves as leaders in residential and commercial interior design. Our journey begins with understanding your vision and translating it into a reality that exceeds expectations. From modern minimalist homes to luxurious office suites, we handle every project with the same level of dedication and artistic flair.
-              </p>
-
               <div className="key-highlights">
                 <div className="highlight-item">
                   <span className="highlight-check"><FaCheckCircle aria-hidden="true" /></span>
-                  <span>10+ Years of Design Excellence</span>
+                  <span>Personal designs shaped around your daily lifestyle</span>
                 </div>
                 <div className="highlight-item">
-                  <span className="highlight-check"><FaCheckCircle aria-hidden="true" /></span>
-                  <span>Certified Professional Team</span>
+                  <span className="highlight-check"><FaTrophy aria-hidden="true" /></span>
+                  <span>Premium finish with practical space planning</span>
                 </div>
                 <div className="highlight-item">
-                  <span className="highlight-check"><FaCheckCircle aria-hidden="true" /></span>
-                  <span>End-to-End Project Management</span>
+                  <span className="highlight-check"><FaHandshake aria-hidden="true" /></span>
+                  <span>Clear coordination from concept to handover</span>
+                </div>
+                <div className="highlight-item">
+                  <span className="highlight-check"><FaGem aria-hidden="true" /></span>
+                  <span>Luxury details selected with care and restraint</span>
                 </div>
               </div>
             </div>
 
             <div className="about-image-wrapper">
-              <img
-                src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=800&auto=format&fit=crop"
-                alt="Trendy Interiors Office"
-                className="about-feature-img"
-              />
-              <div className="experience-badge">
-                <span className="years">10+</span>
-                <span className="text">Years of<br />Experience</span>
+              <div className="about-youtube-card">
+                <div className="about-youtube-heading">
+                  <FaYoutube aria-hidden="true" />
+                  <span>Watch Our Story</span>
+                </div>
+                <iframe
+                  src="https://www.youtube.com/embed?listType=user_uploads&list=prabul7047"
+                  title="Trendy Interios YouTube"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
               </div>
             </div>
           </div>

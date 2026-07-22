@@ -15,6 +15,7 @@ export const emptyRoom = {
   status: 'active',
   allowCustomDimensions: false,
   requiresDimensions: true,
+  maxSelectableRooms: 2,
   dimensions: [],
   layouts: [],
   addons: [],
@@ -55,6 +56,9 @@ export const normalizeRoomFromApi = (room = {}) => ({
   status: room.status || (room.active === false ? 'inactive' : 'active'),
   allowCustomDimensions: room.allowCustomDimensions ?? false,
   requiresDimensions: room.requiresDimensions ?? true,
+  maxSelectableRooms: room.maxSelectableRooms ?? (
+    String(room.name || '').toLowerCase().includes('bedroom') ? 6 : 2
+  ),
   dimensions: (room.dimensions || []).map((d) => ({
     ...d,
     name: d.name || d.label || '',
@@ -107,6 +111,7 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
     onSave({
       ...form,
       pricePerSqFt: Number(form.pricePerSqFt) || 0,
+      maxSelectableRooms: Math.min(20, Math.max(1, Number(form.maxSelectableRooms) || 1)),
     });
   };
 
@@ -194,6 +199,20 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
+              </div>
+              <div className="form-group small">
+                <label htmlFor="room-max-selectable">Maximum Selectable Rooms</label>
+                <input
+                  id="room-max-selectable"
+                  type="number"
+                  min="1"
+                  max="20"
+                  step="1"
+                  value={form.maxSelectableRooms}
+                  onChange={(e) => setForm({ ...form, maxSelectableRooms: e.target.value })}
+                  required
+                  className="form-input"
+                />
               </div>
             </div>
             <div className="form-row">

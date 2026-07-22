@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaCheck, FaDownload, FaExclamationTriangle, FaLock } from 'react-icons/fa';
+import { FaCheck, FaExclamationTriangle, FaLock } from 'react-icons/fa';
 import RoomSelection from '../components/estimator/RoomSelection';
 import DimensionsSelection from '../components/estimator/DimensionsSelection';
 import ExtraAddons from '../components/estimator/ExtraAddons';
@@ -14,10 +14,11 @@ import {
   formatGlobalAddonForCard,
   buildGlobalAddonDetails,
   getGlobalAddonsTotal,
-  isGlobalAddonSelected,
   normalizeGlobalAddonId,
+  normalizeSelectedGlobalAddonEntries,
   normalizeSelectedGlobalAddons,
   toggleGlobalAddonSelection,
+  updateGlobalAddonQuantity,
   buildDefaultLayoutMaterialSelection,
   getLayoutMaterialsForRoom,
   getLayoutMaterialsTotal,
@@ -86,9 +87,9 @@ const recalculateQuoteTotals = (
 
   const updatedQuote = JSON.parse(JSON.stringify(quote));
   let newRoomTotals = 0;
-  const normalizedSelectedIds = normalizeSelectedGlobalAddons(selectedGlobalAddons);
-  const addonDetails = buildGlobalAddonDetails(normalizedSelectedIds, globalAddonsOptions);
-  const globalAddonsTotal = getGlobalAddonsTotal(normalizedSelectedIds, globalAddonsOptions);
+  const normalizedSelectedAddons = normalizeSelectedGlobalAddonEntries(selectedGlobalAddons);
+  const addonDetails = buildGlobalAddonDetails(normalizedSelectedAddons, globalAddonsOptions);
+  const globalAddonsTotal = getGlobalAddonsTotal(normalizedSelectedAddons, globalAddonsOptions);
 
   updatedQuote.lineItems = updatedQuote.lineItems
     .filter((item) => item.roomId !== 'global-addons' && item.roomId !== 'extra-addons')
@@ -196,7 +197,7 @@ const Estimator = () => {
           rooms: parsedDraft.rooms || {},
           selectedRoomForDimensions: parsedDraft.selectedRoomForDimensions || '',
           roomDimensionsByRoom: migrateRoomDimensions(parsedDraft.roomDimensionsByRoom),
-          extraAddons: normalizeSelectedGlobalAddons(parsedDraft.extraAddons || []),
+          extraAddons: normalizeSelectedGlobalAddonEntries(parsedDraft.extraAddons || []),
           leadData: parsedDraft.leadData || { name: '', email: '', phone: '', location: '', message: '' },
         };
       }
@@ -253,12 +254,12 @@ const Estimator = () => {
     );
 
     setFormData((prev) => {
-      const normalizedSelection = normalizeSelectedGlobalAddons(prev.extraAddons);
-      const filteredSelection = normalizedSelection.filter((addonId) => activeAddonIds.has(addonId));
+      const normalizedSelection = normalizeSelectedGlobalAddonEntries(prev.extraAddons);
+      const filteredSelection = normalizedSelection.filter((addon) => activeAddonIds.has(addon.id));
 
       const selectionChanged =
         filteredSelection.length !== normalizedSelection.length ||
-        filteredSelection.some((addonId, index) => addonId !== normalizedSelection[index]);
+        filteredSelection.some((addon, index) => JSON.stringify(addon) !== JSON.stringify(normalizedSelection[index]));
 
       if (!selectionChanged) {
         return prev;
@@ -279,9 +280,13 @@ const Estimator = () => {
     }
 
     if (roomInstances.length > 0 && !roomInstances.some((room) => room.id === formData.selectedRoomForDimensions)) {
-      updateFormData('selectedRoomForDimensions', roomInstances[0].id);
+      const firstCatalogRoom = roomsCatalog.find((room) => Number(formData.rooms[room.name]) > 0);
+      updateFormData(
+        'selectedRoomForDimensions',
+        firstCatalogRoom ? `${firstCatalogRoom.name}-1` : roomInstances[0].id,
+      );
     }
-  }, [formData.rooms, formData.selectedRoomForDimensions]);
+  }, [formData.rooms, formData.selectedRoomForDimensions, roomsCatalog]);
 
   useEffect(() => {
     if (roomsCatalog.length === 0) {
@@ -454,6 +459,15 @@ const Estimator = () => {
   };
 
   const handleNextStep = () => {
+    if (currentStep === 1) {
+      const firstCatalogRoom = roomsCatalog.find((room) => Number(formData.rooms[room.name]) > 0);
+      const firstSelectedRoom = firstCatalogRoom?.name || Object.keys(formData.rooms)[0];
+
+      if (firstSelectedRoom) {
+        updateFormData('selectedRoomForDimensions', `${firstSelectedRoom}-1`);
+      }
+    }
+
     if (currentStep === 3) {
       setReviewAddonIds(normalizeSelectedGlobalAddons(formData.extraAddons));
     }
@@ -653,6 +667,16 @@ const Estimator = () => {
     }));
   };
 
+  const updateAddonQuantity = (addonId, delta) => {
+    setApiError('');
+    setSubmissionResult(null);
+
+    setFormData((prev) => ({
+      ...prev,
+      extraAddons: updateGlobalAddonQuantity(prev.extraAddons, addonId, delta),
+    }));
+  };
+
   const updateLeadData = (key, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -741,12 +765,22 @@ const Estimator = () => {
       }
 
       const result = await response.json();
-      setSubmissionResult(result?.data || null);
+      const submittedEstimator = result?.data || null;
+      setSubmissionResult(submittedEstimator);
       localStorage.removeItem(ESTIMATOR_DRAFT_KEY);
+      return submittedEstimator;
     } catch (error) {
       setApiError(error.message || 'Unable to submit estimate request.');
+      return null;
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmitAndDownload = async () => {
+    const submittedEstimator = await handleSubmitEstimator();
+    if (submittedEstimator?._id) {
+      await downloadCurrentQuotePDF(submittedEstimator._id);
     }
   };
 
@@ -810,11 +844,19 @@ const Estimator = () => {
             selectedRooms={formData.rooms}
             isStepCompleted={completedSteps.has(1)}
             onUpdateRoomCount={(room, count) => {
+              const roomConfig = findRoomByName(roomsCatalog, room);
+              const maxCount = Math.max(
+                1,
+                Number(roomConfig?.maxSelectableRooms) || (
+                  String(room).toLowerCase().includes('bedroom') ? 6 : 2
+                ),
+              );
+              const nextCount = Math.min(maxCount, Number(count) || 0);
               const newRooms = { ...formData.rooms };
-              if (count <= 0) {
+              if (nextCount <= 0) {
                 delete newRooms[room];
               } else {
-                newRooms[room] = count;
+                newRooms[room] = nextCount;
               }
               updateFormData('rooms', newRooms);
             }}
@@ -844,6 +886,7 @@ const Estimator = () => {
             selectedAddons={formData.extraAddons}
             isStepCompleted={completedSteps.has(3)}
             onToggleAddon={toggleAddon}
+            onUpdateAddonQuantity={updateAddonQuantity}
             onPrev={handlePrevStep}
             onNext={handleNextStep}
             addonsOptions={globalAddonsOptions}
@@ -888,9 +931,9 @@ const Estimator = () => {
               {/* Summary Cards */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                 <div style={{ padding: '1rem', backgroundColor: '#fffdf3', borderRadius: '8px', borderLeft: '4px solid var(--color-gold)' }}>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Total Area</p>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Configured Rooms</p>
                   <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-charcoal-dark)' }}>
-                    {quoteSummary ? quoteSummary.totalAreaSqFt.toLocaleString('en-IN') : '0'} sq. ft
+                    {quoteSummary ? quoteSummary.lineItems.filter((item) => item.roomId !== 'global-addons').length : 0}
                   </p>
                 </div>
               </div>
@@ -916,7 +959,7 @@ const Estimator = () => {
 
               {quoteSummary && (
                 <>
-                  <div style={{ padding: '2rem', backgroundColor: '#fffdf3', borderRadius: '12px', border: '2px solid var(--color-gold)' }}>
+                  <div className="quote-review-panel" style={{ padding: '2rem', backgroundColor: '#fffdf3', borderRadius: '12px', border: '2px solid var(--color-gold)' }}>
                     <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '600' }}>Estimated Total Cost</p>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '1.5rem' }}>
                       <span style={{ fontSize: '1.5rem', color: 'var(--color-gold-dark)' }}>₹</span>
@@ -924,7 +967,6 @@ const Estimator = () => {
                         {quoteSummary.estimatedAmount.toLocaleString('en-IN')}
                       </p>
                     </div>
-
                   {/* Detailed Breakdown */}
                   {Array.isArray(quoteSummary.lineItems) && quoteSummary.lineItems.length > 0 && (
                     <div style={{ borderTop: '1px solid rgba(212, 175, 55, 0.2)', paddingTop: '1.5rem' }}>
@@ -943,8 +985,11 @@ const Estimator = () => {
                                 )}
 
                                 {reviewAddons.map((addon) => {
-                                  const isSelected = isGlobalAddonSelected(formData.extraAddons, addon.id);
-                                  const displayedPrice = isSelected ? Number(addon.price) || 0 : 0;
+                                  const selectedEntry = normalizeSelectedGlobalAddonEntries(formData.extraAddons)
+                                    .find((entry) => entry.id === addon.id);
+                                  const isSelected = Boolean(selectedEntry);
+                                  const count = selectedEntry?.count || 0;
+                                  const displayedPrice = isSelected ? (Number(addon.price) || 0) * count : 0;
 
                                   return (
                                     <div key={addon.id || addon.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', paddingLeft: '1.25rem' }}>
@@ -975,7 +1020,7 @@ const Estimator = () => {
                                 <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '1rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
                               </div>
                               <p style={{ margin: 0, fontSize: '0.8rem', color: '#4b5563', fontWeight: 600 }}>
-                                {item.areaSqFt} sq. ft × ₹{item.ratePerSqFt}/sq. ft = ₹{(item.baseCost ?? item.areaSqFt * item.ratePerSqFt).toLocaleString('en-IN')}
+                                {item.length} X {item.width} sqft × ₹{item.ratePerSqFt}/sqft = ₹{(item.baseCost ?? item.areaSqFt * item.ratePerSqFt).toLocaleString('en-IN')}
                               </p>
                               {item.layout && (
                                 <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#3a2b08', fontWeight: 700 }}>
@@ -1223,6 +1268,10 @@ const Estimator = () => {
                             </span>
                           </label>
                         </div>
+                        <div className="quote-terms-notes">
+                          <p>This price includes manufacturing and execution process.</p>
+                          <p>Freight and installation cost may vary based on site distance.</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1263,13 +1312,6 @@ const Estimator = () => {
                   <>
                     <button
                       className="btn-primary"
-                      onClick={() => downloadCurrentQuotePDF(submissionResult._id)}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                    >
-                      <FaDownload /> Download PDF
-                    </button>
-                    <button
-                      className="btn-secondary"
                       onClick={() => {
                         localStorage.removeItem(ESTIMATOR_DRAFT_KEY);
                         localStorage.removeItem('estimatorSelectedPackageComponents');
@@ -1286,8 +1328,8 @@ const Estimator = () => {
                         Back
                       </button>
                     </div>
-                    <button className="btn-primary" onClick={handleSubmitEstimator} disabled={!termsAccepted || isSubmitting}>
-                      {isSubmitting ? 'Submitting...' : 'Submit Estimate'}
+                    <button className="btn-primary" onClick={handleSubmitAndDownload} disabled={!termsAccepted || isSubmitting || isDownloadingPdf}>
+                      {isSubmitting || isDownloadingPdf ? 'Preparing Download...' : 'Submit & Download'}
                     </button>
                   </>
                 )}

@@ -18,6 +18,7 @@ const Header = () => {
   const [typedText, setTypedText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isLogoAnimating, setIsLogoAnimating] = useState(false);
+  const [isHeaderIntroComplete, setIsHeaderIntroComplete] = useState(false);
   const wheelDeltaRef = useRef(0);
   const wheelLockRef = useRef(false);
   const navDockRef = useRef(null);
@@ -26,6 +27,7 @@ const Header = () => {
   const touchLastYRef = useRef(null);
   const dockUserInteractedRef = useRef(false);
   const location = useLocation();
+  const isMobileHeader = viewportWidth <= 768;
 
   const isActive = useCallback((path) => location.pathname === path, [location.pathname]);
   const isHomePage = location.pathname === '/';
@@ -44,11 +46,9 @@ const Header = () => {
       return [];
     }
 
-    const firstSpaceIndex = typedText.indexOf(' ');
-
     return typedText.split('').map((char, index) => ({
       char,
-      isAccent: firstSpaceIndex >= 0 && index > firstSpaceIndex,
+      isAccent: index === 0 || typedText[index - 1] === ' ',
     }));
   }, [typedText]);
 
@@ -110,10 +110,10 @@ const Header = () => {
     }
   };
 
-  const handleDockFocus = () => {
+  const handleDockFocus = (event) => {
     dockUserInteractedRef.current = true;
 
-    if (suppressFocusOpenRef.current) {
+    if (suppressFocusOpenRef.current || event.target.classList.contains('nav-edge-trigger')) {
       return;
     }
 
@@ -125,7 +125,7 @@ const Header = () => {
     const arcDegrees = isCompactDock ? 140 : 124;
     const radius = viewportWidth <= 480 ? 170 : viewportWidth <= 768 ? 184 : viewportWidth <= 1280 ? 214 : 198;
     const centerX = viewportWidth <= 480 ? -72 : viewportWidth <= 768 ? -80 : viewportWidth <= 1280 ? -96 : -68;
-    const compactItemGap = viewportWidth <= 480 ? 66 : viewportWidth <= 768 ? 70 : 82;
+    const compactItemGap = viewportWidth <= 480 ? 76 : viewportWidth <= 768 ? 80 : 82;
     const maxOffset = Math.max(1, Math.floor(navItems.length / 2));
     const angleStep = isCompactDock && navItems.length > 1
       ? arcDegrees / navItems.length
@@ -185,6 +185,12 @@ const Header = () => {
 
   useEffect(() => {
     dockUserInteractedRef.current = false;
+
+    if (viewportWidth <= 768) {
+      setIsDockOpen(false);
+      return undefined;
+    }
+
     setIsDockOpen(true);
 
     const hideTimer = window.setTimeout(() => {
@@ -194,7 +200,7 @@ const Header = () => {
     }, 3600);
 
     return () => window.clearTimeout(hideTimer);
-  }, [location.pathname]);
+  }, [location.pathname, viewportWidth]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -216,30 +222,36 @@ const Header = () => {
 
   useEffect(() => {
     const fullLogoText = 'Trendy Interios';
-    const spinDuration = 600;
-    const typingIntervalMs = 80;
+    const typingStartDelayMs = 180;
+    const typingIntervalMs = 82;
+    const mobileSettleDelayMs = 360;
 
-    let spinTimer = null;
+    let startTimer = null;
     let typingTimer = null;
+    let settleTimer = null;
 
     const clearAll = () => {
-      if (spinTimer) {
-        window.clearTimeout(spinTimer);
-        spinTimer = null;
+      if (startTimer) {
+        window.clearTimeout(startTimer);
+        startTimer = null;
       }
       if (typingTimer) {
         window.clearInterval(typingTimer);
         typingTimer = null;
       }
+      if (settleTimer) {
+        window.clearTimeout(settleTimer);
+        settleTimer = null;
+      }
     };
 
-    setIsLogoAnimating(true);
-    setIsTyping(false);
+    setIsLogoAnimating(isMobileHeader);
+    setIsTyping(true);
+    setIsHeaderIntroComplete(false);
     setTypedText('');
 
-    spinTimer = window.setTimeout(() => {
+    startTimer = window.setTimeout(() => {
       setIsLogoAnimating(false);
-      setIsTyping(true);
 
       let currentLength = 0;
       typingTimer = window.setInterval(() => {
@@ -247,17 +259,27 @@ const Header = () => {
         setTypedText(fullLogoText.slice(0, currentLength));
 
         if (currentLength >= fullLogoText.length) {
-          clearAll();
+          window.clearInterval(typingTimer);
+          typingTimer = null;
           setTypedText(fullLogoText);
           setIsTyping(false);
+
+          if (isMobileHeader) {
+            settleTimer = window.setTimeout(() => {
+              setTypedText('');
+              setIsHeaderIntroComplete(true);
+            }, mobileSettleDelayMs);
+          } else {
+            setIsHeaderIntroComplete(true);
+          }
         }
       }, typingIntervalMs);
-    }, spinDuration);
+    }, typingStartDelayMs);
 
     return () => {
       clearAll();
     };
-  }, [location.pathname]);
+  }, [location.pathname, isMobileHeader]);
 
   useEffect(() => {
     const navDock = navDockRef.current;
@@ -318,6 +340,10 @@ const Header = () => {
   }, [isDockOpen, processWheelDelta, viewportWidth]);
 
   useEffect(() => {
+    if (viewportWidth <= 768) {
+      return undefined;
+    }
+
     const isElementInNavDock = (target) => {
       let element = target;
 
@@ -361,25 +387,7 @@ const Header = () => {
       window.removeEventListener('wheel', handleGlobalWheel);
       window.removeEventListener('touchmove', handleGlobalTouchMove);
     };
-  }, [isDockOpen, processWheelDelta]);
-
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    const originalTouchAction = document.body.style.touchAction;
-
-    if (isDockOpen && viewportWidth <= 768) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = viewportWidth > 768 ? 'none' : originalTouchAction || '';
-    } else {
-      document.body.style.overflow = originalOverflow || '';
-      document.body.style.touchAction = originalTouchAction || '';
-    }
-
-    return () => {
-      document.body.style.overflow = originalOverflow || '';
-      document.body.style.touchAction = originalTouchAction || '';
-    };
-  }, [isDockOpen, viewportWidth]);
+  }, [isDockOpen, processWheelDelta, viewportWidth]);
 
   useEffect(() => {
     if (viewportWidth > 768 || !isDockOpen) {
@@ -483,7 +491,7 @@ const Header = () => {
         </nav>
       </div>
 
-      <header className={`header ${isScrolled ? 'scrolled' : ''} ${isHomePage ? 'transparent' : ''}`}>
+      <header className={`header ${isScrolled ? 'scrolled' : ''} ${isHomePage ? 'transparent' : ''} ${isHeaderIntroComplete ? 'header-intro-complete' : 'header-intro-active'}`}>
         <div className="header-container">
           <div className="logo">
             <Link to="/">
@@ -503,6 +511,12 @@ const Header = () => {
               </div>
             </Link>
           </div>
+          <p
+            className={`mobile-header-quote ${isHeaderIntroComplete ? 'is-visible' : ''}`}
+            aria-hidden={!isHeaderIntroComplete}
+          >
+            Filling the hearts, not space
+          </p>
         </div>
       </header>
     </>

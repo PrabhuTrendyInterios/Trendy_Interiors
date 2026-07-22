@@ -235,7 +235,7 @@ const Home = () => {
               <p className="welcome-text">Welcome to Trendy Interiors</p>
             </div>
           )}
-          <h1>Filling the Heart, Not Just Space</h1>
+          <h1>Filling the Heart, Not Space</h1>
           <p>Premium Interior Design Solutions for Modern Living</p>
           <div className="hero-cta-buttons">
             <Link
@@ -243,7 +243,7 @@ const Home = () => {
               className="btn-primary tour-view-projects-btn"
               style={{ textDecoration: 'none' }}
             >
-              View Projects
+              Watch Gallery
             </Link>
             <Link
               to="/estimator"

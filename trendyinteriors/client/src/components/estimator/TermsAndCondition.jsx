@@ -56,6 +56,8 @@ const TermsAndCondition = ({ isOpen, onClose, onAccept, hasAccepted = false }) =
   const terms = [
     'By submitting this design estimate request, you acknowledge that the quotation is a preliminary proposal based on the information provided during the Quote Interior Yourself process.',
     'All pricing is indicative and may change after site inspection, final measurements, material selection, or scope clarification. Final pricing will be confirmed during the official consultation or project discussion.',
+    'Trendy Interios may revise the estimation for any material cost change before final confirmation.',
+    'Civil, scaffolding, electrical, plumbing, painting, and stone works are not included in our scope unless explicitly mentioned in writing.',
     'Selected add-ons, package components, and layout materials are treated as optional choices and will only be included in the final scope if they remain confirmed at the time of project confirmation.',
     'Trendy Interiors reserves the right to revise the estimate if additional requirements, site conditions, or customization requests are introduced after submission.',
     'By ticking the confirmation box below, you confirm that you have reviewed the estimate and understand that the final project cost may be adjusted before execution.',

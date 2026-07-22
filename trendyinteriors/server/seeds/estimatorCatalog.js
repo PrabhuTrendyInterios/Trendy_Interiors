@@ -37,6 +37,7 @@ const DIMENSION_TEMPLATES = [
 const roomsCatalog = [
   {
     name: 'Kitchen',
+    maxSelectableRooms: 2,
     description: 'Modular kitchen design with smart storage and premium finishes.',
     imageUrl:
       'https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800',
@@ -159,6 +160,7 @@ const roomsCatalog = [
   },
   {
     name: 'Bedroom',
+    maxSelectableRooms: 6,
     description: 'Relaxing bedrooms with warm lighting and sophisticated design.',
     imageUrl:
       'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=800',
@@ -262,6 +264,7 @@ const roomsCatalog = [
   },
   {
     name: 'Hall',
+    maxSelectableRooms: 2,
     description: 'Modern living spaces designed for comfort and elegance.',
     imageUrl:
       'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800',
@@ -295,12 +298,22 @@ const roomsCatalog = [
   },
   {
     name: 'Pooja Room',
+    maxSelectableRooms: 2,
     description: 'Traditional and contemporary prayer room designs.',
     imageUrl: '/images/estimator/poojaroom.png',
     pricePerSqFt: 1200,
     status: 'active',
-    dimensions: DIMENSION_TEMPLATES,
-    layouts: [],
+    requiresDimensions: false,
+    allowCustomDimensions: false,
+    dimensions: [],
+    layouts: [
+      {
+        name: 'Pooja Unit',
+        imageUrl: '/images/estimator/poojaroom.png',
+        description: 'A fixed-price traditional or modern prayer unit.',
+        fixedPrice: 45000,
+      },
+    ],
     addons: [],
   },
 ];

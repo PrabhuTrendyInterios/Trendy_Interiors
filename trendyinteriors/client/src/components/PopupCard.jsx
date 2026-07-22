@@ -1,221 +1,134 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { FaComments, FaHome, FaImages, FaTimes } from "react-icons/fa";
-import "./PopupCard.css";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FaComments, FaHome, FaImages, FaRulerCombined } from "react-icons/fa";
+import PenguinPopup from "./PenguinPopup";
+
+const EXCLUDED_ROUTES = [
+  "/admin",
+  "/login",
+  "/register",
+  "/estimator",
+  "/quotation",
+];
+
+// Edit this object to change the site-wide popup copy or timing.
+export const PENGUIN_POPUP_CONFIG = {
+  title: "Bring your dream interior to life",
+  description: "Explore completed spaces or build a personalized interior quote in minutes.",
+  actionLabel: "Quote Interior Yourself",
+  inactivityDelay: 10000,
+  showDelay: 0,
+  autoCloseDuration: 5000,
+  storageKey: "trendy-interiors-penguin-popup-v5",
+  storageType: "none",
+};
 
 const PopupCard = () => {
-  const [visible, setVisible] = useState(false);
-  const [closing, setClosing] = useState(false);
-  const [entranceStage, setEntranceStage] = useState("idle");
-  const inactivityTimerRef = React.useRef(null);
-  const revealTimerRef = React.useRef(null);
-  const hideTimerRef = React.useRef(null);
-  const closeTimerRef = React.useRef(null);
-  const visibleRef = React.useRef(false);
-  const closingRef = React.useRef(false);
-
+  const [popupCycle, setPopupCycle] = useState(null);
+  const inactivityTimerRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const isExcluded = EXCLUDED_ROUTES.some((route) =>
+    location.pathname.startsWith(route)
+  );
+
+  const finishCycle = useCallback(() => {
+    setPopupCycle(null);
+  }, []);
 
   useEffect(() => {
-    const excludedRoutes = [
-      "/admin",
-      "/login",
-      "/register",
-      "/estimator",
-      "/quotation",
-    ];
-
-    const clearTimer = (timerRef) => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-
-    const finishClosing = () => {
-      visibleRef.current = false;
-      closingRef.current = false;
-      setVisible(false);
-      setClosing(false);
-      setEntranceStage("idle");
-    };
-
-    const showPopup = () => {
-      if (visibleRef.current || closingRef.current) return;
-
-      visibleRef.current = true;
-      setVisible(true);
-      setClosing(false);
-      setEntranceStage("peeking");
-
-      revealTimerRef.current = setTimeout(() => {
-        setEntranceStage("holding");
-
-        hideTimerRef.current = setTimeout(() => {
-          closingRef.current = true;
-          setClosing(true);
-          closeTimerRef.current = setTimeout(finishClosing, 520);
-        }, 8500);
-      }, 900);
-    };
-
-    const resetInactivityTimer = () => {
+    const clearInactivityTimer = () => {
       if (inactivityTimerRef.current) {
-        clearTimeout(inactivityTimerRef.current);
+        window.clearTimeout(inactivityTimerRef.current);
         inactivityTimerRef.current = null;
       }
-
-      if (visibleRef.current || closingRef.current) return;
-
-      inactivityTimerRef.current = setTimeout(() => {
-        showPopup();
-      }, 10000);
     };
 
-    const isExcluded = excludedRoutes.some((route) =>
-      location.pathname.startsWith(route)
-    );
-
-    if (isExcluded) {
-      clearTimer(inactivityTimerRef);
-      clearTimer(revealTimerRef);
-      clearTimer(hideTimerRef);
-      clearTimer(closeTimerRef);
-      finishClosing();
-      return;
+    if (isExcluded || popupCycle !== null) {
+      clearInactivityTimer();
+      return clearInactivityTimer;
     }
 
-    // Track user activity
-    const handleActivity = () => {
-      resetInactivityTimer();
+    const armInactivityTimer = () => {
+      clearInactivityTimer();
+      inactivityTimerRef.current = window.setTimeout(() => {
+        inactivityTimerRef.current = null;
+        setPopupCycle(Date.now());
+      }, PENGUIN_POPUP_CONFIG.inactivityDelay);
     };
 
-    // Add event listeners for user activity
-    window.addEventListener("click", handleActivity);
-    window.addEventListener("scroll", handleActivity);
-    window.addEventListener("mousemove", handleActivity);
-    window.addEventListener("keypress", handleActivity);
-    window.addEventListener("touchstart", handleActivity);
+    const activityEvents = [
+      "pointermove",
+      "pointerdown",
+      "touchstart",
+      "scroll",
+      "keydown",
+    ];
 
-    // Initialize the inactivity timer
-    resetInactivityTimer();
+    activityEvents.forEach((eventName) =>
+      window.addEventListener(eventName, armInactivityTimer, { passive: true })
+    );
+    armInactivityTimer();
 
     return () => {
-      window.removeEventListener("click", handleActivity);
-      window.removeEventListener("scroll", handleActivity);
-      window.removeEventListener("mousemove", handleActivity);
-      window.removeEventListener("keypress", handleActivity);
-      window.removeEventListener("touchstart", handleActivity);
-      if (inactivityTimerRef.current) {
-        clearTimeout(inactivityTimerRef.current);
-      }
-      clearTimer(revealTimerRef);
-      clearTimer(hideTimerRef);
-      clearTimer(closeTimerRef);
+      clearInactivityTimer();
+      activityEvents.forEach((eventName) =>
+        window.removeEventListener(eventName, armInactivityTimer)
+      );
     };
-  }, [location.pathname]);
+  }, [isExcluded, popupCycle]);
 
-  const closePopup = (onClosed) => {
-    [revealTimerRef, hideTimerRef, closeTimerRef].forEach((timerRef) => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    });
+  const informationRows = useMemo(
+    () => [
+      { id: "quote", icon: <FaRulerCombined />, label: "Personalized design quote" },
+      { id: "projects", icon: <FaImages />, label: "Completed interior projects" },
+    ],
+    []
+  );
 
-    closingRef.current = true;
-    setClosing(true);
+  const secondaryActions = useMemo(
+    () => [
+      {
+        id: "projects",
+        label: "View Projects",
+        icon: <FaImages />,
+        onAction: () => {
+          finishCycle();
+          navigate("/projects");
+        },
+      },
+      {
+        id: "chat",
+        label: "Chat",
+        ariaLabel: "Open chatbot",
+        title: "Chat with us",
+        icon: <FaComments />,
+        iconOnly: true,
+        onAction: () => {
+          finishCycle();
+          window.dispatchEvent(new Event("open-chatbot"));
+        },
+      },
+    ],
+    [finishCycle, navigate]
+  );
 
-    closeTimerRef.current = setTimeout(() => {
-      visibleRef.current = false;
-      closingRef.current = false;
-      setVisible(false);
-      setClosing(false);
-      setEntranceStage("idle");
-      onClosed?.();
-    }, 520);
-  };
-
-  const handleEstimate = () => {
-    closePopup(() => navigate("/estimator"));
-  };
-  const handleViewProjects = () => {
-    closePopup(() => navigate("/projects"));
-  };
-  const handleChatbot = () => {
-    closePopup(() => {
-      window.dispatchEvent(new Event("open-chatbot"));
-    });
-  };
-
-  const handleCancel = () => {
-    closePopup();
-  };
-
-  if (!visible) return null;
+  if (isExcluded || popupCycle === null) return null;
 
   return (
-    <div
-      className={`popup-container popup-${entranceStage} ${
-        closing ? "popup-closing" : ""
-      }`}
-      aria-live="polite"
-    >
-
-      <div className="penguin-wrapper">
-        <img
-          src="/images/penguin.png"
-          alt="Penguin Buddy"
-          className="penguin-image"
-        />
-      </div>
-
-      <aside className="speech-bubble" aria-label="Interior design offer">
-        <button
-          className="popup-close"
-          onClick={handleCancel}
-          aria-label="Close popup"
-        >
-          <FaTimes aria-hidden="true" />
-        </button>
-
-        <div className="popup-copy">
-          <span className="popup-lead">
-            <FaHome aria-hidden="true" />
-            <strong>Bring your dream interior to life</strong>
-          </span>
-          <p>
-            Explore completed spaces or create a personalized quote in minutes.
-          </p>
-        </div>
-
-        <div className="popup-actions">
-          <button
-            className="popup-estimate-btn popup-secondary-btn"
-            onClick={handleViewProjects}
-          >
-            <FaImages aria-hidden="true" />
-            View Projects
-          </button>
-          <button
-            className="popup-estimate-btn"
-            onClick={handleEstimate}
-          >
-            <FaHome aria-hidden="true" />
-            Quote Interior Yourself
-          </button>
-          <button
-            className="popup-chat-btn"
-            onClick={handleChatbot}
-            aria-label="Open chatbot"
-            title="Chat with us"
-          >
-            <FaComments aria-hidden="true" />
-          </button>
-        </div>
-      </aside>
-    </div>
+    <PenguinPopup
+      key={popupCycle}
+      {...PENGUIN_POPUP_CONFIG}
+      icon={<FaHome />}
+      informationRows={informationRows}
+      secondaryActions={secondaryActions}
+      onAction={() => {
+        finishCycle();
+        navigate("/estimator");
+      }}
+      onClose={finishCycle}
+      onAutoClose={finishCycle}
+    />
   );
 };
 

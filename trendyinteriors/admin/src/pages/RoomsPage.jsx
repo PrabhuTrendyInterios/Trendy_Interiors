@@ -117,6 +117,7 @@ const RoomsPage = () => {
                   <th>Room</th>
                   <th>Price / sq.ft</th>
                   <th>Status</th>
+                  <th>Max selection</th>
                   <th>Nested Items</th>
                   <th>Actions</th>
                 </tr>
@@ -141,6 +142,7 @@ const RoomsPage = () => {
                         {room.status === 'active' ? 'Active' : 'Inactive'}
                       </span>
                     </td>
+                    <td>{room.maxSelectableRooms || 2}</td>
                     <td className="rooms-table-meta">
                       {room.dimensions?.length || 0} dim · {room.layouts?.length || 0} layout ·{' '}
                       {room.addons?.length || 0} addon

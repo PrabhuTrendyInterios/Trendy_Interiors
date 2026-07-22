@@ -102,6 +102,20 @@ const toBoolean = (value) => {
   return Boolean(value);
 };
 
+const getLegacyRoomLimit = (roomName = '') =>
+  String(roomName).toLowerCase().includes('bedroom') ? 6 : 2;
+
+const normalizeMaxSelectableRooms = (value, roomName = '') => {
+  const parsed = Number(value);
+  const fallback = getLegacyRoomLimit(roomName);
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.min(20, Math.max(1, Math.trunc(parsed)));
+};
+
 const normalizeRoomPayload = (body = {}) => {
   return {
     name: body.name?.trim(),
@@ -111,6 +125,7 @@ const normalizeRoomPayload = (body = {}) => {
     status: body.status === 'inactive' ? 'inactive' : 'active',
     allowCustomDimensions: toBoolean(body.allowCustomDimensions),
     requiresDimensions: body.requiresDimensions !== undefined ? toBoolean(body.requiresDimensions) : true,
+    maxSelectableRooms: normalizeMaxSelectableRooms(body.maxSelectableRooms, body.name),
     dimensions: Array.isArray(body.dimensions)
       ? body.dimensions.map(normalizeDimension)
       : [],
@@ -213,6 +228,9 @@ exports.updateRoom = async (req, res) => {
       status: req.body.status !== undefined ? (req.body.status === 'inactive' ? 'inactive' : 'active') : existingRoom.status,
       allowCustomDimensions: req.body.allowCustomDimensions !== undefined ? toBoolean(req.body.allowCustomDimensions) : existingRoom.allowCustomDimensions,
       requiresDimensions: req.body.requiresDimensions !== undefined ? toBoolean(req.body.requiresDimensions) : existingRoom.requiresDimensions,
+      maxSelectableRooms: req.body.maxSelectableRooms !== undefined
+        ? normalizeMaxSelectableRooms(req.body.maxSelectableRooms, req.body.name || existingRoom.name)
+        : normalizeMaxSelectableRooms(existingRoom.maxSelectableRooms, existingRoom.name),
     };
 
     console.log(`[updateRoom] Processing updates for "${req.body.name}":`, {

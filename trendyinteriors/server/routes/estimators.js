@@ -16,17 +16,24 @@ const toPositiveNumber = (value) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
-const normalizeExtraAddonIds = (extraAddons = []) => {
+const normalizeExtraAddonEntries = (extraAddons = []) => {
   const seen = new Set();
 
   return (Array.isArray(extraAddons) ? extraAddons : [])
-    .map((addonId) => (addonId != null ? String(addonId).trim() : ''))
-    .filter((addonId) => {
-      if (!addonId || seen.has(addonId)) {
+    .map((entry) => {
+      const addonId = entry?.id || entry?._id || entry;
+      const id = addonId != null ? String(addonId).trim() : '';
+      const count = Math.max(0, Number(entry?.count ?? 1) || 0);
+      const size = typeof entry?.size === 'string' ? entry.size.trim() : '';
+
+      return { id, count, size };
+    })
+    .filter((entry) => {
+      if (!entry.id || seen.has(entry.id) || entry.count <= 0) {
         return false;
       }
 
-      seen.add(addonId);
+      seen.add(entry.id);
       return true;
     });
 };
@@ -91,6 +98,18 @@ const validateEstimatorPayload = (payload, roomsCatalog = [], options = {}) => {
     });
   }
 
+  Object.entries(rooms).forEach(([roomName, count]) => {
+    const roomDoc = findRoomCatalogEntry(roomsCatalog, roomName);
+    const configuredLimit = Number(roomDoc?.maxSelectableRooms);
+    const legacyLimit = String(roomName).toLowerCase().includes("bedroom") ? 6 : 2;
+    const limit = Number.isInteger(configuredLimit) && configuredLimit > 0
+      ? configuredLimit
+      : legacyLimit;
+    if ((Number(count) || 0) > limit) {
+      errors.push(`${roomName} quantity cannot exceed ${limit}.`);
+    }
+  });
+
   const normalizedDimensions = {};
 
   roomInstances.forEach((room) => {
@@ -153,7 +172,7 @@ const validateEstimatorPayload = (payload, roomsCatalog = [], options = {}) => {
     rooms,
     selectedRoomForDimensions: normalizedSelectedRoom,
     customerInfo: payload?.customerInfo || {},
-    extraAddons: normalizeExtraAddonIds(payload?.extraAddons),
+    extraAddons: normalizeExtraAddonEntries(payload?.extraAddons),
   };
 };
 
