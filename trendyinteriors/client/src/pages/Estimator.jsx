@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { FaCheck, FaExclamationTriangle, FaLock } from 'react-icons/fa';
+import { FaCheck, FaExclamationTriangle, FaLock, FaTimes } from 'react-icons/fa';
 import RoomSelection from '../components/estimator/RoomSelection';
 import DimensionsSelection from '../components/estimator/DimensionsSelection';
 import ExtraAddons from '../components/estimator/ExtraAddons';
@@ -23,6 +23,7 @@ import {
   getLayoutMaterialsForRoom,
   getLayoutMaterialsTotal,
   isLayoutMaterialSelected,
+  matchDimensionFromSizeCategory,
   normalizeLayoutMaterialSelection,
   normalizeEstimatorRoom,
   reloadLayoutMaterialSelection,
@@ -325,6 +326,55 @@ const Estimator = () => {
   }, [roomsCatalog, formData.rooms]);
 
   useEffect(() => {
+    if (roomsCatalog.length === 0) return;
+
+    setFormData((prev) => {
+      const nextDimensions = { ...prev.roomDimensionsByRoom };
+      let changed = false;
+
+      buildRoomInstances(prev.rooms).forEach((roomInstance) => {
+        const current = nextDimensions[roomInstance.id];
+        const room = findRoomByName(roomsCatalog, roomInstance.roomName);
+        if (!current || !room) return;
+
+        const selectedSize = current.sizeCategory || '';
+        const sizeIsStale = Boolean(selectedSize) && !matchDimensionFromSizeCategory(
+          room.dimensions,
+          selectedSize,
+        );
+
+        if (sizeIsStale) {
+          nextDimensions[roomInstance.id] = {
+            length: '',
+            width: '',
+            height: '',
+            sizeCategory: '',
+            selectedDesignIdea: { layout: '', addons: [], room: roomInstance.roomName },
+          };
+          changed = true;
+          return;
+        }
+
+        const design = current.selectedDesignIdea || {};
+        const validLayouts = new Set((room.layouts || []).map((layout) => layout.name));
+        const validAddons = new Set((room.addons || []).map((addon) => addon.name));
+        const layout = validLayouts.has(design.layout) ? design.layout : '';
+        const addons = (design.addons || []).filter((addon) => validAddons.has(addon));
+
+        if (layout !== (design.layout || '') || addons.length !== (design.addons || []).length) {
+          nextDimensions[roomInstance.id] = {
+            ...current,
+            selectedDesignIdea: { ...design, layout, addons, room: roomInstance.roomName },
+          };
+          changed = true;
+        }
+      });
+
+      return changed ? { ...prev, roomDimensionsByRoom: nextDimensions } : prev;
+    });
+  }, [roomsCatalog]);
+
+  useEffect(() => {
     try {
       localStorage.setItem(ESTIMATOR_DRAFT_KEY, JSON.stringify(formData));
     } catch (error) {
@@ -385,15 +435,13 @@ const Estimator = () => {
         setQuoteSummary(quote);
 
         // Initialize selectedPackageComponents based on fetched quote
-        // Only mandatory components are auto-included; optional ones start unselected
+        // Package materials are selected initially but remain optional and deselectable.
         if (quote && Array.isArray(quote.lineItems)) {
           const initialComponents = {};
           const initialLayoutMaterials = {};
 
           quote.lineItems.forEach((item) => {
             if (item.roomId && item.roomId !== 'global-addons' && Array.isArray(item.packageComponents)) {
-              // Start with all package components selected by default.
-              // Users can deselect optional items if they don't need them.
               initialComponents[item.roomId] = item.packageComponents
                 .filter((component) => component?.id)
                 .map((component) => component.id);
@@ -1086,8 +1134,8 @@ const Estimator = () => {
                                               minWidth: '20px',
                                               minHeight: '20px',
                                               borderRadius: '50%',
-                                              border: `2px solid ${isSelected ? 'var(--color-gold)' : '#ccc'}`,
-                                              backgroundColor: isSelected ? 'var(--color-gold)' : 'white',
+                                              border: `2px solid ${isSelected ? 'var(--color-gold)' : '#c62828'}`,
+                                              backgroundColor: isSelected ? 'var(--color-gold)' : 'rgba(198, 40, 40, 0.08)',
                                               display: 'flex',
                                               alignItems: 'center',
                                               justifyContent: 'center',
@@ -1097,17 +1145,15 @@ const Estimator = () => {
                                             }}
                                             title={isSelected ? 'Click to deselect' : 'Click to select'}
                                           >
-                                            {isSelected && (
-                                              <span style={{
-                                                fontSize: '12px',
-                                                color: 'white',
-                                                fontWeight: 'bold',
-                                                lineHeight: 1,
-                                                display: 'inline-flex',
-                                              }}>
-                                                <FaCheck aria-hidden="true" />
-                                              </span>
-                                            )}
+                                            <span style={{
+                                              fontSize: '12px',
+                                              color: isSelected ? 'white' : '#c62828',
+                                              fontWeight: 'bold',
+                                              lineHeight: 1,
+                                              display: 'inline-flex',
+                                            }}>
+                                              {isSelected ? <FaCheck aria-hidden="true" /> : <FaTimes aria-hidden="true" />}
+                                            </span>
                                           </button>
                                         )}
                                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -1140,7 +1186,7 @@ const Estimator = () => {
                                   )}
                                 </div>
                               ) : (
-                                Array.isArray(item.packageComponents) && (
+                                Array.isArray(item.packageComponents) && !item.layout && (
                                   <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: 'var(--color-gray)', fontStyle: 'italic' }}>
                                     No package components available
                                   </p>
@@ -1159,7 +1205,7 @@ const Estimator = () => {
                                 return (
                                   <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
                                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', fontWeight: '600', color: 'var(--color-charcoal-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                      {layoutData.layoutName}
+                                      Package Materials
                                     </p>
 
                                     {layoutData.hasLayoutMaterials && layoutData.materials.length > 0 && (
@@ -1192,8 +1238,8 @@ const Estimator = () => {
                                                   minWidth: '20px',
                                                   minHeight: '20px',
                                                   borderRadius: '50%',
-                                                  border: `2px solid ${isSelected ? 'var(--color-gold)' : '#ccc'}`,
-                                                  backgroundColor: isSelected ? 'var(--color-gold)' : 'white',
+                                                  border: `2px solid ${isSelected ? 'var(--color-gold)' : '#c62828'}`,
+                                                  backgroundColor: isSelected ? 'var(--color-gold)' : 'rgba(198, 40, 40, 0.08)',
                                                   display: 'flex',
                                                   alignItems: 'center',
                                                   justifyContent: 'center',
@@ -1202,17 +1248,15 @@ const Estimator = () => {
                                                   boxShadow: isSelected ? '0 0 0 3px rgba(212, 175, 55, 0.1)' : 'none',
                                                 }}
                                               >
-                                                {isSelected && (
-                                                  <span style={{
-                                                    fontSize: '12px',
-                                                    color: 'white',
-                                                    fontWeight: 'bold',
-                                                    lineHeight: 1,
-                                                    display: 'inline-flex',
-                                                  }}>
-                                                    <FaCheck aria-hidden="true" />
-                                                  </span>
-                                                )}
+                                                <span style={{
+                                                  fontSize: '12px',
+                                                  color: isSelected ? 'white' : '#c62828',
+                                                  fontWeight: 'bold',
+                                                  lineHeight: 1,
+                                                  display: 'inline-flex',
+                                                }}>
+                                                  {isSelected ? <FaCheck aria-hidden="true" /> : <FaTimes aria-hidden="true" />}
+                                                </span>
                                               </button>
                                               <div style={{ flex: 1, minWidth: 0 }}>
                                                 <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-charcoal-dark)', fontWeight: '500' }}>

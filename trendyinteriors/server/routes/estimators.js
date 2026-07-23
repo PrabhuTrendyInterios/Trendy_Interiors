@@ -178,7 +178,7 @@ const validateEstimatorPayload = (payload, roomsCatalog = [], options = {}) => {
 
 const loadEstimatorData = async () => {
   const [roomsCatalog, globalAddons] = await Promise.all([
-    Room.find({ status: 'active' }).sort({ name: 1 }),
+    Room.find({ status: 'active' }).sort({ displayOrder: 1, name: 1 }),
     GlobalAddon.find({ active: true }).sort({ order: 1, name: 1 }),
   ]);
 

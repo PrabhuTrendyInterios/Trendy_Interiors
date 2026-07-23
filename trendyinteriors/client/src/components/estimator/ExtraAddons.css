@@ -35,7 +35,7 @@
   padding: 14px;
   overflow-x: hidden;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(212, 175, 55, 0.85) transparent;
   margin-bottom: 40px;

@@ -2970,7 +2970,7 @@
   padding: 20px 18px 20px 20px;
   overflow-x: hidden;
   overflow-y: auto;
-  overscroll-behavior-block: contain;
+  overscroll-behavior-block: auto;
   scroll-snap-type: y proximity;
   scrollbar-width: thin;
   scrollbar-color: rgba(212, 175, 55, 0.75) transparent;
@@ -3143,7 +3143,7 @@
   padding: 20px;
   overflow-x: hidden;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(212, 175, 55, 0.85) transparent;
   background: transparent !important;

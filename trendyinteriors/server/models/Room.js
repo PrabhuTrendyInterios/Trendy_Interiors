@@ -196,6 +196,11 @@ const roomSchema = new mongoose.Schema(
       enum: ['active', 'inactive'],
       default: 'active',
     },
+    displayOrder: {
+      type: Number,
+      default: 0,
+      min: [0, 'Display order cannot be negative'],
+    },
     allowCustomDimensions: {
       type: Boolean,
       default: false,
@@ -225,6 +230,6 @@ const roomSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-roomSchema.index({ status: 1, name: 1 });
+roomSchema.index({ status: 1, displayOrder: 1, name: 1 });
 
 module.exports = mongoose.model('Room', roomSchema);

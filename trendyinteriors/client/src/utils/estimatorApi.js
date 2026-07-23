@@ -26,6 +26,16 @@ const normalizeLayoutConfiguration = (config = {}) => ({
   })),
 });
 
+const normalizePackageComponent = (component = {}) => ({
+  ...(component._id ? { _id: component._id } : {}),
+  id: component._id ? String(component._id) : component.id || '',
+  name: component.name || '',
+  description: component.description || '',
+  price: Number(component.price) || 0,
+  mandatory: component.mandatory ?? false,
+  displayOrder: Number(component.displayOrder) || 0,
+});
+
 export const normalizeEstimatorRoom = (room) => ({
   _id: room._id,
   id: slugifyRoomName(room.name),
@@ -46,6 +56,9 @@ export const normalizeEstimatorRoom = (room) => ({
     length: Number(dim.length) || 0,
     width: Number(dim.width) || 0,
     height: Number(dim.height) || 0,
+    packageComponents: (dim.packageComponents || [])
+      .map(normalizePackageComponent)
+      .sort((a, b) => a.displayOrder - b.displayOrder),
   })),
   layouts: (room.layouts || []).map((layout) => ({
     ...(layout._id ? { _id: layout._id } : {}),
@@ -112,13 +125,15 @@ export const getLayoutMaterialsForRoom = ({
 
   const dimension = matchDimensionFromSizeCategory(room.dimensions, sizeCategory);
   const dimensionId = dimension?._id?.toString() || dimension?.id?.toString() || sizeCategory;
+  const dimensionName = dimension?.name ? String(dimension.name).trim().toLowerCase() : '';
 
   const configuration = (layout.configurations || []).find((config) => {
     if (!config.dimensionId) return false;
 
     return (
       String(config.dimensionId) === String(dimensionId) ||
-      String(config.dimensionId) === String(sizeCategory)
+      String(config.dimensionId) === String(sizeCategory) ||
+      (dimensionName && String(config.dimensionId).trim().toLowerCase() === dimensionName)
     );
   });
 
@@ -136,7 +151,7 @@ export const getLayoutMaterialsForRoom = ({
   };
 };
 
-/** roomId -> { materialId: boolean } — all true by default */
+/** roomId -> { materialId: boolean } — available materials are selected by default */
 export const buildDefaultLayoutMaterialSelection = (materials = []) =>
   materials.reduce((selection, material) => {
     if (material.id) {

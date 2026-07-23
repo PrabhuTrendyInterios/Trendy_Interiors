@@ -340,7 +340,9 @@ const DimensionsSelection = ({
                     disabled={!canChooseLayout}
                   >
                     <span>{layoutLabel}</span>
-                    <strong>₹{layoutCost.toLocaleString('en-IN')}</strong>
+                    {layoutCost > 0 && (
+                      <strong>₹{layoutCost.toLocaleString('en-IN')}</strong>
+                    )}
                   </button>
                 );
               })}

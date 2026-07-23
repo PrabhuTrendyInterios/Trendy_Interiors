@@ -16,7 +16,9 @@
     "seed:global-addons": "node seedGlobalAddons.js",
     "seed:estimator": "node seedEstimator.js",
     "migrate:estimator": "node scripts/migrateEstimatorData.js",
-    "migrate:room-settings": "node scripts/migrateRoomSettings.js"
+    "migrate:room-settings": "node scripts/migrateRoomSettings.js",
+    "migrate:package-components": "node scripts/migratePackageComponents.js",
+    "replace:quote-catalog": "node scripts/replaceQuoteCatalog.js"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",

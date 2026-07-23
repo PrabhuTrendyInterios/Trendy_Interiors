@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 
 const clamp01 = (value) => Math.min(Math.max(value, 0), 1);
 const MIN_SCRUB_VIEWPORTS = 1.6;
+const DESKTOP_SCRUB_FPS = 30;
+const MOBILE_SCRUB_FPS = 15;
 
 const getScrollProgress = () => {
   const viewportHeight = window.innerHeight || 1;
@@ -42,7 +44,8 @@ const useScrollScrubbedVideo = (videoRef) => {
       });
     };
 
-    const getMinSeekInterval = () => (window.innerWidth <= 768 ? 48 : 34);
+    const getScrubFps = () => (window.innerWidth <= 768 ? MOBILE_SCRUB_FPS : DESKTOP_SCRUB_FPS);
+    const getMinSeekInterval = () => 1000 / getScrubFps();
 
     const pauseIfPlaying = () => {
       if (!video.paused) {
@@ -55,6 +58,7 @@ const useScrollScrubbedVideo = (videoRef) => {
 
       const nextTime = progress * video.duration;
       const timeDiff = Math.abs(video.currentTime - nextTime);
+      const minimumTimeDelta = 0.5 / getScrubFps();
 
       if (!Number.isFinite(nextTime)) {
         return false;
@@ -71,7 +75,7 @@ const useScrollScrubbedVideo = (videoRef) => {
         return false;
       }
 
-      if (immediate || timeDiff > 0.016) {
+      if (immediate || timeDiff > minimumTimeDelta) {
         video.currentTime = nextTime;
         lastSeekAtRef.current = now;
       }

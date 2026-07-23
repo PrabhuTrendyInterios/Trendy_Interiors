@@ -35,6 +35,29 @@ describe('server/utils/layoutMaterials', () => {
     expect(result.materials[0].name).toBe('Laminate');
   });
 
+  test('resolves a name-keyed configuration when the selected size is a dimension id', () => {
+    const result = resolveLayoutMaterials(
+      {
+        name: 'Kitchen',
+        dimensions: [{ _id: 'kitchen-low-id', name: 'Low' }],
+        layouts: [{
+          name: 'U Shape',
+          hasLayoutMaterials: true,
+          configurations: [{
+            dimensionId: 'Low',
+            materials: [{ _id: 'u-low-1', name: 'Laminate', price: 10000 }],
+          }],
+        }],
+      },
+      'U Shape',
+      'kitchen-low-id'
+    );
+
+    expect(result.skipped).toBe(false);
+    expect(result.materials).toHaveLength(1);
+    expect(result.materials[0].name).toBe('Laminate');
+  });
+
   test('resolveLayoutMaterials skips safely when layout is missing', () => {
     const result = resolveLayoutMaterials(roomDoc, 'Missing Layout', 'dim-low');
 

@@ -48,6 +48,7 @@ const findLayoutConfiguration = (layout, dimension, sizeCategory = '') => {
   }
 
   const dimensionId = dimension?._id?.toString() || dimension?.id?.toString() || '';
+  const dimensionName = dimension?.name ? String(dimension.name).trim().toLowerCase() : '';
 
   return (
     configurations.find((config) => {
@@ -56,10 +57,12 @@ const findLayoutConfiguration = (layout, dimension, sizeCategory = '') => {
       }
 
       const configDimensionId = String(config.dimensionId);
+      const normalizedConfigDimension = configDimensionId.trim().toLowerCase();
 
       return (
         (dimensionId && configDimensionId === dimensionId) ||
-        (sizeCategory && configDimensionId === String(sizeCategory))
+        (sizeCategory && configDimensionId === String(sizeCategory)) ||
+        (dimensionName && normalizedConfigDimension === dimensionName)
       );
     }) || null
   );

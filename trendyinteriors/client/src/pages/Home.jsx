@@ -239,18 +239,29 @@ const Home = () => {
           <p>Premium Interior Design Solutions for Modern Living</p>
           <div className="hero-cta-buttons">
             <Link
+              to="/estimator"
+              className="btn-primary tour-estimator-btn"
+              style={{ textDecoration: 'none' }}
+              aria-label="Quote Interior Yourself"
+            >
+              <span className="quote-cta-label" aria-hidden="true">
+                {'Quote Interior Yourself'.split('').map((character, index) => (
+                  <span
+                    className="quote-cta-letter"
+                    style={{ '--letter-index': index }}
+                    key={`${character}-${index}`}
+                  >
+                    {character === ' ' ? '\u00A0' : character}
+                  </span>
+                ))}
+              </span>
+            </Link>
+            <Link
               to="/projects"
-              className="btn-primary tour-view-projects-btn"
+              className="btn-secondary tour-view-projects-btn"
               style={{ textDecoration: 'none' }}
             >
               Watch Gallery
-            </Link>
-            <Link
-              to="/estimator"
-              className="btn-secondary tour-estimator-btn"
-              style={{ textDecoration: 'none' }}
-            >
-              Quote Interior Yourself
             </Link>
           </div>
         </div>

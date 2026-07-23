@@ -290,4 +290,116 @@ describe('server/utils/calculateEstimate', () => {
     expect(quote.lineItems[0].layoutMaterials).toEqual([]);
     expect(quote.lineItems[0].estimatedCost).toBe(100000);
   });
+
+  test.each([
+    ['Kitchen', 'L Shape', 'Low', 23000, 'Mid', 28000],
+    ['Bedroom', 'Sliding Wardrobe', 'Low', 16000, 'Large', 24000],
+  ])(
+    '%s resolves package materials from the selected layout and size',
+    (roomName, layoutName, firstSize, firstTotal, secondSize, secondTotal) => {
+      const materialSets = {
+        Kitchen: {
+          Low: [{ _id: 'k-low-1', name: 'Laminate' }, { _id: 'k-low-2', name: 'Granite' }],
+          Mid: [{ _id: 'k-mid-1', name: 'Laminate' }, { _id: 'k-mid-2', name: 'Granite' }],
+        },
+        Bedroom: {
+          Low: [{ _id: 'b-low-1', name: 'Particle Board' }, { _id: 'b-low-2', name: 'Plywood' }],
+          Large: [{ _id: 'b-large-1', name: 'Particle Board' }, { _id: 'b-large-2', name: 'Plywood' }],
+        },
+      };
+      const materialPrices = {
+        Kitchen: { Low: [8000, 15000], Mid: [10000, 18000] },
+        Bedroom: { Low: [6000, 10000], Large: [9000, 15000] },
+      };
+      const sizes = [firstSize, secondSize];
+      const room = {
+        name: roomName,
+        pricePerSqFt: 0,
+        dimensions: sizes.map((name) => ({
+          _id: `${roomName}-${name}`,
+          name,
+          packageComponents: [{ _id: `wrong-${name}`, name: 'Dimension-only material', price: 99999 }],
+        })),
+        layouts: [{
+          name: layoutName,
+          fixedPrice: 0,
+          hasLayoutMaterials: true,
+          configurations: sizes.map((size) => ({
+            dimensionId: `${roomName}-${size}`,
+            materials: materialSets[roomName][size].map((material, index) => ({
+              ...material,
+              price: materialPrices[roomName][size][index],
+              mandatory: index === 0,
+            })),
+          })),
+        }],
+        addons: [],
+      };
+
+      const calculateForSize = (size) => calculateEstimate({
+        roomInstances: [{ id: `${roomName}-1`, roomName, label: roomName }],
+        normalizedDimensions: {
+          [`${roomName}-1`]: {
+            length: 1,
+            width: 1,
+            height: 1,
+            sizeCategory: `${roomName}-${size}`,
+            selectedDesignIdea: { layout: layoutName, addons: [] },
+          },
+        },
+        roomsCatalog: [room],
+        extraAddons: [],
+        globalAddons: [],
+      }).lineItems[0];
+
+      const firstQuote = calculateForSize(firstSize);
+      const secondQuote = calculateForSize(secondSize);
+
+      expect(firstQuote.packageComponents).toEqual([]);
+      expect(secondQuote.packageComponents).toEqual([]);
+      expect(firstQuote.layoutMaterialsCost).toBe(firstTotal);
+      expect(secondQuote.layoutMaterialsCost).toBe(secondTotal);
+      expect(firstQuote.layoutMaterials.map((material) => material.id)).not.toEqual(
+        secondQuote.layoutMaterials.map((material) => material.id)
+      );
+    }
+  );
+
+  test('Hall resolves package materials directly from the selected dimension', () => {
+    const quote = calculateEstimate({
+      roomInstances: [{ id: 'Hall-1', roomName: 'Hall', label: 'Hall' }],
+      normalizedDimensions: {
+        'Hall-1': {
+          length: 10,
+          width: 10,
+          height: 9,
+          sizeCategory: 'hall-low',
+          selectedDesignIdea: { layout: '', addons: [] },
+        },
+      },
+      roomsCatalog: [{
+        name: 'Hall',
+        pricePerSqFt: 0,
+        dimensions: [{
+          _id: 'hall-low',
+          name: 'Low',
+          packageComponents: [
+            { _id: 'hall-hinges', name: 'Hinges', price: 2000, mandatory: true },
+            { _id: 'hall-handles', name: 'Handles', price: 1500, mandatory: true },
+          ],
+        }],
+        layouts: [],
+        addons: [],
+      }],
+      extraAddons: [],
+      globalAddons: [],
+    });
+
+    expect(quote.lineItems[0].packageComponents.map((component) => component.name)).toEqual([
+      'Hinges',
+      'Handles',
+    ]);
+    expect(quote.lineItems[0].packageComponentsTotal).toBe(3500);
+    expect(quote.lineItems[0].layoutMaterials).toEqual([]);
+  });
 });

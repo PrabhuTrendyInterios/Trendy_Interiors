@@ -46,9 +46,9 @@ const Header = () => {
       return [];
     }
 
-    return typedText.split('').map((char, index) => ({
+    return typedText.split('').map((char) => ({
       char,
-      isAccent: index === 0 || typedText[index - 1] === ' ',
+      isAccent: char === 'T' || char === 'I' || char === 'S',
     }));
   }, [typedText]);
 
@@ -221,7 +221,7 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
-    const fullLogoText = 'Trendy Interios';
+    const fullLogoText = 'Trendy InterioS';
     const typingStartDelayMs = 180;
     const typingIntervalMs = 82;
     const mobileSettleDelayMs = 360;
@@ -515,7 +515,15 @@ const Header = () => {
             className={`mobile-header-quote ${isHeaderIntroComplete ? 'is-visible' : ''}`}
             aria-hidden={!isHeaderIntroComplete}
           >
-            Filling the hearts, not space
+            {['Filling', 'the', 'hearts,', 'not', 'space'].map((word, index) => (
+              <span
+                className="header-quote-word"
+                style={{ '--word-index': index }}
+                key={word}
+              >
+                {word}
+              </span>
+            ))}
           </p>
         </div>
       </header>

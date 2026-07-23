@@ -140,7 +140,7 @@ const normalizeRoomPayload = (body = {}) => {
 
 exports.getRooms = async (req, res) => {
   try {
-    const rooms = await Room.find(buildRoomFilter(req.query)).sort({ name: 1 });
+    const rooms = await Room.find(buildRoomFilter(req.query)).sort({ displayOrder: 1, name: 1 });
 
     sendSuccess(res, 200, {
       count: rooms.length,

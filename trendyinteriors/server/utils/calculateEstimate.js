@@ -181,8 +181,20 @@ const calculateEstimate = ({
         }
       }
     
-    // Get package components for this dimension
-    const packageComponentsArray = getPackageComponentsForDimension(roomDoc, sizeCategory);
+    const layoutMaterialsResult = resolveLayoutMaterials(
+      roomDoc,
+      selectedDesignIdea.layout,
+      sizeCategory
+    );
+    const usesLayoutScopedMaterials = roomDoc?.layouts?.some(
+      (layout) => layout.hasLayoutMaterials || layout.configurations?.length > 0
+    );
+
+    // Layout-driven rooms resolve materials by layout + size. Layoutless rooms
+    // (for example Hall) resolve their package directly from the selected size.
+    const packageComponentsArray = usesLayoutScopedMaterials
+      ? []
+      : getPackageComponentsForDimension(roomDoc, sizeCategory);
     const selectedIds = (selectedPackageComponents[room.id] || []);
     const packageComponentsTotal = roundMoney(getPackageComponentsTotal(packageComponentsArray, selectedIds));
 
@@ -204,11 +216,6 @@ const calculateEstimate = ({
     console.log(`  Selected Component IDs: ${selectedIds.length}`, selectedIds);
     console.log(`  Package Components Total: ₹${packageComponentsTotal}`);
     
-    const layoutMaterialsResult = resolveLayoutMaterials(
-      roomDoc,
-      selectedDesignIdea.layout,
-      sizeCategory
-    );
     const layoutMaterialsArray = layoutMaterialsResult.materials;
 
     if (layoutMaterialsResult.skipped && layoutMaterialsResult.validationError) {

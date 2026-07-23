@@ -107,7 +107,7 @@ const About = () => {
                   <span>About Us</span>
                 </div>
                 <iframe
-                  src="https://www.youtube.com/embed?listType=user_uploads&list=prabul7047"
+                  src="https://www.youtube.com/embed/waC8JKrk43Y?autoplay=1&mute=1&loop=1&playlist=waC8JKrk43Y&controls=0&disablekb=1&playsinline=1&modestbranding=1"
                   title="About Trendy Interios"
                   loading="lazy"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -119,7 +119,7 @@ const About = () => {
                     <span>See what our clients say about their interiors.</span>
                   </div>
                   <a
-                    href="https://www.youtube.com/@prabul7047"
+                    href="https://youtu.be/z96yDS1d8CM?si=Hd_7ImBKyZ3NCOuQ"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
