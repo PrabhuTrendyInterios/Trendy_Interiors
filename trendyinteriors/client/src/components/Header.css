@@ -185,6 +185,12 @@
   transform: translateY(0);
 }
 
+@media (min-width: 769px) {
+  .mobile-header-quote {
+    font-size: 1.75rem;
+  }
+}
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
