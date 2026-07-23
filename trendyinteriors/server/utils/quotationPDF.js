@@ -547,15 +547,8 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     // SECTION 5: GLOBAL ADD-ONS
     if (quotation.global_addons && quotation.global_addons.length > 0) {
       drawSectionHeader(doc, "GLOBAL ADD-ONS");
-      const gaRows = quotation.global_addons.map(a => [
-        a.size ? `${a.name} (${a.size})` : a.name,
-        String(a.count || 1),
-        fmt(a.totalPrice ?? ((a.price || 0) * (a.count || 1))),
-      ]);
-      const gaTotal = quotation.global_addons.reduce(
-        (acc, curr) => acc + (curr.totalPrice ?? ((curr.price || 0) * (curr.count || 1))),
-        0,
-      );
+      const gaRows = quotation.global_addons.map(a => [a.name, "1", fmt(a.price)]);
+      const gaTotal = quotation.global_addons.reduce((acc, curr) => acc + curr.price, 0);
       drawDataTable(
         doc,
         ["Add-on", "Qty", "Price"],
@@ -623,21 +616,18 @@ const generateQuotationPDF = async (estimator, res, callback) => {
 
       const assureY = doc.y;
 
-      doc.rect(MARGIN, assureY, CONTENT_W, 178).fillAndStroke(LIGHT_BG, BORDER);
+      doc.rect(MARGIN, assureY, CONTENT_W, 145).fillAndStroke(LIGHT_BG, BORDER);
       doc.fillColor(MID_TEXT).font("Helvetica-Oblique").fontSize(8.5);
       doc.text("We assure our customers that all materials and workmanship will be delivered according to the agreed quality standards, approved specifications, and project requirements.", MARGIN + 12, assureY + 12, { width: CONTENT_W - 24, lineGap: 2 });
 
       doc.fillColor(DARK_TEXT).font("Helvetica").fontSize(9);
       const points = [
         "1. Ten Years Warranty on materials and workmanship.",
-        "2. This price includes manufacturing and execution process.",
-        "3. Freight and installation cost may vary based on site distance.",
-        "4. Trendy Interios may revise the estimation for any material cost change.",
-        "5. Civil, scaffolding, electrical, plumbing, painting, and stone works are not in our scope unless mentioned in writing.",
-        "6. Materials may be upgraded or modified based on customer requirements.",
-        "7. Additional work beyond approved quotation scope will be charged separately.",
-        "8. Advance payments are non-refundable after material procurement.",
-        "9. Material rusting, corrosion, oxidation, and deterioration due to environmental factors are not covered under the assurance."
+        "2. Final amount may vary depending on material cost fluctuations.",
+        "3. Materials may be upgraded or modified based on customer requirements.",
+        "4. Additional work beyond approved quotation scope will be charged separately.",
+        "5. Advance payments are non-refundable after material procurement.",
+        "6. Material rusting, corrosion, oxidation, and deterioration due to environmental factors are not covered under the assurance."
       ];
       let ptY = doc.y + 5;
       points.forEach(pt => {
