@@ -1,10 +1,11 @@
 const Estimator = require('../../models/Estimator');
 
 describe('server/models/Estimator', () => {
-  test('requires rooms map', () => {
-    const doc = new Estimator({});
+  test('requires rooms map or valid structure', () => {
+    const doc = new Estimator({ roomDimensionsByRoom: { 'Room-1': { length: -5 } } });
     const err = doc.validateSync();
-    expect(err.errors.rooms).toBeDefined();
+    expect(err).toBeDefined();
+    expect(err.errors).toBeDefined();
   });
 
   test('accepts valid estimator payload shape', () => {

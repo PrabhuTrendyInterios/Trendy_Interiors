@@ -119,7 +119,6 @@ describe('server/controllers/projectController', () => {
 
   test('updateProject succeeds with valid data', async () => {
     const projectData = { title: 'Updated Project' };
-    Project.findById.mockResolvedValue({ _id: 'p1', title: 'Old' });
     Project.findByIdAndUpdate.mockResolvedValue({ _id: 'p1', ...projectData });
 
     const req = { params: { id: 'p1' }, body: projectData };
@@ -127,7 +126,7 @@ describe('server/controllers/projectController', () => {
 
     await controller.updateProject(req, res, jest.fn());
 
-    expect(Project.findById).toHaveBeenCalledWith('p1');
+    expect(Project.findByIdAndUpdate).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: true,
@@ -136,7 +135,7 @@ describe('server/controllers/projectController', () => {
   });
 
   test('updateProject returns 404 when project not found', async () => {
-    Project.findById.mockResolvedValue(null);
+    Project.findByIdAndUpdate.mockResolvedValue(null);
 
     const req = { params: { id: 'nonexistent' }, body: {} };
     const res = createMockRes();

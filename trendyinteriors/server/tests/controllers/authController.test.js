@@ -254,6 +254,8 @@ describe('server/controllers/authController', () => {
     });
 
     test('login sends admin email when admin user logs in', async () => {
+      const originalAdminEmail = process.env.ADMIN_EMAIL;
+      process.env.ADMIN_EMAIL = 'trendyadmin123@gmail.com';
       const mockUser = {
         _id: 'u1',
         name: 'Admin',
@@ -273,6 +275,7 @@ describe('server/controllers/authController', () => {
         to: 'trendyadmin123@gmail.com',
         subject: expect.stringContaining('Login Alert')
       }));
+      process.env.ADMIN_EMAIL = originalAdminEmail;
     });
 
     test('login succeeds even if admin email fails', async () => {
