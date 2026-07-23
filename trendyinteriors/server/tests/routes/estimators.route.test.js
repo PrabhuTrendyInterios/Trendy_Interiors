@@ -27,6 +27,9 @@ jest.mock('../../utils/quotationPDF', () => ({
     if (callback) callback(null);
     else res.end();
   }),
+  generateQuotationPDFBuffer: jest.fn((estimator, callback) => {
+    if (callback) callback(null, Buffer.from('mock-pdf'));
+  }),
 }));
 
 const express = require('express');

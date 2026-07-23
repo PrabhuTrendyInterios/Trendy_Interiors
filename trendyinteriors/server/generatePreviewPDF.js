@@ -27,7 +27,7 @@ const sampleEstimator = {
   },
   rooms: { 'Bedroom': 1 },
   quoteSummary: {
-    totalAreaSqFt: 168, roomTotals: 206000, globalAddonsTotal: 0, estimatedAmount: 206000, gstAmount: 37080, grandTotal: 243080, currency: 'INR',
+    totalAreaSqFt: 168, roomTotals: 206000, globalAddonsTotal: 0, estimatedAmount: 206000, gstAmount: 0, grandTotal: 206000, currency: 'INR',
     lineItems: [
       {
         roomId: 'Bedroom-1', roomName: 'Bedroom', label: 'Bedroom 1',

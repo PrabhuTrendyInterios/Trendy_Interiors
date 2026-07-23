@@ -953,7 +953,6 @@ const generateQuotationDeliveryHTML = (data) => {
           <div class="highlight-box">
             <p style="color: #666666; font-size: 14px; margin-bottom: 10px;">Your Estimated Investment</p>
             <div class="amount-display">₹${estimatedAmount}</div>
-            <p style="color: #999999; font-size: 12px;">GST (18%) included in the final quotation</p>
           </div>
 
           <div class="section">

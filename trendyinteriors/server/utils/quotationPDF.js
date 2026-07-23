@@ -355,9 +355,8 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     
     const roomCost = qs.roomTotals || 0;
     const addonCost = globalAddonsTotal;
-    const gstBase = (qs.roomTotals || 0) + (qs.globalAddonsTotal || 0);
-    const gst = qs.gstAmount || Math.round(gstBase * 0.18);
-    const grandTotal = (qs.grandTotal || qs.estimatedAmount || 0) + gst;
+    const gst = 0;
+    const grandTotal = qs.grandTotal || qs.estimatedAmount || 0;
 
     const quotation = {
       quotation_no: quoteNo,
@@ -401,76 +400,62 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     // PAGE 1: Letterhead
     drawLetterhead(doc, quotation);
 
-    // ── PREMIUM DASHBOARD (CUSTOMER & PROJECT OVERVIEW) ──
+    // ── PREMIUM DASHBOARD (CUSTOMER DETAILS ABOVE, PROJECT OVERVIEW BELOW) ──
     checkSpace(doc, 250);
     
-    const dashY = doc.y + 10;
-    const colWidth = (CONTENT_W / 2) - 30;
-    const centerX = MARGIN + (CONTENT_W / 2);
-    const leftX = MARGIN;
-    const rightX = centerX + 30;
-    
+    let dashY = doc.y + 10;
     const TEXT_DARK = "#1F1F1F";
-    const ACCENT = "#C9A227";
     const TEXT_LIGHT = "#666666";
-    const ICON_BG = "#FAFAFA";
-    const ICON_BORDER = "#EBEBEB";
 
-    // Headers
+    // --- 1. CUSTOMER DETAILS (ABOVE) ---
     doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(11);
-    doc.text("CUSTOMER DETAILS", leftX, dashY, { characterSpacing: 1 });
-    doc.text("PROJECT OVERVIEW", rightX, dashY, { characterSpacing: 1 });
+    doc.text("CUSTOMER DETAILS", MARGIN, dashY, { characterSpacing: 1 });
     
-    let currentLeftY = dashY + 35;
-    let currentRightY = dashY + 35;
-    const nodeHeights = [];
-    
-    const drawCard = (x, y, iconChar, label, value) => {
-      if (x === leftX) nodeHeights.push(y);
-      // Label
+    dashY += 20;
+    doc.lineWidth(1).strokeColor(TEXT_DARK);
+    doc.moveTo(MARGIN, dashY).lineTo(MARGIN + CONTENT_W, dashY).stroke();
+    dashY += 12;
+
+    // Row 1: Name & Phone
+    const col1X = MARGIN;
+    const col2X = MARGIN + (CONTENT_W / 2);
+    const halfWidth = (CONTENT_W / 2) - 10;
+
+    const drawField = (x, y, label, value) => {
       doc.fillColor(TEXT_LIGHT).font("Helvetica").fontSize(8);
-      doc.text(label.toUpperCase(), x, y + 6);
-      
-      // Value
-      doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(10);
+      doc.text(label.toUpperCase(), x, y);
+      doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(9.5);
       const valStr = String(value || "N/A");
-      doc.text(valStr, x, y + 18, { width: colWidth });
-      
-      const valHeight = doc.heightOfString(valStr, { width: colWidth });
-      return y + Math.max(35, 18 + valHeight + 10);
+      doc.text(valStr, x, y + 11, { width: halfWidth });
+      const valHeight = doc.heightOfString(valStr, { width: halfWidth });
+      return 11 + valHeight;
     };
+
+    let h1 = drawField(col1X, dashY, "Customer Name", quotation.customer.name);
+    let h2 = drawField(col2X, dashY, "Phone Number", quotation.customer.phone);
+    dashY += Math.max(h1, h2) + 20;
+
+
+    // --- 2. PROJECT OVERVIEW (BELOW) ---
+    doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(11);
+    doc.text("PROJECT OVERVIEW", MARGIN, dashY, { characterSpacing: 1 });
     
-    // Left Column Data
-    currentLeftY = drawCard(leftX, currentLeftY, "C", "Customer Name", quotation.customer.name);
-    currentLeftY = drawCard(leftX, currentLeftY, "P", "Phone Number", quotation.customer.phone);
-    currentLeftY = drawCard(leftX, currentLeftY, "E", "Email Address", quotation.customer.email);
-    currentLeftY = drawCard(leftX, currentLeftY, "A", "Project Address", quotation.customer.address);
-    
-    // Right Column Data
-    currentRightY = drawCard(rightX, currentRightY, "R", "Total Rooms Selected", quotation.overview.total_rooms);
-    currentRightY = drawCard(rightX, currentRightY, "G", "Global Add-ons", quotation.overview.global_addons_count);
-    currentRightY = drawCard(rightX, currentRightY, "A", "Total Area", quotation.overview.total_area);
-    currentRightY = drawCard(rightX, currentRightY, "E", "Estimated Project Cost", fmt(quotation.costs.grand_total));
-    
-    const endY = Math.max(currentLeftY, currentRightY);
-    
-    // Center Divider
-    const dividerTop = nodeHeights[0] + 12;
-    const dividerBottom = nodeHeights[nodeHeights.length - 1] + 12;
-    
-    doc.lineWidth(0.5).strokeColor("#EAEAEA");
-    doc.moveTo(centerX, dividerTop).lineTo(centerX, dividerBottom).stroke();
-    
-    const drawNode = (y) => {
-      doc.circle(centerX, y, 4).fill(WHITE);
-      doc.lineWidth(1.5).strokeColor(ACCENT);
-      doc.circle(centerX, y, 4).stroke();
-      doc.circle(centerX, y, 1.5).fill(ACCENT);
-    };
-    
-    nodeHeights.forEach(y => drawNode(y + 12));
-    
-    doc.y = endY + 10;
+    dashY += 20;
+    doc.lineWidth(1).strokeColor(TEXT_DARK);
+    doc.moveTo(MARGIN, dashY).lineTo(MARGIN + CONTENT_W, dashY).stroke();
+    dashY += 12;
+
+    // Row 1: Rooms & Total Area
+    h1 = drawField(col1X, dashY, "Total Rooms Selected", quotation.overview.total_rooms);
+    h2 = drawField(col2X, dashY, "Total Area", quotation.overview.total_area);
+    dashY += Math.max(h1, h2) + 10;
+
+    // Row 2: Global Add-ons & Estimated Cost
+    h1 = drawField(col1X, dashY, "Global Add-ons", quotation.overview.global_addons_count);
+    h2 = drawField(col2X, dashY, "Estimated Project Cost", fmt(quotation.costs.grand_total));
+    dashY += Math.max(h1, h2) + 15;
+
+    doc.y = dashY;
 
     // SECTION 3: ROOM SUMMARY
     drawSectionHeader(doc, "ROOM SUMMARY");
@@ -574,7 +559,6 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       }
 
       rows.push(["Add-On Cost", fmt(quotation.costs.addon_cost)]);
-      rows.push(["GST / Tax (18%)", fmt(quotation.costs.gst)]);
 
       let cy = doc.y;
       doc.rect(MARGIN, cy, CONTENT_W, 24).fill(NAVY);
@@ -608,6 +592,15 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       });
 
       doc.y = cy + 40;
+
+      // GST Applicable Note
+      doc.fillColor("#000000").font("Helvetica-Bold").fontSize(8.5);
+      doc.text("* GST applicable as per government norms. Final invoice will include applicable GST separately.", MARGIN + 4, doc.y, {
+        width: CONTENT_W,
+        align: "left"
+      });
+
+      doc.y = doc.y + 14;
     });
 
     // SECTION 7: WE ASSURE
@@ -616,18 +609,16 @@ const generateQuotationPDF = async (estimator, res, callback) => {
 
       const assureY = doc.y;
 
-      doc.rect(MARGIN, assureY, CONTENT_W, 145).fillAndStroke(LIGHT_BG, BORDER);
+      doc.rect(MARGIN, assureY, CONTENT_W, 115).fillAndStroke(LIGHT_BG, BORDER);
       doc.fillColor(MID_TEXT).font("Helvetica-Oblique").fontSize(8.5);
       doc.text("We assure our customers that all materials and workmanship will be delivered according to the agreed quality standards, approved specifications, and project requirements.", MARGIN + 12, assureY + 12, { width: CONTENT_W - 24, lineGap: 2 });
 
       doc.fillColor(DARK_TEXT).font("Helvetica").fontSize(9);
       const points = [
-        "1. Ten Years Warranty on materials and workmanship.",
-        "2. Final amount may vary depending on material cost fluctuations.",
-        "3. Materials may be upgraded or modified based on customer requirements.",
-        "4. Additional work beyond approved quotation scope will be charged separately.",
-        "5. Advance payments are non-refundable after material procurement.",
-        "6. Material rusting, corrosion, oxidation, and deterioration due to environmental factors are not covered under the assurance."
+        "1 year free service and lifetime service support.",
+        "10 years replacement warranty on plywood, laminate, and hinges.",
+        "Materials can be upgraded or modified as per your choice.",
+        "The final quotation will be submitted after our detailed discussion and approval."
       ];
       let ptY = doc.y + 5;
       points.forEach(pt => {

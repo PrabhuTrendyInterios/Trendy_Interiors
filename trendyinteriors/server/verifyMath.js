@@ -62,11 +62,7 @@ async function run() {
   const expectedPreTax = manualRoomSum + quoteSummary.globalAddonsTotal;
   console.log(`Expected Pre-Tax Total: ${expectedPreTax} | Output estimatedAmount: ${quoteSummary.estimatedAmount}`);
 
-  const expectedGst = Math.round(expectedPreTax * 0.18);
-  console.log(`Expected 18% GST: ${expectedGst}`);
-  
-  const expectedGrandTotal = expectedPreTax + expectedGst;
-  console.log(`Expected Grand Total (with GST): ${expectedGrandTotal}`);
+  console.log(`Expected Grand Total: ${expectedPreTax}`);
 
   await mongoose.disconnect();
 }
