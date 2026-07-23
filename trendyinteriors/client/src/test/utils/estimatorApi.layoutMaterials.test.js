@@ -3,6 +3,7 @@ import {
   getLayoutMaterialsForRoom,
   getLayoutMaterialsTotal,
   isLayoutMaterialSelected,
+  normalizeLayoutMaterialSelection,
   normalizeEstimatorRoom,
   reloadLayoutMaterialSelection,
   toggleLayoutMaterialSelection,
@@ -93,10 +94,38 @@ describe('getLayoutMaterialsForRoom', () => {
 
   test('toggleLayoutMaterialSelection flips boolean state', () => {
     const toggled = toggleLayoutMaterialSelection({ 'mat-1': true }, 'mat-1');
-    expect(toggled).toEqual({});
+    expect(toggled).toEqual({ 'mat-1': false });
 
     const restored = toggleLayoutMaterialSelection(toggled, 'mat-1');
     expect(restored).toEqual({ 'mat-1': true });
+  });
+
+  test('normalizes nested room selections without dropping deselected materials', () => {
+    const selection = normalizeLayoutMaterialSelection({
+      'Kitchen-1': {
+        'base-unit': true,
+        'tandem-drawer': false,
+        'wall-unit': true,
+      },
+      'Kitchen-2': {
+        'base-unit': true,
+        'tandem-drawer': true,
+        'wall-unit': false,
+      },
+    });
+
+    expect(selection).toEqual({
+      'Kitchen-1': {
+        'base-unit': true,
+        'tandem-drawer': false,
+        'wall-unit': true,
+      },
+      'Kitchen-2': {
+        'base-unit': true,
+        'tandem-drawer': true,
+        'wall-unit': false,
+      },
+    });
   });
 
   test('isLayoutMaterialSelected keeps mandatory materials selected', () => {

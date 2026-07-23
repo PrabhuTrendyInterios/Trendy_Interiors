@@ -190,7 +190,7 @@ const Estimator = () => {
       console.error('Unable to load layout materials', error);
       return {};
     }
-  }); // roomId -> { materialId: true }
+  }); // roomId -> { materialId: boolean }
   const [formData, setFormData] = useState(() => {
     try {
       const storedDraft = localStorage.getItem(ESTIMATOR_DRAFT_KEY);

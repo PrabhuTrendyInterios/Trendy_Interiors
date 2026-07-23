@@ -160,12 +160,27 @@ export const buildDefaultLayoutMaterialSelection = (materials = []) =>
     return selection;
   }, {});
 
-export const normalizeLayoutMaterialSelection = (roomSelection = {}) =>
-  Object.entries(roomSelection).reduce((selection, [materialId, selected]) => {
-    if (selected === true) {
-      selection[materialId] = true;
+export const normalizeLayoutMaterialSelection = (selectionByRoom = {}) =>
+  Object.entries(selectionByRoom).reduce((normalizedRooms, [roomId, roomSelection]) => {
+    if (!roomSelection || typeof roomSelection !== 'object' || Array.isArray(roomSelection)) {
+      return normalizedRooms;
     }
-    return selection;
+
+    const normalizedSelection = Object.entries(roomSelection).reduce(
+      (selection, [materialId, selected]) => {
+        if (selected === true || selected === false) {
+          selection[materialId] = selected;
+        }
+        return selection;
+      },
+      {},
+    );
+
+    if (Object.keys(normalizedSelection).length > 0) {
+      normalizedRooms[roomId] = normalizedSelection;
+    }
+
+    return normalizedRooms;
   }, {});
 
 export const isLayoutMaterialSelected = (roomSelection = {}, materialId, mandatory = false) => {
@@ -178,12 +193,7 @@ export const isLayoutMaterialSelected = (roomSelection = {}, materialId, mandato
 
 export const toggleLayoutMaterialSelection = (roomSelection = {}, materialId) => {
   const nextSelection = { ...roomSelection };
-
-  if (nextSelection[materialId]) {
-    delete nextSelection[materialId];
-  } else {
-    nextSelection[materialId] = true;
-  }
+  nextSelection[materialId] = !Boolean(nextSelection[materialId]);
 
   return nextSelection;
 };

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   FaTrophy, FaSmile, FaStopwatch, FaCheckCircle, FaQuoteLeft, FaHandshake, FaGem,
   FaLinkedin, FaInstagram, FaPhone, FaEye, FaBullseye, FaYoutube
@@ -62,11 +61,6 @@ const About = () => {
         <div className="hero-content">
           <h1>About Us</h1>
           <div className="hero-divider"></div>
-          <div className="breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="separator">/</span>
-            <span className="current">About</span>
-          </div>
         </div>
       </section>
 

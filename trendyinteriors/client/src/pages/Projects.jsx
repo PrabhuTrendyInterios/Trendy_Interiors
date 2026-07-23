@@ -96,11 +96,6 @@ const Projects = () => {
         <div className="hero-content">
           <h1>Our Projects</h1>
           <p className="hero-subtitle">Crafted spaces that define excellence &amp; luxury</p>
-          <div className="breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="separator">/</span>
-            <span className="current">Projects</span>
-          </div>
         </div>
       </section>
 

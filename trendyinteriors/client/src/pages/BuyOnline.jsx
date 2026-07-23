@@ -118,11 +118,6 @@ const BuyOnline = () => {
         <div className="hero-content">
           <h1>Buy Online</h1>
           <p className="hero-subtitle">Premium kitchen solutions &amp; decor delivered with style</p>
-          <div className="breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="separator">/</span>
-            <span className="current">Shop</span>
-          </div>
         </div>
       </section>
 

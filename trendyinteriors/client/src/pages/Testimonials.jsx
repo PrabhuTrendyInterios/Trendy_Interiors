@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { publicGet } from '../utils/publicApi';
 import { FaComments, FaPenNib, FaQuoteLeft, FaStar } from 'react-icons/fa';
 import ScrollVideoBackground from '../components/ScrollVideoBackground';
@@ -73,11 +73,6 @@ const Testimonials = () => {
         <div className="hero-content">
           <h1>Testimonials</h1>
           <p className="hero-subtitle">Real stories from people who trusted us with their dreams</p>
-          <div className="breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="separator">/</span>
-            <span className="current">Testimonials</span>
-          </div>
         </div>
       </section>
 

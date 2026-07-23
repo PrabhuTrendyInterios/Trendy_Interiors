@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
   FaMapMarkerAlt,
   FaEnvelope,
@@ -30,11 +29,6 @@ const ReachUs = () => {
           <p className="hero-subtitle">
             Let's start the conversation about your dream space
           </p>
-          <div className="breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="separator">/</span>
-            <span className="current">Contact</span>
-          </div>
         </div>
       </section>
 
