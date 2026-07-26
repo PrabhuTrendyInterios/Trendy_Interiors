@@ -515,7 +515,7 @@ const Header = () => {
             className={`mobile-header-quote ${isHeaderIntroComplete ? 'is-visible' : ''}`}
             aria-hidden={!isHeaderIntroComplete}
           >
-            {['Filling', 'the', 'hearts,', 'not', 'space'].map((word, index) => (
+            {['Filling', 'the', 'Hearts,', 'not', 'Space'].map((word, index) => (
               <span
                 className="header-quote-word"
                 style={{ '--word-index': index }}

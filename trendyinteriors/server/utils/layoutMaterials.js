@@ -149,6 +149,7 @@ const formatLayoutMaterials = (materials = []) =>
   (Array.isArray(materials) ? materials : []).map((material, index) => ({
     id: material?._id?.toString() || material?.id || `material-${index}`,
     name: material?.name || '',
+    size: material?.size || '',
     price: Number(material?.price) || 0,
     mandatory: Boolean(material?.mandatory),
   }));

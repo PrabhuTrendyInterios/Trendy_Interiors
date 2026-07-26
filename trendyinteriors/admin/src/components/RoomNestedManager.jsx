@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaTimes } from 'react-icons/fa';
+import { FaArrowDown, FaArrowUp, FaEdit, FaGripVertical, FaTrash, FaPlus, FaTimes } from 'react-icons/fa';
 
-const RoomNestedManager = ({ title, items = [], emptyItem, fields, onChange, renderSummary, renderFormExtras }) => {
+const RoomNestedManager = ({
+  title,
+  items = [],
+  emptyItem,
+  fields,
+  onChange,
+  renderSummary,
+  renderFormExtras,
+  reorderable = false,
+}) => {
   const [draft, setDraft] = useState(emptyItem);
   const [editIndex, setEditIndex] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
   const resetDraft = () => {
     setDraft(emptyItem);
@@ -57,6 +68,35 @@ const RoomNestedManager = ({ title, items = [], emptyItem, fields, onChange, ren
     if (editIndex === index) resetDraft();
   };
 
+  const moveItem = (fromIndex, toIndex) => {
+    const boundedTarget = Math.max(0, Math.min(items.length - 1, toIndex));
+    if (fromIndex < 0 || fromIndex >= items.length || fromIndex === boundedTarget) return;
+
+    const next = [...items];
+    const [movedItem] = next.splice(fromIndex, 1);
+    next.splice(boundedTarget, 0, movedItem);
+    onChange(next);
+
+    if (editIndex === fromIndex) {
+      setEditIndex(boundedTarget);
+    } else if (editIndex !== null) {
+      if (fromIndex < editIndex && boundedTarget >= editIndex) {
+        setEditIndex(editIndex - 1);
+      } else if (fromIndex > editIndex && boundedTarget <= editIndex) {
+        setEditIndex(editIndex + 1);
+      }
+    }
+  };
+
+  const handleDrop = (targetIndex) => {
+    const sourceIndex = draggedIndex;
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+
+    if (sourceIndex === null || sourceIndex === targetIndex) return;
+    moveItem(sourceIndex, targetIndex);
+  };
+
   return (
     <div className="room-nested-manager">
       <div className="room-nested-header">
@@ -75,7 +115,61 @@ const RoomNestedManager = ({ title, items = [], emptyItem, fields, onChange, ren
       {items.length > 0 && (
         <div className="cms-nested-list">
           {items.map((item, index) => (
-            <div key={item._id || index} className="cms-nested-item">
+            <div
+              key={item._id || index}
+              className={`cms-nested-item ${reorderable ? 'is-reorderable' : ''} ${draggedIndex === index ? 'is-dragging' : ''} ${dragOverIndex === index ? 'is-drag-over' : ''}`}
+              draggable={reorderable}
+              onDragStart={(event) => {
+                if (!reorderable) return;
+                setDraggedIndex(index);
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', String(index));
+              }}
+              onDragEnter={() => {
+                if (reorderable && draggedIndex !== null && draggedIndex !== index) {
+                  setDragOverIndex(index);
+                }
+              }}
+              onDragOver={(event) => {
+                if (!reorderable) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+              }}
+              onDrop={(event) => {
+                if (!reorderable) return;
+                event.preventDefault();
+                handleDrop(index);
+              }}
+              onDragEnd={() => {
+                setDraggedIndex(null);
+                setDragOverIndex(null);
+              }}
+            >
+              {reorderable && (
+                <div className="cms-nested-reorder">
+                  <span className="cms-nested-drag-handle" title="Drag to reorder" aria-hidden="true">
+                    <FaGripVertical />
+                  </span>
+                  <div className="cms-nested-order-buttons">
+                    <button
+                      type="button"
+                      onClick={() => moveItem(index, index - 1)}
+                      disabled={index === 0}
+                      aria-label={`Move ${title} item up`}
+                    >
+                      <FaArrowUp />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveItem(index, index + 1)}
+                      disabled={index === items.length - 1}
+                      aria-label={`Move ${title} item down`}
+                    >
+                      <FaArrowDown />
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="cms-nested-item-info">
                 {renderSummary(item)}
               </div>

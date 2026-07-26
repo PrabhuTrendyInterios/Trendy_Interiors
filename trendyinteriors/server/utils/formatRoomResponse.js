@@ -1,6 +1,7 @@
 const formatLayoutMaterial = (material = {}) => ({
   ...(material._id ? { _id: material._id } : {}),
   name: material.name || '',
+  size: material.size || '',
   price: Number(material.price) || 0,
   mandatory: Boolean(material.mandatory),
 });

@@ -23,7 +23,6 @@ const ExtraAddons = ({
     const isSelected = isGlobalAddonSelected(selectedAddons, addon.id);
     const selectedEntry = getSelectedGlobalAddonEntry(selectedAddons, addon.id);
     const count = selectedEntry?.count || 0;
-    const total = (Number(addon.price) || 0) * count;
 
     return (
       <div
@@ -57,7 +56,6 @@ const ExtraAddons = ({
             <FaPlus />
           </button>
         </div>
-        <span className="addon-list-total">₹{total.toLocaleString('en-IN')}</span>
       </div>
     );
   };

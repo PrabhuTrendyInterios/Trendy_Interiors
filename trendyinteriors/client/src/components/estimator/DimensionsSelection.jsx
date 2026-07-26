@@ -54,17 +54,6 @@ const getDefaultDimensions = () => ({
   },
 });
 
-const getDimensionLabel = (dimensions = {}) => {
-  const length = Number(dimensions.length) || 0;
-  const width = Number(dimensions.width) || 0;
-
-  if (!length || !width) {
-    return 'Add measurements';
-  }
-
-  return `${length} X ${width} sqft`;
-};
-
 const DimensionsSelection = ({
   selectedRooms,
   selectedRoom,
@@ -233,6 +222,31 @@ const DimensionsSelection = ({
       Number(dimensions.width) > 0 &&
       Number(dimensions.height) > 0;
     const canChooseLayout = !requiresDimensions || hasDimensions;
+    const layoutSection = currentOptions.showLayout ? (
+      <div className={`premium-design-section dimension-layout-inline ${canChooseLayout ? '' : 'is-disabled'}`}>
+        <h4>{currentOptions.layoutTitle}</h4>
+        {!canChooseLayout && <p className="dimension-lock-note">Select room size before choosing layout.</p>}
+
+        <div className="dimension-text-option-grid">
+          {currentOptions.layouts.map((layout) => {
+            const layoutLabel = layout.label || layout.name;
+            const layoutKey = layout.name || String(layout._id || '');
+
+            return (
+              <button
+                type="button"
+                key={layoutKey}
+                className={`dimension-text-option ${selectedDesign.layout === layoutKey ? 'selected' : ''}`}
+                onClick={() => canChooseLayout && saveDesign(room, { ...selectedDesign, layout: layoutKey })}
+                disabled={!canChooseLayout}
+              >
+                <span>{layoutLabel}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    ) : null;
 
     return (
       <section className="dimensions-room-section" key={room.id} aria-labelledby={`room-title-${room.id}`}>
@@ -303,50 +317,14 @@ const DimensionsSelection = ({
               </>
             )}
 
-            {hasDimensions && (
-              <div className="size-info-box">
-                <div className="area-card">
-                  <span>Selected Size</span>
-                  <strong>{getDimensionLabel(dimensions)}</strong>
-                </div>
-              </div>
-            )}
+            {layoutSection}
           </div>
         )}
 
         {!requiresDimensions && (
           <div className="dimension-input-card">
-            This room does not require dimensions. Choose a layout below to calculate this space.
-          </div>
-        )}
-
-        {currentOptions.showLayout && (
-          <div className={`premium-design-section ${canChooseLayout ? '' : 'is-disabled'}`}>
-            <h4>{currentOptions.layoutTitle}</h4>
-            {!canChooseLayout && <p className="dimension-lock-note">Select room size before choosing layout.</p>}
-
-            <div className="dimension-text-option-grid">
-              {currentOptions.layouts.map((layout) => {
-                const layoutLabel = layout.label || layout.name;
-                const layoutKey = layout.name || String(layout._id || '');
-                const layoutCost = Number(layout.price) || 0;
-
-                return (
-                  <button
-                    type="button"
-                    key={layoutKey}
-                    className={`dimension-text-option ${selectedDesign.layout === layoutKey ? 'selected' : ''}`}
-                    onClick={() => canChooseLayout && saveDesign(room, { ...selectedDesign, layout: layoutKey })}
-                    disabled={!canChooseLayout}
-                  >
-                    <span>{layoutLabel}</span>
-                    {layoutCost > 0 && (
-                      <strong>₹{layoutCost.toLocaleString('en-IN')}</strong>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <p className="dimension-lock-note">This room does not require dimensions. Choose a layout below to calculate this space.</p>
+            {layoutSection}
           </div>
         )}
 

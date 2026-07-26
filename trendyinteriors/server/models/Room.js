@@ -71,6 +71,12 @@ const layoutMaterialSchema = new mongoose.Schema(
       trim: true,
       maxlength: 100,
     },
+    size: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+      default: '',
+    },
     price: {
       type: Number,
       min: [0, 'Price cannot be negative'],

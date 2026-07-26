@@ -21,6 +21,7 @@ const normalizeLayoutConfiguration = (config = {}) => ({
   materials: (config.materials || []).map((material) => ({
     ...(material._id ? { _id: material._id } : {}),
     name: material.name || '',
+    size: material.size || '',
     price: Number(material.price) || 0,
     mandatory: material.mandatory ?? false,
   })),
@@ -140,6 +141,7 @@ export const getLayoutMaterialsForRoom = ({
   const materials = (configuration?.materials || []).map((material, index) => ({
     id: material._id?.toString() || `${layoutName}-${dimensionId}-${index}`,
     name: material.name || '',
+    size: material.size || '',
     price: Number(material.price) || 0,
     mandatory: Boolean(material.mandatory),
   }));

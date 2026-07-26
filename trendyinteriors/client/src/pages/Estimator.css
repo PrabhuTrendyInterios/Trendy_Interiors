@@ -1163,6 +1163,13 @@
   margin-bottom: calc(var(--spacing-md) * 1.4);
 }
 
+.dimension-layout-inline {
+  margin-top: 1.25rem;
+  margin-bottom: 0;
+  padding-top: 1.15rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.22);
+}
+
 .premium-design-section h4 {
   color: var(--color-charcoal-dark);
   font-size: 1.5rem;
@@ -1614,16 +1621,18 @@
   margin-top: 0.75rem;
   padding: 0.85rem 1rem;
   border-left: 3px solid var(--color-gold);
+  list-style: disc;
+  padding-left: 2rem;
 }
 
-.quote-terms-notes p {
+.quote-terms-notes li {
   margin: 0;
   font-size: 0.86rem;
   font-weight: 700;
   line-height: 1.5;
 }
 
-.quote-terms-notes p + p {
+.quote-terms-notes li + li {
   margin-top: 0.2rem;
 }
 
@@ -3416,7 +3425,7 @@
     padding: 10px 11px;
   }
 
-  .quote-terms-notes p {
+  .quote-terms-notes li {
     font-size: 0.78rem;
   }
 

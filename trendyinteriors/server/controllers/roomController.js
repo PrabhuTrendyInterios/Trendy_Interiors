@@ -61,6 +61,7 @@ const normalizeDimension = (item = {}) => ({
 const normalizeLayoutMaterial = (material = {}) => ({
   ...(material._id ? { _id: material._id } : {}),
   name: String(material.name || '').trim(),
+  size: String(material.size || '').trim(),
   price: Number(material.price) || 0,
   mandatory: Boolean(material.mandatory),
 });

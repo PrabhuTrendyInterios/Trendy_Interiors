@@ -4,6 +4,7 @@ import RoomNestedManager from './RoomNestedManager';
 
 const LAYOUT_MATERIAL_FIELDS = [
   { key: 'name', label: 'Name', required: true, fullWidth: true },
+  { key: 'size', label: 'Size / Specification', placeholder: 'e.g. 6ft x 2ft, 18mm BWP' },
   { key: 'price', label: 'Price (₹)', type: 'number', min: 0 },
   { key: 'mandatory', label: 'Mandatory', type: 'checkbox', fullWidth: false },
 ];
@@ -30,6 +31,7 @@ const syncConfigurations = (dimensions, configurations) =>
         ? existing.materials.map((material) => ({
             ...material,
             name: material.name || '',
+            size: material.size || '',
             price: material.price ?? 0,
             mandatory: material.mandatory ?? false,
           }))
@@ -131,14 +133,16 @@ const LayoutDimensionMaterialsManager = ({
                       <RoomNestedManager
                         title="Materials"
                         items={materials}
-                        emptyItem={{ name: '', price: '', mandatory: false }}
+                        emptyItem={{ name: '', size: '', price: '', mandatory: false }}
                         fields={LAYOUT_MATERIAL_FIELDS}
                         onChange={(updatedMaterials) =>
                           handleMaterialsChange(dimIndex, updatedMaterials)
                         }
+                        reorderable
                         renderSummary={(item) => (
                           <>
                             <h6>{item.name}</h6>
+                            {item.size && <p>Size: {item.size}</p>}
                             <p>₹{Number(item.price || 0).toLocaleString('en-IN')}</p>
                             <p className="component-meta">
                               {item.mandatory && <span className="badge mandatory">Mandatory</span>}

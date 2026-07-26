@@ -73,7 +73,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(90px, 0.55fr) minmax(92px, 0.5fr) 132px minmax(96px, 0.5fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(120px, 0.6fr) minmax(92px, 0.45fr) 132px;
   align-items: center;
   gap: 14px;
   padding: 16px;
@@ -99,18 +99,13 @@
 }
 
 .addon-list-size,
-.addon-list-price,
-.addon-list-total {
+.addon-list-price {
   color: rgba(255, 255, 255, 0.92);
   font-weight: 700;
 }
 
 .addon-list-size {
   color: var(--color-gold-light);
-}
-
-.addon-list-total {
-  text-align: right;
 }
 
 .addon-quantity-control {
@@ -203,7 +198,6 @@
 
   .addon-list-main h3,
   .addon-list-price,
-  .addon-list-total,
   .addon-quantity-control strong {
     color: #2f271d;
   }
@@ -222,8 +216,7 @@
   }
 
   .addon-list-size,
-  .addon-list-price,
-  .addon-list-total {
+  .addon-list-price {
     text-align: left;
   }
 

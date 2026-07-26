@@ -195,6 +195,65 @@
   border-radius: 8px;
 }
 
+.cms-nested-item.is-reorderable {
+  cursor: grab;
+  transition: background 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+}
+
+.cms-nested-item.is-reorderable:active {
+  cursor: grabbing;
+}
+
+.cms-nested-item.is-dragging {
+  opacity: 0.48;
+}
+
+.cms-nested-item.is-drag-over {
+  background: rgba(212, 175, 55, 0.12);
+  box-shadow: inset 0 3px 0 var(--color-gold);
+}
+
+.cms-nested-reorder {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.cms-nested-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 36px;
+  color: var(--color-gold);
+}
+
+.cms-nested-order-buttons {
+  display: grid;
+  gap: 2px;
+}
+
+.cms-nested-order-buttons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 4px;
+  color: var(--color-gold);
+  background: rgba(212, 175, 55, 0.08);
+  cursor: pointer;
+  font-size: 0.62rem;
+}
+
+.cms-nested-order-buttons button:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
 .cms-nested-item-info h5 {
   margin: 0 0 0.25rem;
   font-size: 0.95rem;
@@ -258,6 +317,21 @@
   .cms-nested-item {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .cms-nested-reorder {
+    justify-content: space-between;
+  }
+
+  .cms-nested-order-buttons {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .cms-nested-order-buttons button {
+    width: 36px;
+    height: 32px;
+    font-size: 0.75rem;
   }
 
   .cms-nested-actions {

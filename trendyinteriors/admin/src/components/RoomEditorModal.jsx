@@ -83,6 +83,7 @@ export const normalizeRoomFromApi = (room = {}) => ({
           materials: (config.materials || []).map((material) => ({
             ...material,
             name: material.name || '',
+            size: material.size || '',
             price: material.price ?? 0,
             mandatory: material.mandatory ?? false,
           })),
@@ -308,6 +309,7 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
               }}
               fields={LAYOUT_FIELDS}
               onChange={(layouts) => setForm({ ...form, layouts })}
+              reorderable
               renderFormExtras={(draft, setDraft) =>
                 draft.hasLayoutMaterials ? (
                   <LayoutDimensionMaterialsManager
@@ -321,7 +323,6 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
               renderSummary={(item) => (
                 <>
                   <h5>{item.name}</h5>
-                  <p>₹{Number(item.fixedPrice || 0).toLocaleString('en-IN')}</p>
                   {item.description && <p>{item.description}</p>}
                 </>
               )}

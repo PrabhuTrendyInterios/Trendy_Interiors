@@ -1080,23 +1080,6 @@ const Estimator = () => {
                                 <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.95rem' }}>{item.label}</p>
                                 <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '1rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
                               </div>
-                              {findRoomByName(roomsCatalog, item.roomName)?.requiresDimensions !== false &&
-                                Number(item.areaSqFt) > 0 &&
-                                Number(item.ratePerSqFt) > 0 && (
-                                <p style={{ margin: 0, fontSize: '0.8rem', color: '#4b5563', fontWeight: 600 }}>
-                                  {item.length} X {item.width} sqft × ₹{item.ratePerSqFt}/sqft = ₹{(item.baseCost ?? item.areaSqFt * item.ratePerSqFt).toLocaleString('en-IN')}
-                                </p>
-                              )}
-                              {item.layout && (
-                                <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#3a2b08', fontWeight: 700 }}>
-                                  {item.layout} Layout{item.layoutCost > 0 ? `: +₹${item.layoutCost.toLocaleString('en-IN')}` : ''}
-                                </p>
-                              )}
-                              {(item.layoutMaterialsCost ?? 0) > 0 && (
-                                <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#3a2b08', fontWeight: 700 }}>
-                                  Layout Materials: +₹{item.layoutMaterialsCost.toLocaleString('en-IN')}
-                                </p>
-                              )}
                               {item.areaSqFt === 0 && item.layout && (
                                 <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#4b5563', fontWeight: 600 }}>
                                   This room is priced by selected layout only because dimensions are optional for this room.
@@ -1182,12 +1165,6 @@ const Estimator = () => {
                                     );
                                   })}
                                   
-                                  {(item.packageComponentsTotal ?? 0) > 0 && (
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', paddingTop: '0.4rem', borderTop: '1px solid rgba(212, 175, 55, 0.15)' }}>
-                                      <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.8rem' }}>Components Total</p>
-                                      <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '0.8rem' }}>+₹{((item.packageComponentsTotal || 0)).toLocaleString('en-IN')}</p>
-                                    </div>
-                                  )}
                                 </div>
                               ) : (
                                 Array.isArray(item.packageComponents) && !item.layout && (
@@ -1265,6 +1242,11 @@ const Estimator = () => {
                                               <div style={{ flex: 1, minWidth: 0 }}>
                                                 <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-charcoal-dark)', fontWeight: '500' }}>
                                                   {material.name}
+                                                  {material.size && (
+                                                    <span style={{ marginLeft: '0.35rem', fontSize: '0.68rem', color: 'var(--color-gray)', fontWeight: 500 }}>
+                                                      ({material.size})
+                                                    </span>
+                                                  )}
                                                   {material.mandatory && (
                                                     <span style={{ marginLeft: '0.3rem', fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: '400' }}>
                                                       (Included)
@@ -1279,14 +1261,6 @@ const Estimator = () => {
                                           );
                                         })}
 
-                                        {(item.layoutMaterialsCost ?? 0) > 0 && (
-                                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', paddingTop: '0.4rem', borderTop: '1px solid rgba(212, 175, 55, 0.15)' }}>
-                                            <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.8rem' }}>Materials Total</p>
-                                            <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '0.8rem' }}>
-                                              +₹{(item.layoutMaterialsCost || 0).toLocaleString('en-IN')}
-                                            </p>
-                                          </div>
-                                        )}
                                       </>
                                     )}
                                   </div>
@@ -1341,10 +1315,10 @@ const Estimator = () => {
                             {termsPromptActive ? 'Please open and read the terms and conditions first.' : ''}
                           </span>
                         </div>
-                        <div className="quote-terms-notes">
-                          <p>This price includes manufacturing and execution process.</p>
-                          <p>Freight and installation cost may vary based on site distance.</p>
-                        </div>
+                        <ul className="quote-terms-notes">
+                          <li>This price includes manufacturing and execution process.</li>
+                          <li>Freight and installation cost may vary based on site distance.</li>
+                        </ul>
                       </div>
                     </div>
                   </div>
