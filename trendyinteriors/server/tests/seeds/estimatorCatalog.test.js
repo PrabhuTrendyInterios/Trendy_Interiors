@@ -4,7 +4,7 @@ const findRoom = (name) => roomsCatalog.find((room) => room.name === name);
 const sumPrices = (items = []) => items.reduce((sum, item) => sum + Number(item.price || 0), 0);
 
 describe('TS Web Quote estimator catalog', () => {
-  test('rooms use the requested display order and only Kitchen has layouts', () => {
+  test('rooms use the requested display order and only Kitchen and Pooja Room have layouts', () => {
     expect(roomsCatalog.map(({ name, displayOrder }) => ({ name, displayOrder }))).toEqual([
       { name: 'Kitchen', displayOrder: 1 },
       { name: 'Pooja Room', displayOrder: 2 },
@@ -13,6 +13,7 @@ describe('TS Web Quote estimator catalog', () => {
     ]);
     expect(roomsCatalog.filter((room) => room.layouts.length > 0).map((room) => room.name)).toEqual([
       'Kitchen',
+      'Pooja Room',
     ]);
   });
 
@@ -45,8 +46,8 @@ describe('TS Web Quote estimator catalog', () => {
   });
 
   test.each([
-    ['Bedroom', [[10, 11], [16, 17], [21, 16]], [122700, 270900, 333900]],
-    ['Hall', [[16, 11], [17, 21], [21, 21]], [57900, 106500, 115200]],
+    ['Bedroom', [[10, 11], [16, 17], [20, 16]], [122700, 270900, 333900]],
+    ['Hall', [[16, 11], [17, 20], [20, 20]], [57900, 106500, 115200]],
   ])('%s defines PDF packages directly by dimension', (roomName, measurements, totals) => {
     const room = findRoom(roomName);
 
@@ -58,11 +59,15 @@ describe('TS Web Quote estimator catalog', () => {
     ).toBe(true);
   });
 
-  test('Pooja Room has no layouts and does not require dimensions', () => {
+  test('Pooja Room defines fixed-price layouts without requiring dimensions', () => {
     const pooja = findRoom('Pooja Room');
 
     expect(pooja.requiresDimensions).toBe(false);
-    expect(pooja.layouts).toEqual([]);
+    expect(pooja.layouts.map(({ name, fixedPrice }) => ({ name, fixedPrice }))).toEqual([
+      { name: 'Base Unit Only', fixedPrice: 12000 },
+      { name: 'Base Unit & Panelling', fixedPrice: 31500 },
+      { name: 'Stand Alone Unit', fixedPrice: 34500 },
+    ]);
   });
 
   test('Additionals contain the ten unique PDF items and prices', () => {

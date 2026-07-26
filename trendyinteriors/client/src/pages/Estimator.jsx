@@ -1080,9 +1080,13 @@ const Estimator = () => {
                                 <p style={{ margin: 0, fontWeight: '600', color: 'var(--color-charcoal-dark)', fontSize: '0.95rem' }}>{item.label}</p>
                                 <p style={{ margin: 0, fontWeight: '700', color: 'var(--color-charcoal-dark)', fontSize: '1rem' }}>₹{item.estimatedCost.toLocaleString('en-IN')}</p>
                               </div>
-                              <p style={{ margin: 0, fontSize: '0.8rem', color: '#4b5563', fontWeight: 600 }}>
-                                {item.length} X {item.width} sqft × ₹{item.ratePerSqFt}/sqft = ₹{(item.baseCost ?? item.areaSqFt * item.ratePerSqFt).toLocaleString('en-IN')}
-                              </p>
+                              {findRoomByName(roomsCatalog, item.roomName)?.requiresDimensions !== false &&
+                                Number(item.areaSqFt) > 0 &&
+                                Number(item.ratePerSqFt) > 0 && (
+                                <p style={{ margin: 0, fontSize: '0.8rem', color: '#4b5563', fontWeight: 600 }}>
+                                  {item.length} X {item.width} sqft × ₹{item.ratePerSqFt}/sqft = ₹{(item.baseCost ?? item.areaSqFt * item.ratePerSqFt).toLocaleString('en-IN')}
+                                </p>
+                              )}
                               {item.layout && (
                                 <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#3a2b08', fontWeight: 700 }}>
                                   {item.layout} Layout{item.layoutCost > 0 ? `: +₹${item.layoutCost.toLocaleString('en-IN')}` : ''}

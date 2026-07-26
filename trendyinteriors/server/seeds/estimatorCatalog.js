@@ -136,7 +136,7 @@ const bedroomDimensions = [
     component('Bed Side Table', "1'6\"W x 1'6\"H x 1'4\"D", 7200, 6),
     component('TV Ledge & Panelling', "6'W x 4'H x 3\"/1'2\"D", 18600, 7),
   ]),
-  dimension('Large', 21, 16, [
+  dimension('Large', 20, 16, [
     component('Wardrobe', "15'W x 7'H x 1'8\"D", 175200, 1),
     component('Storage Unit', "6'W x 2'8\"H x 1'8\"D", 27900, 2),
     component('Loft Shuttering', "16'W x 3'H x 5\"D", 41400, 3),
@@ -152,12 +152,12 @@ const hallDimensions = [
     component('TV Unit', "8'W x 7'H x 3\"/1'4\"D", 48300, 1),
     component('Hall Architrave', "1'3\"W x 18 RFT", 9600, 2),
   ]),
-  dimension('Medium', 17, 21, [
+  dimension('Medium', 17, 20, [
     component('TV Unit', "12'W x 7'H x 3\"/1'4\"D", 72000, 1),
     component('Hall Architrave', "1'3\"W x 21 RFT", 11400, 2),
     component('Design Panelling', "3'W x 7'H x 1'D", 23100, 3),
   ]),
-  dimension('Large', 21, 21, [
+  dimension('Large', 20, 20, [
     component('TV Unit', "12'W x 7'H x 3\"/1'4\"D", 72000, 1),
     component('Hall Architrave', "1'3\"W x 22 RFT", 12300, 2),
     component('Design Panelling', "4'W x 7'H x 1'D", 30900, 3),
@@ -189,7 +189,29 @@ const roomsCatalog = [
     requiresDimensions: false,
     allowCustomDimensions: false,
     dimensions: [],
-    layouts: [],
+    layouts: [
+      {
+        name: 'Base Unit Only',
+        description: "Base Unit - 4'W x 2'6\"H x 1'3\"D",
+        fixedPrice: 12000,
+        hasLayoutMaterials: false,
+        configurations: [],
+      },
+      {
+        name: 'Base Unit & Panelling',
+        description: "5'W x 2'6\"/7'H x 8\"/1'6\"D",
+        fixedPrice: 31500,
+        hasLayoutMaterials: false,
+        configurations: [],
+      },
+      {
+        name: 'Stand Alone Unit',
+        description: "Pooja Unit - 3'6\"W x 7'H x 1'6\"D",
+        fixedPrice: 34500,
+        hasLayoutMaterials: false,
+        configurations: [],
+      },
+    ],
     addons: [],
   },
   {
