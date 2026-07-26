@@ -73,7 +73,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(120px, 0.6fr) minmax(92px, 0.45fr) 132px;
+  grid-template-columns: minmax(0, 1.5fr) minmax(120px, 0.7fr) 132px;
   align-items: center;
   gap: 14px;
   padding: 16px;
@@ -98,8 +98,7 @@
   margin: 0;
 }
 
-.addon-list-size,
-.addon-list-price {
+.addon-list-size {
   color: rgba(255, 255, 255, 0.92);
   font-weight: 700;
 }
@@ -197,7 +196,6 @@
   }
 
   .addon-list-main h3,
-  .addon-list-price,
   .addon-quantity-control strong {
     color: #2f271d;
   }
@@ -215,8 +213,7 @@
     color: #806200;
   }
 
-  .addon-list-size,
-  .addon-list-price {
+  .addon-list-size {
     text-align: left;
   }
 

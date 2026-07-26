@@ -37,7 +37,6 @@ const ExtraAddons = ({
         {addon.size && addon.size.trim().toLowerCase() !== 'standard' && (
           <span className="addon-list-size">{addon.size}</span>
         )}
-        <span className="addon-list-price">₹{Number(addon.price || 0).toLocaleString('en-IN')}</span>
         <div className="addon-quantity-control" onClick={(event) => event.stopPropagation()}>
           <button
             type="button"
