@@ -98,7 +98,7 @@ const CmsSidebar = ({ collapsed, mobileOpen, onToggle, onMobileClose }) => {
       </nav>
 
       <div className="cms-sidebar-footer">
-        <a href="/" className="cms-nav-link cms-external-link" target="_blank" rel="noreferrer">
+        <a href="https://trendyinterios.netlify.app" className="cms-nav-link cms-external-link" target="_blank" rel="noreferrer">
           <FaExternalLinkAlt className="cms-nav-icon" />
           <span className={`cms-nav-text ${collapsed ? 'desktop-collapsed' : ''}`}>View Website</span>
         </a>

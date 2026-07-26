@@ -90,7 +90,7 @@ function drawInfoTable(doc, rows, colWidths = [CONTENT_W * 0.4, CONTENT_W * 0.6]
   checkSpace(doc, rows.length * rowHeight);
 
   let currentY = doc.y;
-  
+ 
   // draw boundary box
   doc.lineWidth(0.4).strokeColor(BORDER);
   doc.rect(MARGIN, currentY, CONTENT_W, rows.length * rowHeight).stroke();
@@ -100,18 +100,18 @@ function drawInfoTable(doc, rows, colWidths = [CONTENT_W * 0.4, CONTENT_W * 0.6]
     if (isZebra) {
       doc.rect(MARGIN, currentY, CONTENT_W, rowHeight).fill(ZEBRA);
     }
-    
+   
     // Draw vertical divider
     doc.moveTo(MARGIN + colWidths[0], currentY).lineTo(MARGIN + colWidths[0], currentY + rowHeight).strokeColor(BORDER).stroke();
 
     doc.fillColor(DARK_TEXT).font("Helvetica-Bold").fontSize(9);
     doc.text(row[0], MARGIN + 8, currentY + 6, { width: colWidths[0] - 16, align: "left" });
-    
+   
     doc.fillColor(DARK_TEXT).font("Helvetica").fontSize(9);
     doc.text(String(row[1] || ""), MARGIN + colWidths[0] + 8, currentY + 6, { width: colWidths[1] - 16, align: "left" });
 
     currentY += rowHeight;
-    
+   
     // draw horizontal divider
     if (i < rows.length - 1) {
       doc.moveTo(MARGIN, currentY).lineTo(MARGIN + CONTENT_W, currentY).strokeColor(BORDER).stroke();
@@ -196,7 +196,7 @@ function drawDataTable(doc, headers, rows, colWidths, totalRow = null) {
 function drawLetterhead(doc, quotation) {
   const startY = doc.y;
   const height = 125;
-  
+ 
   // Gold bounding box
   doc.lineWidth(1).strokeColor(GOLD);
   doc.rect(MARGIN, startY, CONTENT_W, height).stroke();
@@ -204,14 +204,14 @@ function drawLetterhead(doc, quotation) {
   // Padding inside box
   const padX = 15;
   const padY = 15;
-  
+ 
   // Logo Block
   const localLogo = path.join(__dirname, "logo.png");
   const localLogoJpg = path.join(__dirname, "logo.jpg");
   const frontendLogo = path.join(__dirname, "..", "..", "client", "public", "images", "logo.png");
-  
+ 
   const logoToUse = [localLogo, localLogoJpg, frontendLogo].find(fs.existsSync);
-  
+ 
   if (logoToUse) {
     doc.image(logoToUse, MARGIN + padX, startY + padY, { fit: [40, 40], align: 'center', valign: 'center' });
   } else {
@@ -232,7 +232,7 @@ function drawLetterhead(doc, quotation) {
   const bottomY = startY + padY + 40 + 20;
   doc.fillColor("#1a1a1a").font("Helvetica-Bold").fontSize(10);
   doc.text("Trendy Interios.", MARGIN + padX, bottomY);
-  
+ 
   doc.fillColor(MID_TEXT).font("Helvetica").fontSize(8);
   doc.text("138, Muthugoundampalayam, Sathy-Erode Road,", MARGIN + padX, bottomY + 12);
   doc.text("Opp TNK School, Kavindapadi, Erode - 638 455", MARGIN + padX, bottomY + 22);
@@ -245,7 +245,7 @@ function drawLetterhead(doc, quotation) {
   doc.fillColor(MID_TEXT).font("Helvetica").fontSize(9);
   doc.text("Quotation No :", MARGIN + CONTENT_W - padX - valWidth - labelWidth, bottomY + 2, { width: labelWidth, align: "right" });
   doc.text("Date :", MARGIN + CONTENT_W - padX - valWidth - labelWidth, bottomY + 16, { width: labelWidth, align: "right" });
-  
+ 
   doc.fillColor("#1a1a1a").font("Helvetica-Bold").fontSize(9);
   doc.text(quotation.quotation_no, MARGIN + CONTENT_W - padX - valWidth, bottomY + 2, { width: valWidth, align: "right" });
   doc.text(quotation.date, MARGIN + CONTENT_W - padX - valWidth, bottomY + 16, { width: valWidth, align: "right" });
@@ -276,12 +276,12 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     const now = new Date();
     const dateStr = now.toLocaleDateString("en-GB");
     const quoteNo = `QT-${(estimator._id || "DRAFT").toString().slice(-8).toUpperCase()}`;
-    
+   
     const qs = estimator.quoteSummary || {};
     const ci = estimator.customerInfo || {};
     const dimensions = estimator.roomDimensionsByRoom || {};
     const lineItems = Array.isArray(qs.lineItems) ? qs.lineItems : [];
-    
+   
     const roomLineItems = lineItems.filter(it => it.roomId !== "global-addons");
     const globalAddonsItem = lineItems.find(it => it.roomId === "global-addons");
 
@@ -289,17 +289,17 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     const roomSummaries = [];
     const rooms = {};
     let totalRoomsCount = 0;
-    
+   
     roomLineItems.forEach(item => {
       const type = item.roomName || "Other";
       if (!rooms[type]) {
         rooms[type] = { rooms: [], addons: [], total: 0 };
       }
-      
+     
       const interiorsList = [];
       if (item.layout && item.layout !== "Standard") interiorsList.push(item.layout);
       if (item.addons && item.addons.length > 0) interiorsList.push(...item.addons);
-      
+     
       const selectedPackages = (item.packageComponents || []).filter(c => c.isSelected).map(c => c.name);
       if (selectedPackages.length > 0) interiorsList.push(...selectedPackages);
 
@@ -311,7 +311,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       let len = item.length;
       let wid = item.width;
       let hei = item.height;
-      
+     
       // Fallback to dimensions object/Map for older records
       if (!len || !wid) {
         let dim = {};
@@ -324,7 +324,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
         wid = wid || dim.width;
         hei = hei || dim.height;
       }
-      
+     
       const measurement = (len && wid)
         ? (hei ? `L:${len}' W:${wid}' H:${hei}'` : `L:${len}' W:${wid}'`)
         : "";
@@ -339,10 +339,10 @@ const generateQuotationPDF = async (estimator, res, callback) => {
         addons: item.addonDetails || [],
         packageComponents: (item.packageComponents || []).filter(c => c.isSelected)
       });
-      
+     
       rooms[type].total += item.estimatedCost || 0;
       totalRoomsCount += 1;
-      
+     
       roomSummaries.push({
         room_type: item.label || type,
         interiors: interiorsStr,
@@ -352,12 +352,11 @@ const generateQuotationPDF = async (estimator, res, callback) => {
 
     const globalAddons = globalAddonsItem ? globalAddonsItem.addonDetails : [];
     const globalAddonsTotal = globalAddonsItem ? globalAddonsItem.estimatedCost : 0;
-    
+   
     const roomCost = qs.roomTotals || 0;
     const addonCost = globalAddonsTotal;
-    const gstBase = (qs.roomTotals || 0) + (qs.globalAddonsTotal || 0);
-    const gst = qs.gstAmount || Math.round(gstBase * 0.18);
-    const grandTotal = (qs.grandTotal || qs.estimatedAmount || 0) + gst;
+    const gst = 0;
+    const grandTotal = qs.grandTotal || qs.estimatedAmount || 0;
 
     const quotation = {
       quotation_no: quoteNo,
@@ -380,13 +379,13 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     };
 
     // ── Build PDF ────────────────────────────────────────────────────────
-    const doc = new PDFDocument({ 
-      size: "A4", 
-      margins: { top: MARGIN, bottom: 20, left: MARGIN, right: MARGIN }, 
-      autoFirstPage: true, 
-      bufferPages: true 
+    const doc = new PDFDocument({
+      size: "A4",
+      margins: { top: MARGIN, bottom: 20, left: MARGIN, right: MARGIN },
+      autoFirstPage: true,
+      bufferPages: true
     });
-    
+   
     if (res) {
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename="Trendy_Interios._Quotation_${quoteNo}.pdf"`);
@@ -401,87 +400,73 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     // PAGE 1: Letterhead
     drawLetterhead(doc, quotation);
 
-    // ── PREMIUM DASHBOARD (CUSTOMER & PROJECT OVERVIEW) ──
+    // ── PREMIUM DASHBOARD (CUSTOMER DETAILS ABOVE, PROJECT OVERVIEW BELOW) ──
     checkSpace(doc, 250);
-    
-    const dashY = doc.y + 10;
-    const colWidth = (CONTENT_W / 2) - 30;
-    const centerX = MARGIN + (CONTENT_W / 2);
-    const leftX = MARGIN;
-    const rightX = centerX + 30;
-    
+   
+    let dashY = doc.y + 10;
     const TEXT_DARK = "#1F1F1F";
-    const ACCENT = "#C9A227";
     const TEXT_LIGHT = "#666666";
-    const ICON_BG = "#FAFAFA";
-    const ICON_BORDER = "#EBEBEB";
 
-    // Headers
+    // --- 1. CUSTOMER DETAILS (ABOVE) ---
     doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(11);
-    doc.text("CUSTOMER DETAILS", leftX, dashY, { characterSpacing: 1 });
-    doc.text("PROJECT OVERVIEW", rightX, dashY, { characterSpacing: 1 });
-    
-    let currentLeftY = dashY + 35;
-    let currentRightY = dashY + 35;
-    const nodeHeights = [];
-    
-    const drawCard = (x, y, iconChar, label, value) => {
-      if (x === leftX) nodeHeights.push(y);
-      // Label
+    doc.text("CUSTOMER DETAILS", MARGIN, dashY, { characterSpacing: 1 });
+   
+    dashY += 20;
+    doc.lineWidth(1).strokeColor(TEXT_DARK);
+    doc.moveTo(MARGIN, dashY).lineTo(MARGIN + CONTENT_W, dashY).stroke();
+    dashY += 12;
+
+    // Row 1: Name & Phone
+    const col1X = MARGIN;
+    const col2X = MARGIN + (CONTENT_W / 2);
+    const halfWidth = (CONTENT_W / 2) - 10;
+
+    const drawField = (x, y, label, value) => {
       doc.fillColor(TEXT_LIGHT).font("Helvetica").fontSize(8);
-      doc.text(label.toUpperCase(), x, y + 6);
-      
-      // Value
-      doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(10);
+      doc.text(label.toUpperCase(), x, y);
+      doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(9.5);
       const valStr = String(value || "N/A");
-      doc.text(valStr, x, y + 18, { width: colWidth });
-      
-      const valHeight = doc.heightOfString(valStr, { width: colWidth });
-      return y + Math.max(35, 18 + valHeight + 10);
+      doc.text(valStr, x, y + 11, { width: halfWidth });
+      const valHeight = doc.heightOfString(valStr, { width: halfWidth });
+      return 11 + valHeight;
     };
-    
-    // Left Column Data
-    currentLeftY = drawCard(leftX, currentLeftY, "C", "Customer Name", quotation.customer.name);
-    currentLeftY = drawCard(leftX, currentLeftY, "P", "Phone Number", quotation.customer.phone);
-    currentLeftY = drawCard(leftX, currentLeftY, "E", "Email Address", quotation.customer.email);
-    currentLeftY = drawCard(leftX, currentLeftY, "A", "Project Address", quotation.customer.address);
-    
-    // Right Column Data
-    currentRightY = drawCard(rightX, currentRightY, "R", "Total Rooms Selected", quotation.overview.total_rooms);
-    currentRightY = drawCard(rightX, currentRightY, "G", "Global Add-ons", quotation.overview.global_addons_count);
-    currentRightY = drawCard(rightX, currentRightY, "A", "Total Area", quotation.overview.total_area);
-    currentRightY = drawCard(rightX, currentRightY, "E", "Estimated Project Cost", fmt(quotation.costs.grand_total));
-    
-    const endY = Math.max(currentLeftY, currentRightY);
-    
-    // Center Divider
-    const dividerTop = nodeHeights[0] + 12;
-    const dividerBottom = nodeHeights[nodeHeights.length - 1] + 12;
-    
-    doc.lineWidth(0.5).strokeColor("#EAEAEA");
-    doc.moveTo(centerX, dividerTop).lineTo(centerX, dividerBottom).stroke();
-    
-    const drawNode = (y) => {
-      doc.circle(centerX, y, 4).fill(WHITE);
-      doc.lineWidth(1.5).strokeColor(ACCENT);
-      doc.circle(centerX, y, 4).stroke();
-      doc.circle(centerX, y, 1.5).fill(ACCENT);
-    };
-    
-    nodeHeights.forEach(y => drawNode(y + 12));
-    
-    doc.y = endY + 10;
+
+    let h1 = drawField(col1X, dashY, "Customer Name", quotation.customer.name);
+    let h2 = drawField(col2X, dashY, "Phone Number", quotation.customer.phone);
+    dashY += Math.max(h1, h2) + 20;
+
+
+    // --- 2. PROJECT OVERVIEW (BELOW) ---
+    doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(11);
+    doc.text("PROJECT OVERVIEW", MARGIN, dashY, { characterSpacing: 1 });
+   
+    dashY += 20;
+    doc.lineWidth(1).strokeColor(TEXT_DARK);
+    doc.moveTo(MARGIN, dashY).lineTo(MARGIN + CONTENT_W, dashY).stroke();
+    dashY += 12;
+
+    // Row 1: Rooms & Total Area
+    h1 = drawField(col1X, dashY, "Total Rooms Selected", quotation.overview.total_rooms);
+    h2 = drawField(col2X, dashY, "Total Area", quotation.overview.total_area);
+    dashY += Math.max(h1, h2) + 10;
+
+    // Row 2: Global Add-ons & Estimated Cost
+    h1 = drawField(col1X, dashY, "Global Add-ons", quotation.overview.global_addons_count);
+    h2 = drawField(col2X, dashY, "Estimated Project Cost", fmt(quotation.costs.grand_total));
+    dashY += Math.max(h1, h2) + 15;
+
+    doc.y = dashY;
 
     // SECTION 3: ROOM SUMMARY
     drawSectionHeader(doc, "ROOM SUMMARY");
     const summaryRows = quotation.room_summary.map(rs => [rs.room_type, rs.interiors, fmt(rs.cost)]);
-    
+   
     let totalRoomCostForSummary = quotation.room_summary.reduce((acc, curr) => acc + curr.cost, 0);
 
     drawDataTable(
-      doc, 
-      ["Room Selected", "Interiors", "Cost"], 
-      summaryRows, 
+      doc,
+      ["Room Selected", "Interiors", "Cost"],
+      summaryRows,
       [CONTENT_W * 0.25, CONTENT_W * 0.50, CONTENT_W * 0.25],
       ["TOTAL ROOM COST", "", fmt(totalRoomCostForSummary)]
     );
@@ -531,7 +516,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
           );
         }
       });
-      
+     
       const totalY = doc.y + 10;
       doc.rect(MARGIN, totalY, CONTENT_W, 25).fill(GOLD_LITE);
       doc.lineWidth(1).strokeColor(GOLD);
@@ -574,7 +559,6 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       }
 
       rows.push(["Add-On Cost", fmt(quotation.costs.addon_cost)]);
-      rows.push(["GST / Tax (18%)", fmt(quotation.costs.gst)]);
 
       let cy = doc.y;
       doc.rect(MARGIN, cy, CONTENT_W, 24).fill(NAVY);
@@ -608,6 +592,15 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       });
 
       doc.y = cy + 40;
+
+      // GST Applicable Note
+      doc.fillColor("#000000").font("Helvetica-Bold").fontSize(8.5);
+      doc.text("* GST applicable as per government norms. Final invoice will include applicable GST separately.", MARGIN + 4, doc.y, {
+        width: CONTENT_W,
+        align: "left"
+      });
+
+      doc.y = doc.y + 14;
     });
 
     // SECTION 7: WE ASSURE
@@ -616,18 +609,16 @@ const generateQuotationPDF = async (estimator, res, callback) => {
 
       const assureY = doc.y;
 
-      doc.rect(MARGIN, assureY, CONTENT_W, 145).fillAndStroke(LIGHT_BG, BORDER);
+      doc.rect(MARGIN, assureY, CONTENT_W, 115).fillAndStroke(LIGHT_BG, BORDER);
       doc.fillColor(MID_TEXT).font("Helvetica-Oblique").fontSize(8.5);
       doc.text("We assure our customers that all materials and workmanship will be delivered according to the agreed quality standards, approved specifications, and project requirements.", MARGIN + 12, assureY + 12, { width: CONTENT_W - 24, lineGap: 2 });
 
       doc.fillColor(DARK_TEXT).font("Helvetica").fontSize(9);
       const points = [
-        "1. Ten Years Warranty on materials and workmanship.",
-        "2. Final amount may vary depending on material cost fluctuations.",
-        "3. Materials may be upgraded or modified based on customer requirements.",
-        "4. Additional work beyond approved quotation scope will be charged separately.",
-        "5. Advance payments are non-refundable after material procurement.",
-        "6. Material rusting, corrosion, oxidation, and deterioration due to environmental factors are not covered under the assurance."
+        "1 year free service and lifetime service support.",
+        "10 years replacement warranty on plywood, laminate, and hinges.",
+        "Materials can be upgraded or modified as per your choice.",
+        "The final quotation will be submitted after our detailed discussion and approval."
       ];
       let ptY = doc.y + 5;
       points.forEach(pt => {
@@ -691,10 +682,6 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       doc.y = blockBottom + 15;
     });
 
-    // FOOTERS
-    // const pagesCount = doc.bufferedPageRange().count;
-    // drawFooter(doc, pagesCount);
-
     doc.end();
 
     if (callback) {
@@ -706,7 +693,6 @@ const generateQuotationPDF = async (estimator, res, callback) => {
           callback(err);
         });
       } else {
-        // wait a bit for file write stream if no res provided
         setTimeout(() => callback(null), 500);
       }
     }
