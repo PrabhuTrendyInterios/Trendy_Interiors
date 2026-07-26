@@ -10,6 +10,7 @@
   flex-direction: column;
   z-index: 200;
   transition: width 0.3s ease;
+  max-width: min(260px, 86vw);
 }
 
 .cms-sidebar.collapsed {
@@ -36,6 +37,10 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.cms-sidebar-brand-text.desktop-collapsed {
+  display: none;
 }
 
 .cms-brand-name {
@@ -75,6 +80,11 @@
   color: rgba(255, 255, 255, 0.35);
   padding: 0 0.75rem 0.5rem;
   font-weight: 600;
+}
+
+.cms-nav-label.desktop-collapsed,
+.cms-nav-text.desktop-collapsed {
+  display: none;
 }
 
 .cms-nav-link {
@@ -152,6 +162,7 @@
   .cms-sidebar {
     transform: translateX(-100%);
     width: 260px;
+    max-width: min(300px, 86vw);
   }
 
   .cms-sidebar.mobile-open {
@@ -168,7 +179,45 @@
     transform: translateX(0);
   }
 
+  .cms-sidebar-brand-text.desktop-collapsed {
+    display: flex;
+  }
+
+  .cms-nav-label.desktop-collapsed {
+    display: block;
+  }
+
+  .cms-nav-text.desktop-collapsed {
+    display: inline;
+  }
+
   .cms-collapse-btn {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .cms-sidebar {
+    width: min(300px, 88vw);
+  }
+
+  .cms-sidebar-brand {
+    padding: 1rem 0.85rem;
+    min-height: 66px;
+  }
+
+  .cms-sidebar-logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .cms-sidebar-nav {
+    padding: 0.75rem 0.6rem;
+  }
+
+  .cms-nav-link {
+    min-height: 46px;
+    padding: 0.7rem 0.75rem;
+    font-size: 0.88rem;
   }
 }

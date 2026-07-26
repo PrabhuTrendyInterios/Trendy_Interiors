@@ -1,4 +1,5 @@
 const Room = require('../models/Room');
+const mongoose = require('mongoose');
 const { formatValidationError, sendError, sendSuccess } = require('../utils/controllerHelpers');
 const { formatRoomResponse } = require('../utils/formatRoomResponse');
 const { validateRoomLayoutConfigurations } = require('../utils/layoutMaterials');
@@ -123,6 +124,7 @@ const normalizeRoomPayload = (body = {}) => {
     imageUrl: body.imageUrl?.trim() || '',
     pricePerSqFt: Number(body.pricePerSqFt) || 0,
     status: body.status === 'inactive' ? 'inactive' : 'active',
+    displayOrder: Number(body.displayOrder) || 0,
     allowCustomDimensions: toBoolean(body.allowCustomDimensions),
     requiresDimensions: body.requiresDimensions !== undefined ? toBoolean(body.requiresDimensions) : true,
     maxSelectableRooms: normalizeMaxSelectableRooms(body.maxSelectableRooms, body.name),
@@ -183,6 +185,11 @@ exports.createRoom = async (req, res) => {
   try {
     const payload = normalizeRoomPayload(req.body);
 
+    if (payload.displayOrder <= 0) {
+      const lastRoom = await Room.findOne({}).sort({ displayOrder: -1 }).select('displayOrder');
+      payload.displayOrder = (Number(lastRoom?.displayOrder) || 0) + 1;
+    }
+
     const layoutErrors = validateRoomLayoutConfigurations(payload.dimensions, payload.layouts);
     if (layoutErrors.length > 0) {
       return sendError(res, 400, layoutErrors.join(' '));
@@ -206,6 +213,49 @@ exports.createRoom = async (req, res) => {
     sendSuccess(res, 201, { data: formatRoomResponse(room) });
   } catch (err) {
     sendError(res, err.name === 'ValidationError' || err.code === 11000 ? 400 : 500, formatValidationError(err));
+  }
+};
+
+exports.reorderRooms = async (req, res) => {
+  try {
+    const orderedRoomIds = Array.isArray(req.body?.orderedRoomIds)
+      ? req.body.orderedRoomIds.map((id) => String(id))
+      : [];
+    const uniqueIds = new Set(orderedRoomIds);
+
+    if (
+      orderedRoomIds.length === 0 ||
+      uniqueIds.size !== orderedRoomIds.length ||
+      orderedRoomIds.some((id) => !mongoose.Types.ObjectId.isValid(id))
+    ) {
+      return sendError(res, 400, 'A unique orderedRoomIds array is required.');
+    }
+
+    const [roomCount, matchedRoomCount] = await Promise.all([
+      Room.countDocuments({}),
+      Room.countDocuments({ _id: { $in: orderedRoomIds } }),
+    ]);
+
+    if (orderedRoomIds.length !== roomCount || matchedRoomCount !== roomCount) {
+      return sendError(res, 400, 'The room order must include every configured room exactly once.');
+    }
+
+    await Room.bulkWrite(
+      orderedRoomIds.map((roomId, index) => ({
+        updateOne: {
+          filter: { _id: roomId },
+          update: { $set: { displayOrder: index + 1 } },
+        },
+      }))
+    );
+
+    const rooms = await Room.find({}).sort({ displayOrder: 1, name: 1 });
+    return sendSuccess(res, 200, {
+      message: 'Room visibility order updated successfully.',
+      data: rooms.map(formatRoomResponse),
+    });
+  } catch (err) {
+    return sendError(res, 500, formatValidationError(err));
   }
 };
 

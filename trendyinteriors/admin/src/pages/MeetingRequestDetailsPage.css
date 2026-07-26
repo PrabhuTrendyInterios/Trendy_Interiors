@@ -130,3 +130,35 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 640px) {
+  .meeting-details-page {
+    gap: 1rem;
+  }
+
+  .details-header h2 {
+    font-size: 1.45rem;
+    overflow-wrap: anywhere;
+  }
+
+  .details-nav,
+  .status-section {
+    width: 100%;
+  }
+
+  .details-nav .btn-back,
+  .status-panel,
+  .status-panel .btn-action {
+    width: 100%;
+  }
+
+  .detail-card,
+  .status-panel {
+    padding: 1rem;
+  }
+
+  .detail-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}

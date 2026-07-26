@@ -1,5 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { FaTrash, FaPlus, FaEdit, FaDoorOpen } from 'react-icons/fa';
+import {
+  FaArrowDown,
+  FaArrowUp,
+  FaDoorOpen,
+  FaEdit,
+  FaGripVertical,
+  FaPlus,
+  FaTrash,
+} from 'react-icons/fa';
 import RoomEditorModal from '../components/RoomEditorModal';
 import { useCms } from '../context/CmsContext';
 import { cmsGet, cmsPost, cmsPut, cmsDelete } from '../utils/cmsApi';
@@ -12,6 +20,9 @@ const RoomsPage = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
+  const [draggedRoomId, setDraggedRoomId] = useState(null);
+  const [dragOverRoomId, setDragOverRoomId] = useState(null);
+  const [reordering, setReordering] = useState(false);
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -77,6 +88,48 @@ const RoomsPage = () => {
     }
   };
 
+  const persistRoomOrder = async (nextRooms, previousRooms) => {
+    setRooms(nextRooms);
+    setReordering(true);
+
+    try {
+      const response = await cmsPut('/rooms/reorder', {
+        orderedRoomIds: nextRooms.map((room) => room._id),
+      });
+      setRooms(response.data || nextRooms);
+      showToast('Room visibility order updated!', 'success');
+    } catch (error) {
+      setRooms(previousRooms);
+      showToast(error.message, 'error');
+    } finally {
+      setReordering(false);
+    }
+  };
+
+  const moveRoom = (roomId, targetIndex) => {
+    if (reordering) return;
+
+    const sourceIndex = rooms.findIndex((room) => room._id === roomId);
+    const boundedTargetIndex = Math.max(0, Math.min(rooms.length - 1, targetIndex));
+    if (sourceIndex < 0 || sourceIndex === boundedTargetIndex) return;
+
+    const previousRooms = [...rooms];
+    const nextRooms = [...rooms];
+    const [movedRoom] = nextRooms.splice(sourceIndex, 1);
+    nextRooms.splice(boundedTargetIndex, 0, movedRoom);
+    persistRoomOrder(nextRooms, previousRooms);
+  };
+
+  const handleDrop = (targetRoomId) => {
+    const sourceRoomId = draggedRoomId;
+    setDraggedRoomId(null);
+    setDragOverRoomId(null);
+
+    if (!sourceRoomId || sourceRoomId === targetRoomId || reordering) return;
+    const targetIndex = rooms.findIndex((room) => room._id === targetRoomId);
+    moveRoom(sourceRoomId, targetIndex);
+  };
+
   return (
     <div className="cms-page">
       <div className="rooms-page-toolbar">
@@ -114,6 +167,7 @@ const RoomsPage = () => {
             <table className="rooms-table">
               <thead>
                 <tr>
+                  <th className="rooms-drag-column"><span className="sr-only">Reorder</span></th>
                   <th>Room</th>
                   <th>Price / sq.ft</th>
                   <th>Status</th>
@@ -123,8 +177,55 @@ const RoomsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {rooms.map((room) => (
-                  <tr key={room._id}>
+                {rooms.map((room, index) => (
+                  <tr
+                    key={room._id}
+                    draggable={!reordering}
+                    className={`${draggedRoomId === room._id ? 'is-dragging' : ''} ${dragOverRoomId === room._id ? 'is-drag-over' : ''}`}
+                    onDragStart={(event) => {
+                      setDraggedRoomId(room._id);
+                      event.dataTransfer.effectAllowed = 'move';
+                      event.dataTransfer.setData('text/plain', room._id);
+                    }}
+                    onDragEnter={() => draggedRoomId && draggedRoomId !== room._id && setDragOverRoomId(room._id)}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = 'move';
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      handleDrop(room._id);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedRoomId(null);
+                      setDragOverRoomId(null);
+                    }}
+                  >
+                    <td className="rooms-drag-cell">
+                      <div className="rooms-drag-controls">
+                        <span className="rooms-drag-handle" title="Drag to reorder" aria-hidden="true">
+                          <FaGripVertical />
+                        </span>
+                        <div className="rooms-order-buttons">
+                          <button
+                            type="button"
+                            onClick={() => moveRoom(room._id, index - 1)}
+                            disabled={reordering || index === 0}
+                            aria-label={`Move ${room.name} up`}
+                          >
+                            <FaArrowUp />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveRoom(room._id, index + 1)}
+                            disabled={reordering || index === rooms.length - 1}
+                            aria-label={`Move ${room.name} down`}
+                          >
+                            <FaArrowDown />
+                          </button>
+                        </div>
+                      </div>
+                    </td>
                     <td>
                       <div className="rooms-table-room">
                         {room.imageUrl && (
@@ -163,6 +264,9 @@ const RoomsPage = () => {
             </table>
           </div>
         )}
+        <p className="rooms-order-status" aria-live="polite">
+          {reordering ? 'Saving room order...' : ''}
+        </p>
       </div>
 
       <RoomEditorModal

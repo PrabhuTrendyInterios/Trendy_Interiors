@@ -19,7 +19,7 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  min-width: 280px;
+  min-width: min(280px, 100%);
 }
 
 .meetings-icon {
@@ -93,7 +93,7 @@
 
 .requests-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 1.25rem;
 }
 
@@ -214,8 +214,46 @@
 }
 
 @media (max-width: 768px) {
-  .meetings-toolbar,
-  .meetings-filters {
+  .meetings-toolbar {
     flex-direction: column;
+    padding: 1rem;
+  }
+
+  .meetings-title,
+  .meetings-controls {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .meetings-title h2 {
+    font-size: 1.25rem;
+  }
+
+  .select-control {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .meetings-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .requests-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .request-card {
+    padding: 1rem;
+  }
+
+  .request-card-header,
+  .detail-row {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .request-actions .btn-view {
+    width: 100%;
+    min-width: 0;
   }
 }

@@ -8,6 +8,7 @@
   justify-content: center;
   z-index: 2000;
   animation: fadeIn 0.2s ease;
+  padding: 1rem;
 }
 
 @keyframes fadeIn {
@@ -196,7 +197,9 @@
 @media (max-width: 480px) {
   .delete-modal {
     padding: 1.5rem;
-    margin: 1rem;
+    margin: 0;
+    width: 100%;
+    max-width: 360px;
   }
 
   .modal-icon-wrapper {

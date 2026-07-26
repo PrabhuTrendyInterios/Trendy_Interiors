@@ -26,7 +26,7 @@
   align-items: flex-start;
   gap: 1rem;
   flex: 1;
-  min-width: 300px;
+  min-width: min(300px, 100%);
 }
 
 .estimates-icon {
@@ -180,7 +180,7 @@
 /* Estimates grid */
 .estimates-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
   gap: 1.5rem;
 }
 
@@ -380,6 +380,38 @@
 }
 
 @media (max-width: 640px) {
+  .estimates-page {
+    gap: 1rem;
+  }
+
+  .estimates-toolbar {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .estimates-title {
+    min-width: 0;
+    gap: 0.75rem;
+  }
+
+  .estimates-icon {
+    font-size: 1.5rem;
+  }
+
+  .estimates-title h2 {
+    font-size: 1.25rem;
+  }
+
+  .estimates-controls {
+    width: 100%;
+  }
+
+  .sort-select,
+  .status-select {
+    min-width: 0;
+    width: 100%;
+  }
+
   .estimates-filters {
     grid-template-columns: 1fr;
   }
@@ -394,7 +426,13 @@
   }
 
   .estimate-card-header {
+    flex-direction: column;
+    gap: 0.75rem;
     padding-bottom: 0.75rem;
+  }
+
+  .estimate-amount {
+    align-self: flex-end;
   }
 
   .estimate-customer h4 {
@@ -408,6 +446,19 @@
   .btn-action {
     padding: 0.6rem 0.75rem;
     font-size: 0.8rem;
+  }
+
+  .estimate-actions {
+    flex-direction: column;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .detail-row .value {
+    text-align: left;
   }
 
   .estimate-amount {

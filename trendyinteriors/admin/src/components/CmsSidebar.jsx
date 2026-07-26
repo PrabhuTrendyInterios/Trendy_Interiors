@@ -35,19 +35,17 @@ const CmsSidebar = ({ collapsed, mobileOpen, onToggle, onMobileClose }) => {
     <aside className={`cms-sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
       <div className="cms-sidebar-brand">
         <img src="/images/logo.png" alt="Trendy Interios" className="cms-sidebar-logo" />
-        {!collapsed && (
-          <div className="cms-sidebar-brand-text">
-            <span className="cms-brand-name">
-              Trendy <span className="cms-brand-accent">Interios</span>
-            </span>
-            <span className="cms-brand-tag">Content Manager</span>
-          </div>
-        )}
+        <div className={`cms-sidebar-brand-text ${collapsed ? 'desktop-collapsed' : ''}`}>
+          <span className="cms-brand-name">
+            Trendy <span className="cms-brand-accent">Interios</span>
+          </span>
+          <span className="cms-brand-tag">Content Manager</span>
+        </div>
       </div>
 
       <nav className="cms-sidebar-nav">
         <div className="cms-nav-group">
-          {!collapsed && <span className="cms-nav-label">Main</span>}
+          <span className={`cms-nav-label ${collapsed ? 'desktop-collapsed' : ''}`}>Main</span>
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -60,14 +58,14 @@ const CmsSidebar = ({ collapsed, mobileOpen, onToggle, onMobileClose }) => {
                 onClick={onMobileClose}
               >
                 <Icon className="cms-nav-icon" />
-                {!collapsed && <span>{item.label}</span>}
+                <span className={`cms-nav-text ${collapsed ? 'desktop-collapsed' : ''}`}>{item.label}</span>
               </NavLink>
             );
           })}
         </div>
 
         <div className="cms-nav-group">
-          {!collapsed && <span className="cms-nav-label">Estimator CMS</span>}
+          <span className={`cms-nav-label ${collapsed ? 'desktop-collapsed' : ''}`}>Estimator CMS</span>
           {estimatorItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -79,14 +77,14 @@ const CmsSidebar = ({ collapsed, mobileOpen, onToggle, onMobileClose }) => {
                 onClick={onMobileClose}
               >
                 <Icon className="cms-nav-icon" />
-                {!collapsed && <span>{item.label}</span>}
+                <span className={`cms-nav-text ${collapsed ? 'desktop-collapsed' : ''}`}>{item.label}</span>
               </NavLink>
             );
           })}
         </div>
 
         <div className="cms-nav-group">
-          {!collapsed && <span className="cms-nav-label">System</span>}
+          <span className={`cms-nav-label ${collapsed ? 'desktop-collapsed' : ''}`}>System</span>
           <NavLink
             to="/settings"
             className={({ isActive }) => `cms-nav-link ${isActive ? 'active' : ''}`}
@@ -94,7 +92,7 @@ const CmsSidebar = ({ collapsed, mobileOpen, onToggle, onMobileClose }) => {
             onClick={onMobileClose}
           >
             <FaCog className="cms-nav-icon" />
-            {!collapsed && <span>Settings</span>}
+            <span className={`cms-nav-text ${collapsed ? 'desktop-collapsed' : ''}`}>Settings</span>
           </NavLink>
         </div>
       </nav>
@@ -102,7 +100,7 @@ const CmsSidebar = ({ collapsed, mobileOpen, onToggle, onMobileClose }) => {
       <div className="cms-sidebar-footer">
         <a href="/" className="cms-nav-link cms-external-link" target="_blank" rel="noreferrer">
           <FaExternalLinkAlt className="cms-nav-icon" />
-          {!collapsed && <span>View Website</span>}
+          <span className={`cms-nav-text ${collapsed ? 'desktop-collapsed' : ''}`}>View Website</span>
         </a>
         <button type="button" className="cms-collapse-btn" onClick={onToggle} aria-label="Toggle sidebar">
           {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
