@@ -10,11 +10,11 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { FaArrowRight, FaTimes } from "react-icons/fa";
 import "./PenguinPopup.css";
 
-export const DEFAULT_PENGUIN_ASSETS = {
-  mobilePeek: "/assets/penguin-popup/penguin-peek-mobile.webp",
-  desktopPeek: "/assets/penguin-popup/penguin-peek-desktop.webp",
-  present: "/assets/penguin-popup/penguin-present.webp",
-  wave: "/assets/penguin-popup/penguin-wave.webp",
+export const DEFAULT_TRENDY_BOT_ASSETS = {
+  mobilePeek: "/assets/trendy-bot/trendy-bot-peek-mobile.webp",
+  desktopPeek: "/assets/trendy-bot/trendy-bot-peek-desktop.webp",
+  present: "/assets/trendy-bot/trendy-bot-present.webp",
+  wave: "/assets/trendy-bot/trendy-bot-wave.webp",
 };
 
 const EASE_OUT = [0.22, 1, 0.36, 1];
@@ -65,9 +65,9 @@ const PenguinPopup = ({
   secondaryActions = [],
   showDelay = 1200,
   autoCloseDuration = 0,
-  storageKey = "penguin-popup-v1",
+  storageKey = "trendy-bot-popup-v1",
   storageType = "session",
-  imagePaths = DEFAULT_PENGUIN_ASSETS,
+  imagePaths = DEFAULT_TRENDY_BOT_ASSETS,
   breakpoint = 768,
   className = "",
   shouldSuppress,
@@ -77,6 +77,7 @@ const PenguinPopup = ({
   const [isMounted, setIsMounted] = useState(false);
   const [phase, setPhase] = useState(PHASE.HIDDEN);
   const [isHovered, setIsHovered] = useState(false);
+  const [failedSources, setFailedSources] = useState(() => new Set());
   const timersRef = useRef(new Set());
   const phaseRef = useRef(PHASE.HIDDEN);
   const exitCallbackRef = useRef(null);
@@ -292,6 +293,24 @@ const PenguinPopup = ({
     return imagePaths.present;
   }, [imagePaths, isMobile, phase]);
 
+  const fallbackPoseSource = useMemo(() => {
+    if (!poseSource.endsWith(".webp")) return poseSource;
+    return poseSource.replace(/\.webp$/i, ".png");
+  }, [poseSource]);
+
+  const renderedPoseSource = failedSources.has(poseSource)
+    ? fallbackPoseSource
+    : poseSource;
+
+  const handleMascotError = useCallback(() => {
+    setFailedSources((currentSources) => {
+      if (currentSources.has(poseSource)) return currentSources;
+      const nextSources = new Set(currentSources);
+      nextSources.add(poseSource);
+      return nextSources;
+    });
+  }, [poseSource]);
+
   const mascotInitial = useMemo(() => {
     if (prefersReducedMotion) return { opacity: 0 };
     if (phase === PHASE.PEEK) {
@@ -356,16 +375,17 @@ const PenguinPopup = ({
         >
           <AnimatePresence mode="sync" initial={false}>
             <motion.img
-              key={poseSource}
+              key={renderedPoseSource}
               className="penguin-popup__mascot"
-              src={poseSource}
+              src={renderedPoseSource}
               alt=""
               aria-hidden="true"
-              width="1254"
-              height="1254"
+              width="520"
+              height="520"
               loading="eager"
               decoding="async"
               draggable="false"
+              onError={handleMascotError}
               initial={mascotInitial}
               animate={mascotAnimate}
               exit={{ opacity: 0 }}

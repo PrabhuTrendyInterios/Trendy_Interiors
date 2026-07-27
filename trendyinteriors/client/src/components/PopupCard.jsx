@@ -12,14 +12,14 @@ const EXCLUDED_ROUTES = [
 ];
 
 // Edit this object to change the site-wide popup copy or timing.
-export const PENGUIN_POPUP_CONFIG = {
+export const TRENDY_BOT_POPUP_CONFIG = {
   title: "Bring your dream interior to life",
   description: "Explore completed spaces or build a personalized interior quote in minutes.",
   actionLabel: "Quote Interior Yourself",
   inactivityDelay: 10000,
   showDelay: 0,
   autoCloseDuration: 5000,
-  storageKey: "trendy-interiors-penguin-popup-v5",
+  storageKey: "trendy-interiors-bot-popup-v1",
   storageType: "none",
 };
 
@@ -54,7 +54,7 @@ const PopupCard = () => {
       inactivityTimerRef.current = window.setTimeout(() => {
         inactivityTimerRef.current = null;
         setPopupCycle(Date.now());
-      }, PENGUIN_POPUP_CONFIG.inactivityDelay);
+      }, TRENDY_BOT_POPUP_CONFIG.inactivityDelay);
     };
 
     const activityEvents = [
@@ -118,7 +118,7 @@ const PopupCard = () => {
   return (
     <PenguinPopup
       key={popupCycle}
-      {...PENGUIN_POPUP_CONFIG}
+      {...TRENDY_BOT_POPUP_CONFIG}
       icon={<FaHome />}
       informationRows={informationRows}
       secondaryActions={secondaryActions}

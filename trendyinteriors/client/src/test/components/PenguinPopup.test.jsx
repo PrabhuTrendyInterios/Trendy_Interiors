@@ -36,7 +36,7 @@ jest.mock("framer-motion", () => {
 const PenguinPopup = require("../../components/PenguinPopup").default;
 const PopupCardModule = require("../../components/PopupCard");
 const PopupCard = PopupCardModule.default;
-const { PENGUIN_POPUP_CONFIG } = PopupCardModule;
+const { TRENDY_BOT_POPUP_CONFIG } = PopupCardModule;
 
 describe("PenguinPopup", () => {
   beforeEach(() => {
@@ -69,9 +69,9 @@ describe("PenguinPopup", () => {
     );
 
   test("site configuration keeps the panel visible for five seconds", () => {
-    expect(PENGUIN_POPUP_CONFIG.autoCloseDuration).toBe(5000);
-    expect(PENGUIN_POPUP_CONFIG.inactivityDelay).toBe(10000);
-    expect(PENGUIN_POPUP_CONFIG.storageType).toBe("none");
+    expect(TRENDY_BOT_POPUP_CONFIG.autoCloseDuration).toBe(5000);
+    expect(TRENDY_BOT_POPUP_CONFIG.inactivityDelay).toBe(10000);
+    expect(TRENDY_BOT_POPUP_CONFIG.storageType).toBe("none");
   });
 
   test("site popup resets on activity and rearms after automatic close", () => {
@@ -113,7 +113,7 @@ describe("PenguinPopup", () => {
     expect(popup).toHaveAttribute("data-phase", "peek");
     expect(container.querySelector(".penguin-popup__mascot")).toHaveAttribute(
       "src",
-      "/assets/penguin-popup/penguin-peek-desktop.webp"
+      "/assets/trendy-bot/trendy-bot-peek-desktop.webp"
     );
     expect(screen.queryByText("Quick Update")).not.toBeInTheDocument();
 
@@ -125,7 +125,7 @@ describe("PenguinPopup", () => {
     expect(screen.getByText("Quick Update")).toBeInTheDocument();
     expect(container.querySelector(".penguin-popup__mascot")).toHaveAttribute(
       "src",
-      "/assets/penguin-popup/penguin-present.webp"
+      "/assets/trendy-bot/trendy-bot-present.webp"
     );
   });
 
@@ -143,7 +143,7 @@ describe("PenguinPopup", () => {
     expect(screen.getByRole("status")).toHaveAttribute("data-phase", "peek");
     expect(container.querySelector(".penguin-popup__mascot")).toHaveAttribute(
       "src",
-      "/assets/penguin-popup/penguin-peek-mobile.webp"
+      "/assets/trendy-bot/trendy-bot-peek-mobile.webp"
     );
     expect(screen.queryByText("Quick Update")).not.toBeInTheDocument();
   });
