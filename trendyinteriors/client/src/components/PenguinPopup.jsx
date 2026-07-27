@@ -329,8 +329,20 @@ const PenguinPopup = ({
   const mascotAnimate = useMemo(() => {
     if (phase === PHASE.LEAVING) {
       return isMobile
-        ? { opacity: 0, x: "110%", y: 0, rotate: 2 }
-        : { opacity: 0, x: 0, y: "118%", rotate: -2 };
+        ? {
+            opacity: [1, 1, 0],
+            x: ["0%", "18%", "116%"],
+            y: 0,
+            rotate: [0, 18, 390],
+            scale: [1, 0.96, 0.88],
+          }
+        : {
+            opacity: [1, 1, 0],
+            x: 0,
+            y: ["0%", "14%", "122%"],
+            rotate: [0, -18, -390],
+            scale: [1, 0.96, 0.88],
+          };
     }
     if (phase === PHASE.PEEK) {
       return isMobile
@@ -352,7 +364,7 @@ const PenguinPopup = ({
     phase === PHASE.VISIBLE && !prefersReducedMotion
       ? { duration: 3.6, repeat: Infinity, ease: "easeInOut" }
       : {
-          duration: phase === PHASE.LEAVING ? 0.62 : 0.68,
+          duration: phase === PHASE.LEAVING ? 0.78 : 0.68,
           ease: EASE_OUT,
         };
 
