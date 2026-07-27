@@ -90,7 +90,7 @@ function drawInfoTable(doc, rows, colWidths = [CONTENT_W * 0.4, CONTENT_W * 0.6]
   checkSpace(doc, rows.length * rowHeight);
 
   let currentY = doc.y;
- 
+  
   // draw boundary box
   doc.lineWidth(0.4).strokeColor(BORDER);
   doc.rect(MARGIN, currentY, CONTENT_W, rows.length * rowHeight).stroke();
@@ -100,18 +100,18 @@ function drawInfoTable(doc, rows, colWidths = [CONTENT_W * 0.4, CONTENT_W * 0.6]
     if (isZebra) {
       doc.rect(MARGIN, currentY, CONTENT_W, rowHeight).fill(ZEBRA);
     }
-   
+    
     // Draw vertical divider
     doc.moveTo(MARGIN + colWidths[0], currentY).lineTo(MARGIN + colWidths[0], currentY + rowHeight).strokeColor(BORDER).stroke();
 
     doc.fillColor(DARK_TEXT).font("Helvetica-Bold").fontSize(9);
     doc.text(row[0], MARGIN + 8, currentY + 6, { width: colWidths[0] - 16, align: "left" });
-   
+    
     doc.fillColor(DARK_TEXT).font("Helvetica").fontSize(9);
     doc.text(String(row[1] || ""), MARGIN + colWidths[0] + 8, currentY + 6, { width: colWidths[1] - 16, align: "left" });
 
     currentY += rowHeight;
-   
+    
     // draw horizontal divider
     if (i < rows.length - 1) {
       doc.moveTo(MARGIN, currentY).lineTo(MARGIN + CONTENT_W, currentY).strokeColor(BORDER).stroke();
@@ -196,7 +196,7 @@ function drawDataTable(doc, headers, rows, colWidths, totalRow = null) {
 function drawLetterhead(doc, quotation) {
   const startY = doc.y;
   const height = 125;
- 
+  
   // Gold bounding box
   doc.lineWidth(1).strokeColor(GOLD);
   doc.rect(MARGIN, startY, CONTENT_W, height).stroke();
@@ -204,14 +204,14 @@ function drawLetterhead(doc, quotation) {
   // Padding inside box
   const padX = 15;
   const padY = 15;
- 
+  
   // Logo Block
   const localLogo = path.join(__dirname, "logo.png");
   const localLogoJpg = path.join(__dirname, "logo.jpg");
   const frontendLogo = path.join(__dirname, "..", "..", "client", "public", "images", "logo.png");
- 
+  
   const logoToUse = [localLogo, localLogoJpg, frontendLogo].find(fs.existsSync);
- 
+  
   if (logoToUse) {
     doc.image(logoToUse, MARGIN + padX, startY + padY, { fit: [40, 40], align: 'center', valign: 'center' });
   } else {
@@ -232,7 +232,7 @@ function drawLetterhead(doc, quotation) {
   const bottomY = startY + padY + 40 + 20;
   doc.fillColor("#1a1a1a").font("Helvetica-Bold").fontSize(10);
   doc.text("Trendy Interios.", MARGIN + padX, bottomY);
- 
+  
   doc.fillColor(MID_TEXT).font("Helvetica").fontSize(8);
   doc.text("138, Muthugoundampalayam, Sathy-Erode Road,", MARGIN + padX, bottomY + 12);
   doc.text("Opp TNK School, Kavindapadi, Erode - 638 455", MARGIN + padX, bottomY + 22);
@@ -245,7 +245,7 @@ function drawLetterhead(doc, quotation) {
   doc.fillColor(MID_TEXT).font("Helvetica").fontSize(9);
   doc.text("Quotation No :", MARGIN + CONTENT_W - padX - valWidth - labelWidth, bottomY + 2, { width: labelWidth, align: "right" });
   doc.text("Date :", MARGIN + CONTENT_W - padX - valWidth - labelWidth, bottomY + 16, { width: labelWidth, align: "right" });
- 
+  
   doc.fillColor("#1a1a1a").font("Helvetica-Bold").fontSize(9);
   doc.text(quotation.quotation_no, MARGIN + CONTENT_W - padX - valWidth, bottomY + 2, { width: valWidth, align: "right" });
   doc.text(quotation.date, MARGIN + CONTENT_W - padX - valWidth, bottomY + 16, { width: valWidth, align: "right" });
@@ -276,12 +276,12 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     const now = new Date();
     const dateStr = now.toLocaleDateString("en-GB");
     const quoteNo = `QT-${(estimator._id || "DRAFT").toString().slice(-8).toUpperCase()}`;
-   
+    
     const qs = estimator.quoteSummary || {};
     const ci = estimator.customerInfo || {};
     const dimensions = estimator.roomDimensionsByRoom || {};
     const lineItems = Array.isArray(qs.lineItems) ? qs.lineItems : [];
-   
+    
     const roomLineItems = lineItems.filter(it => it.roomId !== "global-addons");
     const globalAddonsItem = lineItems.find(it => it.roomId === "global-addons");
 
@@ -289,17 +289,17 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     const roomSummaries = [];
     const rooms = {};
     let totalRoomsCount = 0;
-   
+    
     roomLineItems.forEach(item => {
       const type = item.roomName || "Other";
       if (!rooms[type]) {
         rooms[type] = { rooms: [], addons: [], total: 0 };
       }
-     
+      
       const interiorsList = [];
       if (item.layout && item.layout !== "Standard") interiorsList.push(item.layout);
       if (item.addons && item.addons.length > 0) interiorsList.push(...item.addons);
-     
+      
       const selectedPackages = (item.packageComponents || []).filter(c => c.isSelected).map(c => c.name);
       if (selectedPackages.length > 0) interiorsList.push(...selectedPackages);
 
@@ -311,7 +311,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       let len = item.length;
       let wid = item.width;
       let hei = item.height;
-     
+      
       // Fallback to dimensions object/Map for older records
       if (!len || !wid) {
         let dim = {};
@@ -324,7 +324,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
         wid = wid || dim.width;
         hei = hei || dim.height;
       }
-     
+      
       const measurement = (len && wid)
         ? (hei ? `L:${len}' W:${wid}' H:${hei}'` : `L:${len}' W:${wid}'`)
         : "";
@@ -339,10 +339,10 @@ const generateQuotationPDF = async (estimator, res, callback) => {
         addons: item.addonDetails || [],
         packageComponents: (item.packageComponents || []).filter(c => c.isSelected)
       });
-     
+      
       rooms[type].total += item.estimatedCost || 0;
       totalRoomsCount += 1;
-     
+      
       roomSummaries.push({
         room_type: item.label || type,
         interiors: interiorsStr,
@@ -352,7 +352,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
 
     const globalAddons = globalAddonsItem ? globalAddonsItem.addonDetails : [];
     const globalAddonsTotal = globalAddonsItem ? globalAddonsItem.estimatedCost : 0;
-   
+    
     const roomCost = qs.roomTotals || 0;
     const addonCost = globalAddonsTotal;
     const gst = 0;
@@ -379,13 +379,13 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     };
 
     // ── Build PDF ────────────────────────────────────────────────────────
-    const doc = new PDFDocument({
-      size: "A4",
-      margins: { top: MARGIN, bottom: 20, left: MARGIN, right: MARGIN },
-      autoFirstPage: true,
-      bufferPages: true
+    const doc = new PDFDocument({ 
+      size: "A4", 
+      margins: { top: MARGIN, bottom: 20, left: MARGIN, right: MARGIN }, 
+      autoFirstPage: true, 
+      bufferPages: true 
     });
-   
+    
     if (res) {
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename="Trendy_Interios._Quotation_${quoteNo}.pdf"`);
@@ -402,7 +402,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
 
     // ── PREMIUM DASHBOARD (CUSTOMER DETAILS ABOVE, PROJECT OVERVIEW BELOW) ──
     checkSpace(doc, 250);
-   
+    
     let dashY = doc.y + 10;
     const TEXT_DARK = "#1F1F1F";
     const TEXT_LIGHT = "#666666";
@@ -410,7 +410,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     // --- 1. CUSTOMER DETAILS (ABOVE) ---
     doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(11);
     doc.text("CUSTOMER DETAILS", MARGIN, dashY, { characterSpacing: 1 });
-   
+    
     dashY += 20;
     doc.lineWidth(1).strokeColor(TEXT_DARK);
     doc.moveTo(MARGIN, dashY).lineTo(MARGIN + CONTENT_W, dashY).stroke();
@@ -439,7 +439,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     // --- 2. PROJECT OVERVIEW (BELOW) ---
     doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(11);
     doc.text("PROJECT OVERVIEW", MARGIN, dashY, { characterSpacing: 1 });
-   
+    
     dashY += 20;
     doc.lineWidth(1).strokeColor(TEXT_DARK);
     doc.moveTo(MARGIN, dashY).lineTo(MARGIN + CONTENT_W, dashY).stroke();
@@ -460,13 +460,13 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     // SECTION 3: ROOM SUMMARY
     drawSectionHeader(doc, "ROOM SUMMARY");
     const summaryRows = quotation.room_summary.map(rs => [rs.room_type, rs.interiors, fmt(rs.cost)]);
-   
+    
     let totalRoomCostForSummary = quotation.room_summary.reduce((acc, curr) => acc + curr.cost, 0);
 
     drawDataTable(
-      doc,
-      ["Room Selected", "Interiors", "Cost"],
-      summaryRows,
+      doc, 
+      ["Room Selected", "Interiors", "Cost"], 
+      summaryRows, 
       [CONTENT_W * 0.25, CONTENT_W * 0.50, CONTENT_W * 0.25],
       ["TOTAL ROOM COST", "", fmt(totalRoomCostForSummary)]
     );
@@ -516,7 +516,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
           );
         }
       });
-     
+      
       const totalY = doc.y + 10;
       doc.rect(MARGIN, totalY, CONTENT_W, 25).fill(GOLD_LITE);
       doc.lineWidth(1).strokeColor(GOLD);
@@ -682,6 +682,10 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       doc.y = blockBottom + 15;
     });
 
+    // FOOTERS
+    // const pagesCount = doc.bufferedPageRange().count;
+    // drawFooter(doc, pagesCount);
+
     doc.end();
 
     if (callback) {
@@ -693,6 +697,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
           callback(err);
         });
       } else {
+        // wait a bit for file write stream if no res provided
         setTimeout(() => callback(null), 500);
       }
     }
