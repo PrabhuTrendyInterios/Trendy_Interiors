@@ -217,15 +217,12 @@ const DimensionsSelection = ({
     const dimensions = getDimensions(room.id);
     const selectedDesign = dimensions.selectedDesignIdea || getDefaultDimensions().selectedDesignIdea;
     const customOpen = Boolean(customOpenByRoom[room.id]);
-    const hasDimensions =
-      Number(dimensions.length) > 0 &&
-      Number(dimensions.width) > 0 &&
-      Number(dimensions.height) > 0;
-    const canChooseLayout = !requiresDimensions || hasDimensions;
+    const hasLayout = Boolean(selectedDesign.layout);
+    const canChooseLayout = true;
+    const canChooseSize = !currentOptions.showLayout || hasLayout;
     const layoutSection = currentOptions.showLayout ? (
       <div className={`premium-design-section dimension-layout-inline ${canChooseLayout ? '' : 'is-disabled'}`}>
         <h4>{currentOptions.layoutTitle}</h4>
-        {!canChooseLayout && <p className="dimension-lock-note">Select room size before choosing layout.</p>}
 
         <div className="dimension-text-option-grid">
           {currentOptions.layouts.map((layout) => {
@@ -255,13 +252,17 @@ const DimensionsSelection = ({
 
         {requiresDimensions && (
           <div className="dimension-input-card">
+            {layoutSection}
             <h3>Room Size</h3>
-            <div className="size-buttons-container">
+            <div className={`size-buttons-container ${canChooseSize ? '' : 'is-locked'}`}>
               <label>
                 {allowCustomDimensions
-                  ? 'Select size first, then choose layout:'
-                  : 'Select size first:'}
+                  ? 'Choose a layout, then select size or custom dimensions:'
+                  : 'Choose a layout, then select size:'}
               </label>
+              {!canChooseSize && (
+                <p className="dimension-lock-note">Select a layout to unlock room size options.</p>
+              )}
               <div className="size-button-group">
                 {presetEntries.map(([key, preset]) => (
                   <button
@@ -272,7 +273,9 @@ const DimensionsSelection = ({
                         ? 'selected'
                         : ''
                     }`}
+                    disabled={!canChooseSize}
                     onClick={() => {
+                      if (!canChooseSize) return;
                       handleSizeSelect(room.id, key);
                       setCustomOpenByRoom((prev) => ({ ...prev, [room.id]: false }));
                     }}
@@ -285,7 +288,11 @@ const DimensionsSelection = ({
                   <button
                     type="button"
                     className={`size-button ${customOpen ? 'selected' : ''}`}
-                    onClick={() => setCustomOpenByRoom((prev) => ({ ...prev, [room.id]: !customOpen }))}
+                    disabled={!canChooseSize}
+                    onClick={() => {
+                      if (!canChooseSize) return;
+                      setCustomOpenByRoom((prev) => ({ ...prev, [room.id]: !customOpen }));
+                    }}
                   >
                     Custom
                   </button>
@@ -316,8 +323,6 @@ const DimensionsSelection = ({
                 </div>
               </>
             )}
-
-            {layoutSection}
           </div>
         )}
 
@@ -378,14 +383,16 @@ const DimensionsSelection = ({
           const isComplete = completedCount === categoryRooms.length;
 
           return (
-            <div
+            <button
+              type="button"
               key={roomType}
               className={`dimensions-category-tab ${isCurrent ? 'selected' : ''} ${isComplete ? 'complete' : ''}`}
               aria-current={isCurrent ? 'step' : undefined}
+              onClick={() => selectCategoryAtIndex(index)}
             >
               <span>{roomType}</span>
               <strong>{completedCount}/{categoryRooms.length}</strong>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -416,7 +423,10 @@ const DimensionsSelection = ({
       </div>
 
       <div className="estimator-actions">
-        <button className="btn-secondary" onClick={navigateBackward}>
+        <button
+          className={`btn-secondary ${hasPreviousCategory ? 'previous-category-btn' : ''}`}
+          onClick={navigateBackward}
+        >
           {hasPreviousCategory ? 'Previous Category' : 'Back'}
         </button>
         <button

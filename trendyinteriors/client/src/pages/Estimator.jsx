@@ -839,6 +839,11 @@ const Estimator = () => {
   };
 
   const handleSubmitAndDownload = async () => {
+    if (!termsAccepted) {
+      promptTermsReview();
+      return;
+    }
+
     const submittedEstimator = await handleSubmitEstimator();
     if (submittedEstimator?._id) {
       await downloadCurrentQuotePDF(submittedEstimator._id);
@@ -983,8 +988,17 @@ const Estimator = () => {
             </div>
 
             {/* Right Side - Details & Quote */}
-            <div className="review-quote-column" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div
+              className="review-quote-column quotation-review-card"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.5rem',
+                '--quotation-review-bg': `url(${process.env.PUBLIC_URL}/images/hero-sectionn.png)`,
+              }}
+            >
               <div className="review-quote-header">
+                <span className="quotation-review-kicker">Quotation Review</span>
                 <h2 style={{ color: 'var(--color-charcoal-dark)', marginBottom: '1rem', fontSize: '2rem' }}>Your Design Quote</h2>
                 <p style={{ color: 'var(--color-gray)', marginBottom: '1.5rem', fontSize: '1rem' }}>Review your selections and get your personalized estimate</p>
               </div>
@@ -1055,12 +1069,19 @@ const Estimator = () => {
                                   return (
                                     <div className="quote-addon-row" key={addon.id || addon.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', paddingLeft: '1.25rem' }}>
                                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0, cursor: 'pointer', color: isSelected ? 'var(--color-charcoal-dark)' : '#4b5563', fontWeight: isSelected ? 700 : 600 }}>
-                                        <input
-                                          type="checkbox"
-                                          checked={isSelected}
-                                          onChange={() => toggleAddon(addon.id)}
-                                          style={{ width: '16px', height: '16px', accentColor: 'var(--color-gold)', flex: '0 0 auto' }}
-                                        />
+                                        <button
+                                          type="button"
+                                          className={`quote-toggle-control ${isSelected ? 'selected' : ''}`}
+                                          onClick={(event) => {
+                                            event.preventDefault();
+                                            toggleAddon(addon.id);
+                                          }}
+                                          role="radio"
+                                          aria-checked={isSelected}
+                                          title={isSelected ? 'Click to deselect' : 'Click to select'}
+                                        >
+                                          {isSelected ? <FaCheck aria-hidden="true" /> : <FaTimes aria-hidden="true" />}
+                                        </button>
                                         <span style={{ fontSize: '1rem', lineHeight: 1.4 }}>
                                           • {addon.name}
                                         </span>
@@ -1375,7 +1396,7 @@ const Estimator = () => {
                         Back
                       </button>
                     </div>
-                    <button className="btn-primary" onClick={handleSubmitAndDownload} disabled={!termsAccepted || isSubmitting || isDownloadingPdf}>
+                    <button className="btn-primary" onClick={handleSubmitAndDownload} disabled={isSubmitting || isDownloadingPdf}>
                       {isSubmitting || isDownloadingPdf ? 'Preparing Download...' : 'Submit & Download'}
                     </button>
                   </>
