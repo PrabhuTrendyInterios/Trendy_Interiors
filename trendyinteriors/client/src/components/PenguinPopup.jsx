@@ -202,16 +202,12 @@ const PenguinPopup = ({
         return;
       }
 
-      phaseRef.current = PHASE.PEEK;
-      setPhase(PHASE.PEEK);
-      schedule(() => {
-        phaseRef.current = PHASE.PRESENTING;
-        setPhase(PHASE.PRESENTING);
-      }, 1700);
+      phaseRef.current = PHASE.PRESENTING;
+      setPhase(PHASE.PRESENTING);
       schedule(() => {
         phaseRef.current = PHASE.VISIBLE;
         setPhase(PHASE.VISIBLE);
-      }, 2420);
+      }, 720);
     }, safeDelay);
 
     return clearTimers;
@@ -351,18 +347,39 @@ const PenguinPopup = ({
     }
     if (phase === PHASE.VISIBLE && !prefersReducedMotion) {
       return isMobile
-        ? { opacity: 1, x: [0, -2, 0], y: 0, rotate: [0, -0.6, 0] }
-        : { opacity: 1, x: 0, y: [0, -3, 0], rotate: [0, 0.5, 0] };
+        ? {
+            opacity: 1,
+            x: [0, -2, 0, 2, 0],
+            y: [0, -2, 0, -1, 0],
+            rotate: [0, -1.5, 0.8, 1.5, 0],
+            rotateY: [0, -8, 0, 8, 0],
+            scale: [1, 1.02, 1, 1.015, 1],
+          }
+        : {
+            opacity: 1,
+            x: [0, -3, 0, 3, 0],
+            y: [0, -5, 0, -2, 0],
+            rotate: [0, -1.2, 0.8, 1.2, 0],
+            rotateY: [0, -10, 0, 10, 0],
+            scale: [1, 1.018, 1, 1.012, 1],
+          };
     }
     if (phase === PHASE.WAVE && !prefersReducedMotion) {
-      return { opacity: 1, x: 0, y: 0, rotate: [0, -2.5, 1, 0] };
+      return {
+        opacity: 1,
+        x: 0,
+        y: [0, -3, 0],
+        rotate: [0, -4, 3, -2, 0],
+        rotateY: [0, -14, 10, -6, 0],
+        scale: [1, 1.03, 1],
+      };
     }
     return { opacity: 1, x: 0, y: 0, scale: 1, rotate: 0 };
   }, [isMobile, phase, prefersReducedMotion]);
 
   const mascotTransition =
     phase === PHASE.VISIBLE && !prefersReducedMotion
-      ? { duration: 3.6, repeat: Infinity, ease: "easeInOut" }
+      ? { duration: 3.2, repeat: Infinity, ease: "easeInOut", times: [0, 0.25, 0.5, 0.75, 1] }
       : {
           duration: phase === PHASE.LEAVING ? 0.78 : 0.68,
           ease: EASE_OUT,

@@ -528,3 +528,56 @@
     border-radius: 12px;
   }
 }
+
+/* Final Reach Us readability pass: keep the project glass/gold style, but make
+   every text layer legible over the bedroom video background. */
+.reach-us-page,
+.reach-us-page .reach-us-content,
+.reach-us-page .reach-us-wrapper,
+.reach-us-page .form-card,
+.reach-us-page .info-card {
+  color: #ffffff;
+}
+
+.reach-us-page :is(.hero-content h1, .form-header h3, .info-card h2, .map-header h2, .social-connect h4) {
+  color: #f7d68d !important;
+  font-weight: 800;
+  text-shadow: 0 3px 16px rgba(0, 0, 0, 0.58);
+}
+
+.reach-us-page :is(.hero-subtitle, .form-header p, .info-intro, .details p, .details a, .map-header p, .social-connect h4) {
+  color: rgba(255, 255, 255, 0.94) !important;
+  font-weight: 700;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.reach-us-page .form-card .form-group label {
+  color: #ffffff !important;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.48);
+}
+
+.reach-us-page .form-card .input-with-icon input,
+.reach-us-page .form-card .input-with-icon select,
+.reach-us-page .form-card .input-with-icon textarea {
+  background: rgba(9, 8, 6, 0.44) !important;
+  color: #ffffff !important;
+  border-color: rgba(212, 175, 55, 0.82) !important;
+}
+
+.reach-us-page .form-card .input-with-icon input::placeholder,
+.reach-us-page .form-card .input-with-icon textarea::placeholder {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.reach-us-page .info-card {
+  background: rgba(9, 8, 6, 0.48) !important;
+  border-color: var(--color-gold, #d4af37) !important;
+}
+
+.reach-us-page .icon-box {
+  color: var(--color-gold-light, #e8c968);
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(212, 175, 55, 0.5);
+}

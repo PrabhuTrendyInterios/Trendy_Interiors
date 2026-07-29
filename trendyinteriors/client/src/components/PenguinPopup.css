@@ -1,7 +1,9 @@
 .penguin-popup {
   position: fixed;
-  right: clamp(20px, 2vw, 28px);
-  bottom: calc(clamp(20px, 2vw, 28px) + env(safe-area-inset-bottom, 0px));
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
   width: clamp(430px, 37vw, 560px);
   height: clamp(250px, 24vw, 330px);
   z-index: 880;
@@ -10,6 +12,8 @@
   color: var(--color-charcoal, #2b2b2b);
   font-family: var(--font-body, "Inter", sans-serif);
   letter-spacing: 0;
+  perspective: 900px;
+  transform: translate3d(-50%, -50%, 0);
 }
 
 .penguin-popup__mascot {
@@ -26,6 +30,8 @@
   pointer-events: none;
   user-select: none;
   filter: drop-shadow(0 15px 18px rgba(70, 48, 18, 0.24));
+  transform-origin: 50% 88%;
+  transform-style: preserve-3d;
   will-change: transform, opacity;
 }
 
@@ -220,24 +226,27 @@
 
 @media (max-width: 768px) {
   .penguin-popup {
-    right: max(8px, env(safe-area-inset-right, 0px));
-    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
-    width: min(calc(100vw - 16px), 292px);
-    height: clamp(164px, 49vw, 194px);
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    width: min(calc(100vw - 24px), 330px);
+    height: clamp(206px, 58vw, 238px);
+    transform: translate3d(-50%, -50%, 0);
   }
 
   .penguin-popup__mascot {
-    right: -2px;
-    bottom: -2px;
-    width: clamp(174px, 55vw, 218px);
+    right: -10px;
+    bottom: -5px;
+    width: clamp(188px, 58vw, 234px);
     filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.22));
   }
 
   .penguin-popup__panel {
     left: 0;
-    bottom: 4px;
-    width: min(calc(100vw - 36px), 242px);
-    padding: 11px;
+    bottom: 14px;
+    width: min(calc(100vw - 48px), 268px);
+    padding: 14px;
     overflow: visible;
     border-width: 1.5px;
     border-radius: var(--radius-md, 8px);
@@ -312,15 +321,15 @@
 
 @media (max-width: 380px) {
   .penguin-popup {
-    width: min(calc(100vw - 16px), 276px);
+    width: min(calc(100vw - 18px), 300px);
   }
 
   .penguin-popup__panel {
-    width: min(calc(100vw - 34px), 228px);
+    width: min(calc(100vw - 40px), 242px);
   }
 
   .penguin-popup__mascot {
-    right: -8px;
+    right: -14px;
   }
 }
 

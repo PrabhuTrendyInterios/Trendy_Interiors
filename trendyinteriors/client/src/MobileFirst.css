@@ -646,14 +646,17 @@
   }
 
   .penguin-popup {
-    right: 8px;
-    bottom: calc(70px + env(safe-area-inset-bottom));
-    width: min(calc(100vw - 16px), 310px);
-    height: 210px;
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: min(calc(100vw - 24px), 330px);
+    height: 226px;
+    transform: translate3d(-50%, -50%, 0) !important;
   }
 
   .penguin-popup__panel {
-    width: min(calc(100vw - 32px), 264px);
+    width: min(calc(100vw - 48px), 268px);
   }
 
   .penguin-popup__close,
