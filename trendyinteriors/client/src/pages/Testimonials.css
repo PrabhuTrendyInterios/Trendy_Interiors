@@ -488,3 +488,18 @@
     transform: translateY(0);
   }
 }
+
+.testimonials-page :is(
+  .hero-content,
+  .hero-content *,
+  .trust-indicators,
+  .trust-indicators *,
+  .section-header-center,
+  .section-header-center *,
+  .testimonial-card-premium,
+  .testimonial-card-premium *,
+  .testimonial-cta,
+  .testimonial-cta *
+) {
+  font-weight: 800 !important;
+}

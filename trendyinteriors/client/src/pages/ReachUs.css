@@ -581,3 +581,16 @@
   background: rgba(0, 0, 0, 0.5);
   border-color: rgba(212, 175, 55, 0.5);
 }
+
+.reach-us-page :is(
+  .hero-content,
+  .hero-content *,
+  .form-card,
+  .form-card *,
+  .info-card,
+  .info-card *,
+  .map-header,
+  .map-header *
+) {
+  font-weight: 800 !important;
+}
