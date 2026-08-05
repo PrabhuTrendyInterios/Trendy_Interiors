@@ -9,7 +9,7 @@ const ChatBot = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: 'Hello! Welcome to TrendyInterios. How can we help you today?',
+      text: 'Hi I am TiJo, your house interior companion.. Lets Decorate your house..',
       sender: 'bot',
       timestamp: new Date()
     }
@@ -183,7 +183,7 @@ const ChatBot = () => {
         aria-label="Open chatbot"
         title="Chat with us"
       >
-        <FaComments />
+        <img src="/assets/trendy-bot/trendy-bot-present.webp" alt="TiJo bot" />
       </button>
 
       {/* Chatbot Window */}
@@ -194,7 +194,7 @@ const ChatBot = () => {
             <div className="chatbot-title">
               <FaComments className="chatbot-icon" />
               <div>
-                <h3>TrendyInterios Chat</h3>
+                <h3>TiJo</h3>
                 <span className="status-indicator">Online</span>
               </div>
             </div>
