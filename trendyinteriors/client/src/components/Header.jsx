@@ -15,8 +15,6 @@ const Header = () => {
   const [isDockOpen, setIsDockOpen] = useState(false);
   const [activeNavIndex, setActiveNavIndex] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
-  const [typedText, setTypedText] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const [isLogoAnimating, setIsLogoAnimating] = useState(false);
   const [isHeaderIntroComplete, setIsHeaderIntroComplete] = useState(false);
   const wheelDeltaRef = useRef(0);
@@ -33,24 +31,14 @@ const Header = () => {
   const isHomePage = location.pathname === '/';
 
   const navItems = useMemo(() => [
-    { type: 'link', to: '/', label: 'Home', icon: <FaHome />, active: isActive('/') },
     { type: 'link', to: '/abouts', label: 'About Us', icon: <FaInfoCircle />, active: isActive('/abouts') },
     { type: 'link', to: '/estimator', label: 'Quote Interior Yourself', icon: <FaCalculator />, active: isActive('/estimator') },
+    { type: 'link', to: '/', label: 'Home', icon: <FaHome />, active: isActive('/') },
     { type: 'project', to: '/projects', label: 'Project', icon: <FaImages />, active: location.pathname.includes('/projects') },
     { type: 'link', to: '/testimonials', label: 'Testimonial', icon: <FaQuoteLeft />, active: isActive('/testimonials') },
     { type: 'link', to: '/reachus', label: 'Reach Us', icon: <FaPhoneAlt />, active: isActive('/reachus') },
   ], [isActive, location.pathname]);
 
-  const typedCharacters = useMemo(() => {
-    if (!typedText) {
-      return [];
-    }
-
-    return typedText.split('').map((char) => ({
-      char,
-      isAccent: char === 'T' || char === 'I' || char === 'S',
-    }));
-  }, [typedText]);
 
   const closeDock = useCallback(() => {
     setIsDockOpen(false);
@@ -246,9 +234,7 @@ const Header = () => {
     };
 
     setIsLogoAnimating(isMobileHeader);
-    setIsTyping(true);
     setIsHeaderIntroComplete(false);
-    setTypedText('');
 
     startTimer = window.setTimeout(() => {
       setIsLogoAnimating(false);
@@ -256,17 +242,13 @@ const Header = () => {
       let currentLength = 0;
       typingTimer = window.setInterval(() => {
         currentLength += 1;
-        setTypedText(fullLogoText.slice(0, currentLength));
 
         if (currentLength >= fullLogoText.length) {
           window.clearInterval(typingTimer);
           typingTimer = null;
-          setTypedText(fullLogoText);
-          setIsTyping(false);
 
           if (isMobileHeader) {
             settleTimer = window.setTimeout(() => {
-              setTypedText('');
               setIsHeaderIntroComplete(true);
             }, mobileSettleDelayMs);
           } else {
@@ -497,34 +479,9 @@ const Header = () => {
             <Link to="/">
               <div className={`logo-wrapper ${isLogoAnimating ? 'logo-animating' : ''}`}>
                 <img src="/images/logo.png" alt="Trendy Interios Logo" className={`logo-image ${isLogoAnimating ? 'logo-spin' : ''}`} />
-                <span className={`logo-text ${isTyping ? 'typing' : ''}`}>
-                  {typedCharacters.map(({ char, isAccent }, index) => (
-                    <span
-                      key={`${char}-${index}`}
-                      className={isAccent ? 'logo-accent' : 'logo-text-prefix'}
-                    >
-                      {char}
-                    </span>
-                  ))}
-                  {isTyping ? <span className="typing-cursor" aria-hidden="true">|</span> : null}
-                </span>
               </div>
             </Link>
           </div>
-          <p
-            className={`mobile-header-quote ${isHeaderIntroComplete ? 'is-visible' : ''}`}
-            aria-hidden={!isHeaderIntroComplete}
-          >
-            {['Filling', 'the', 'Hearts,', 'not', 'Space'].map((word, index) => (
-              <span
-                className="header-quote-word"
-                style={{ '--word-index': index }}
-                key={word}
-              >
-                {word}
-              </span>
-            ))}
-          </p>
         </div>
       </header>
     </>

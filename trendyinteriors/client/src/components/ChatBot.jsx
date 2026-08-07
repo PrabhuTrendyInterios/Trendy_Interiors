@@ -9,9 +9,10 @@ const ChatBot = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: 'Hi I am TiJo, your house interior companion.. Lets Decorate your house..',
+      text: "Hi I'am TiJo, AI Interior Assistant, coming from the bot.",
       sender: 'bot',
-      timestamp: new Date()
+      timestamp: new Date(),
+      isWelcome: true
     }
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -210,7 +211,7 @@ const ChatBot = () => {
           {/* Messages */}
           <div className="chatbot-messages">
             {messages.map((msg) => (
-              <div key={msg.id} className={`message ${msg.sender}`}>
+              <div key={msg.id} className={`message ${msg.sender} ${msg.isWelcome ? 'welcome' : ''}`}>
                 <div className="message-content">
                   {msg.attachmentName && (
                     <div className="message-attachment-chip">
