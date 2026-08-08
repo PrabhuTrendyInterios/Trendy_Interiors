@@ -23,7 +23,6 @@ const ChatBot = () => {
   const fileInputRef = useRef(null);
 
   const quickReplies = [
-    'View pricing',
     'Schedule consultation',
     'See portfolio',
     'Contact us'
@@ -185,6 +184,7 @@ const ChatBot = () => {
         title="Chat with us"
       >
         <img src="/assets/trendy-bot/trendy-bot-present.webp" alt="TiJo bot" />
+        <span className="chatbot-toggle-speech">Hi I am TiJo, Interior AI Assistant</span>
       </button>
 
       {/* Chatbot Window */}

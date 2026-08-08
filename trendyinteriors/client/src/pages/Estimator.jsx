@@ -1071,16 +1071,19 @@ const Estimator = () => {
                                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0, cursor: 'pointer', color: isSelected ? 'var(--color-charcoal-dark)' : '#4b5563', fontWeight: isSelected ? 700 : 600 }}>
                                         <button
                                           type="button"
-                                          className={`quote-toggle-control ${isSelected ? 'selected' : ''}`}
+                                          className={`quote-toggle-control quote-switch-control ${isSelected ? 'selected' : ''}`}
                                           onClick={(event) => {
                                             event.preventDefault();
                                             toggleAddon(addon.id);
                                           }}
-                                          role="radio"
+                                          role="switch"
                                           aria-checked={isSelected}
                                           title={isSelected ? 'Click to deselect' : 'Click to select'}
                                         >
-                                          {isSelected ? <FaCheck aria-hidden="true" /> : <FaTimes aria-hidden="true" />}
+                                          <span className="quote-switch-text">{isSelected ? 'ON' : 'OFF'}</span>
+                                          <span className="quote-switch-knob" aria-hidden="true">
+                                            {isSelected ? <FaCheck aria-hidden="true" /> : <FaTimes aria-hidden="true" />}
+                                          </span>
                                         </button>
                                         <span style={{ fontSize: '1rem', lineHeight: 1.4 }}>
                                           • {addon.name}
@@ -1134,6 +1137,8 @@ const Estimator = () => {
                                           </span>
                                         ) : (
                                           <button
+                                            type="button"
+                                            className={`quote-switch-control ${isSelected ? 'selected' : ''}`}
                                             onClick={() => item.roomId && component.id && togglePackageComponent(item.roomId, component.id)}
                                             style={{ 
                                               cursor: 'pointer',
@@ -1151,15 +1156,12 @@ const Estimator = () => {
                                               transition: 'all 0.3s ease',
                                               boxShadow: isSelected ? '0 0 0 3px rgba(212, 175, 55, 0.1)' : 'none',
                                             }}
+                                            role="switch"
+                                            aria-checked={isSelected}
                                             title={isSelected ? 'Click to deselect' : 'Click to select'}
                                           >
-                                            <span style={{
-                                              fontSize: '12px',
-                                              color: isSelected ? 'white' : '#c62828',
-                                              fontWeight: 'bold',
-                                              lineHeight: 1,
-                                              display: 'inline-flex',
-                                            }}>
+                                            <span className="quote-switch-text">{isSelected ? 'ON' : 'OFF'}</span>
+                                            <span className="quote-switch-knob" aria-hidden="true">
                                               {isSelected ? <FaCheck aria-hidden="true" /> : <FaTimes aria-hidden="true" />}
                                             </span>
                                           </button>
@@ -1224,6 +1226,7 @@ const Estimator = () => {
                                             <div className="quote-option-cost-row" key={material.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.5rem' }}>
                                               <button
                                                 type="button"
+                                                className={`quote-switch-control ${isSelected ? 'selected' : ''}`}
                                                 onClick={() =>
                                                   item.roomId &&
                                                   material.id &&
@@ -1232,7 +1235,8 @@ const Estimator = () => {
                                                 }
                                                 disabled={material.mandatory}
                                                 title={isSelected ? 'Click to deselect' : 'Click to select'}
-                                                aria-pressed={isSelected}
+                                                role="switch"
+                                                aria-checked={isSelected}
                                                 style={{
                                                   cursor: material.mandatory ? 'not-allowed' : 'pointer',
                                                   width: '20px',
@@ -1250,13 +1254,8 @@ const Estimator = () => {
                                                   boxShadow: isSelected ? '0 0 0 3px rgba(212, 175, 55, 0.1)' : 'none',
                                                 }}
                                               >
-                                                <span style={{
-                                                  fontSize: '12px',
-                                                  color: isSelected ? 'white' : '#c62828',
-                                                  fontWeight: 'bold',
-                                                  lineHeight: 1,
-                                                  display: 'inline-flex',
-                                                }}>
+                                                <span className="quote-switch-text">{isSelected ? 'ON' : 'OFF'}</span>
+                                                <span className="quote-switch-knob" aria-hidden="true">
                                                   {isSelected ? <FaCheck aria-hidden="true" /> : <FaTimes aria-hidden="true" />}
                                                 </span>
                                               </button>

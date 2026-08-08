@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { buildRoomInstances, findRoomByName } from '../../utils/estimatorApi';
 
 const DEFAULT_ROOM_IMAGE =
@@ -67,6 +67,7 @@ const DimensionsSelection = ({
   isCalculating = false,
 }) => {
   const [customOpenByRoom, setCustomOpenByRoom] = useState({});
+  const roomPanelRef = useRef(null);
 
   const roomEntries = useMemo(() => {
     const selected = selectedRooms || {};
@@ -161,6 +162,12 @@ const DimensionsSelection = ({
     const categoryRooms = roomEntries.filter((room) => room.roomName === roomType);
     if (categoryRooms[0]) {
       onSelectRoom(categoryRooms[0].id);
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (roomPanelRef.current) {
+          roomPanelRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
     }
   };
 
@@ -411,6 +418,7 @@ const DimensionsSelection = ({
         </div>
 
         <div
+          ref={roomPanelRef}
           className="premium-design-control-panel dimensions-category-room-scroll"
           aria-label={`${selectedRoomType} rooms`}
         >

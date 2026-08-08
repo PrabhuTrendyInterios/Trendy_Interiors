@@ -647,12 +647,12 @@
 
   .penguin-popup {
     top: 50% !important;
-    left: 50% !important;
-    right: auto !important;
+    left: auto !important;
+    right: max(10px, env(safe-area-inset-right, 0px)) !important;
     bottom: auto !important;
     width: min(calc(100vw - 24px), 330px);
     height: 226px;
-    transform: translate3d(-50%, -50%, 0) !important;
+    transform: translate3d(0, -50%, 0) !important;
   }
 
   .penguin-popup__panel {

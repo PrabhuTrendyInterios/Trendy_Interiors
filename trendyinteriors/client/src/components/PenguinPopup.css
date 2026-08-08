@@ -1,8 +1,8 @@
 .penguin-popup {
   position: fixed;
   top: 50%;
-  left: 50%;
-  right: auto;
+  left: auto;
+  right: clamp(20px, 3vw, 48px);
   bottom: auto;
   width: clamp(430px, 37vw, 560px);
   height: clamp(250px, 24vw, 330px);
@@ -13,7 +13,7 @@
   font-family: var(--font-body, "Inter", sans-serif);
   letter-spacing: 0;
   perspective: 900px;
-  transform: translate3d(-50%, -50%, 0);
+  transform: translate3d(0, -50%, 0);
 }
 
 .penguin-popup__mascot {
@@ -227,12 +227,12 @@
 @media (max-width: 768px) {
   .penguin-popup {
     top: 50%;
-    left: 50%;
-    right: auto;
+    left: auto;
+    right: max(10px, env(safe-area-inset-right, 0px));
     bottom: auto;
     width: min(calc(100vw - 24px), 330px);
     height: clamp(206px, 58vw, 238px);
-    transform: translate3d(-50%, -50%, 0);
+    transform: translate3d(0, -50%, 0);
   }
 
   .penguin-popup__mascot {
