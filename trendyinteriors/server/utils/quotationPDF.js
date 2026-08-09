@@ -436,42 +436,9 @@ const generateQuotationPDF = async (estimator, res, callback) => {
     dashY += Math.max(h1, h2) + 20;
 
 
-    // --- 2. PROJECT OVERVIEW (BELOW) ---
-    doc.fillColor(TEXT_DARK).font("Helvetica-Bold").fontSize(11);
-    doc.text("PROJECT OVERVIEW", MARGIN, dashY, { characterSpacing: 1 });
-    
-    dashY += 20;
-    doc.lineWidth(1).strokeColor(TEXT_DARK);
-    doc.moveTo(MARGIN, dashY).lineTo(MARGIN + CONTENT_W, dashY).stroke();
-    dashY += 12;
-
-    // Row 1: Rooms & Total Area
-    h1 = drawField(col1X, dashY, "Total Rooms Selected", quotation.overview.total_rooms);
-    h2 = drawField(col2X, dashY, "Total Area", quotation.overview.total_area);
-    dashY += Math.max(h1, h2) + 10;
-
-    // Row 2: Global Add-ons & Estimated Cost
-    h1 = drawField(col1X, dashY, "Global Add-ons", quotation.overview.global_addons_count);
-    h2 = drawField(col2X, dashY, "Estimated Project Cost", fmt(quotation.costs.grand_total));
-    dashY += Math.max(h1, h2) + 15;
-
     doc.y = dashY;
 
-    // SECTION 3: ROOM SUMMARY
-    drawSectionHeader(doc, "ROOM SUMMARY");
-    const summaryRows = quotation.room_summary.map(rs => [rs.room_type, rs.interiors, fmt(rs.cost)]);
-    
-    let totalRoomCostForSummary = quotation.room_summary.reduce((acc, curr) => acc + curr.cost, 0);
-
-    drawDataTable(
-      doc, 
-      ["Room Selected", "Interiors", "Cost"], 
-      summaryRows, 
-      [CONTENT_W * 0.25, CONTENT_W * 0.50, CONTENT_W * 0.25],
-      ["TOTAL ROOM COST", "", fmt(totalRoomCostForSummary)]
-    );
-
-    // SECTION 4: ROOM DETAILS
+    // SECTION: ROOM DETAILS
     Object.entries(quotation.rooms).forEach(([roomType, roomData]) => {
       roomData.rooms.forEach((r, index) => {
         checkSpace(doc, 60);
@@ -529,7 +496,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       doc.y = totalY + 35;
     });
 
-    // SECTION 5: GLOBAL ADD-ONS
+    // SECTION: GLOBAL ADD-ONS
     if (quotation.global_addons && quotation.global_addons.length > 0) {
       drawSectionHeader(doc, "GLOBAL ADD-ONS");
       const gaRows = quotation.global_addons.map(a => [a.name, "1", fmt(a.price)]);
@@ -543,7 +510,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       );
     }
 
-    // SECTION 6: PROJECT COST SUMMARY
+    // SECTION: PROJECT COST SUMMARY
     renderBlock(doc, 180, () => {
       drawSectionHeader(doc, "PROJECT COST SUMMARY");
 
@@ -603,7 +570,7 @@ const generateQuotationPDF = async (estimator, res, callback) => {
       doc.y = doc.y + 14;
     });
 
-    // SECTION 7: WE ASSURE
+    // SECTION: WE ASSURE
     renderBlock(doc, 220, () => {
       drawSectionHeader(doc, "WE ASSURE");
 
@@ -627,59 +594,6 @@ const generateQuotationPDF = async (estimator, res, callback) => {
         ptY += 16;
       });
       doc.y = ptY + 10;
-    });
-
-    // SECTION 8: AUTHORIZED BY
-    renderBlock(doc, 160, () => {
-      const headerY = doc.y;
-
-      // Top border
-      doc.lineWidth(0.5).strokeColor(BORDER);
-      doc.moveTo(MARGIN, headerY).lineTo(MARGIN + CONTENT_W, headerY).stroke();
-
-      // "AUTHORIZED BY" centred label
-      doc.fillColor(DARK_TEXT).font("Helvetica-Bold").fontSize(10);
-      doc.text("AUTHORIZED BY", MARGIN, headerY + 12, {
-        width: CONTENT_W,
-        align: "center",
-        characterSpacing: 1,
-      });
-
-      // Company name in gold
-      doc.fillColor(GOLD).font("Helvetica-Bold").fontSize(12);
-      doc.text("TRENDY INTERIOS.", MARGIN, headerY + 28, {
-        width: CONTENT_W,
-        align: "center",
-        characterSpacing: 0.5,
-      });
-
-      // Signature lines
-      const sigY      = headerY + 75;
-      const lineLen   = 160;
-      const leftLineX = MARGIN + 30;
-      const rightLineX = MARGIN + CONTENT_W - 30 - lineLen;
-
-      doc.lineWidth(0.8).strokeColor(DARK_TEXT);
-      doc.moveTo(leftLineX, sigY).lineTo(leftLineX + lineLen, sigY).stroke();
-      doc.moveTo(rightLineX, sigY).lineTo(rightLineX + lineLen, sigY).stroke();
-
-      // Labels below lines
-      doc.fillColor(DARK_TEXT).font("Helvetica").fontSize(8.5);
-      doc.text("Authorized Signature", leftLineX, sigY + 7, {
-        width: lineLen,
-        align: "center",
-      });
-      doc.text("Company Seal / Stamp", rightLineX, sigY + 7, {
-        width: lineLen,
-        align: "center",
-      });
-
-      // Bottom border
-      const blockBottom = sigY + 32;
-      doc.lineWidth(0.5).strokeColor(BORDER);
-      doc.moveTo(MARGIN, blockBottom).lineTo(MARGIN + CONTENT_W, blockBottom).stroke();
-
-      doc.y = blockBottom + 15;
     });
 
     // FOOTERS
