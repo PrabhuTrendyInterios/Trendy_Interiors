@@ -81,6 +81,33 @@ describe('server/utils/layoutMaterials', () => {
     expect(result.materials).toEqual([]);
   });
 
+  test('resolveLayoutMaterials returns default layout materials for dimensionless rooms', () => {
+    const result = resolveLayoutMaterials(
+      {
+        name: 'Pooja Room',
+        requiresDimensions: false,
+        dimensions: [],
+        layouts: [
+          {
+            name: 'Base Unit & Panelling',
+            hasLayoutMaterials: true,
+            configurations: [
+              {
+                dimensionId: '__dimensionless__',
+                materials: [{ _id: 'pooja-base', name: 'Base Unit', price: 31500 }],
+              },
+            ],
+          },
+        ],
+      },
+      'Base Unit & Panelling'
+    );
+
+    expect(result.skipped).toBe(false);
+    expect(result.materials).toHaveLength(1);
+    expect(result.materials[0].name).toBe('Base Unit');
+  });
+
   test('validateRoomLayoutConfigurations rejects unknown dimension references', () => {
     const errors = validateRoomLayoutConfigurations(
       [{ _id: 'dim-low', name: 'Low' }],
@@ -105,6 +132,21 @@ describe('server/utils/layoutMaterials', () => {
           name: 'Sliding Wardrobe',
           hasLayoutMaterials: true,
           configurations: [{ dimensionId: 'dim-low', materials: [] }],
+        },
+      ]
+    );
+
+    expect(errors).toEqual([]);
+  });
+
+  test('validateRoomLayoutConfigurations accepts layout materials for dimensionless rooms', () => {
+    const errors = validateRoomLayoutConfigurations(
+      [],
+      [
+        {
+          name: 'Base Unit & Panelling',
+          hasLayoutMaterials: true,
+          configurations: [{ dimensionId: '__dimensionless__', materials: [] }],
         },
       ]
     );

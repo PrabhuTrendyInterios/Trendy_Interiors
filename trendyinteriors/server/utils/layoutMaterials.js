@@ -18,6 +18,8 @@ const matchDimensionFromSizeCategory = (dimensions = [], sizeCategory = '') => {
   );
 };
 
+const DIMENSIONLESS_LAYOUT_CONFIG_ID = '__dimensionless__';
+
 const findLayoutByName = (roomDoc, layoutName = '') => {
   if (!roomDoc?.layouts?.length || !layoutName) {
     return null;
@@ -68,6 +70,21 @@ const findLayoutConfiguration = (layout, dimension, sizeCategory = '') => {
   );
 };
 
+const findDimensionlessLayoutConfiguration = (layout) => {
+  const configurations = Array.isArray(layout?.configurations) ? layout.configurations : [];
+
+  return (
+    configurations.find((config) => {
+      if (!config?.dimensionId) {
+        return false;
+      }
+
+      const normalized = String(config.dimensionId).trim().toLowerCase();
+      return normalized === DIMENSIONLESS_LAYOUT_CONFIG_ID || normalized === 'default';
+    }) || configurations[0] || null
+  );
+};
+
 /**
  * Resolves layout materials for a room/layout/dimension context.
  * On validation failure sets skipped=true and returns empty materials (no throw).
@@ -102,6 +119,21 @@ const resolveLayoutMaterials = (roomDoc, layoutName = '', sizeCategory = '') => 
   }
 
   const dimensions = Array.isArray(roomDoc?.dimensions) ? roomDoc.dimensions : [];
+
+  if (roomDoc?.requiresDimensions === false || dimensions.length === 0) {
+    const configuration = findDimensionlessLayoutConfiguration(layout);
+
+    if (!configuration) {
+      result.skipped = true;
+      result.validationError = `No layout materials are configured for layout "${layoutName}" in room "${roomName}".`;
+      return result;
+    }
+
+    result.configuration = configuration;
+    result.materials = Array.isArray(configuration.materials) ? configuration.materials : [];
+    return result;
+  }
+
   const dimension = matchDimensionFromSizeCategory(dimensions, sizeCategory);
 
   if (!dimension && !sizeCategory) {
@@ -173,6 +205,7 @@ const collectDimensionIds = (dimensions = []) => {
 const validateRoomLayoutConfigurations = (dimensions = [], layouts = []) => {
   const errors = [];
   const dimensionIds = collectDimensionIds(dimensions);
+  const isDimensionlessRoom = !Array.isArray(dimensions) || dimensions.length === 0;
 
   (Array.isArray(layouts) ? layouts : []).forEach((layout) => {
     if (!layout?.hasLayoutMaterials) {
@@ -193,6 +226,10 @@ const validateRoomLayoutConfigurations = (dimensions = [], layouts = []) => {
         return;
       }
 
+      if (isDimensionlessRoom) {
+        return;
+      }
+
       if (!dimensionIds.has(String(config.dimensionId))) {
         errors.push(
           `Layout "${layoutName}" configuration ${index + 1} references an unknown dimension.`
@@ -205,6 +242,7 @@ const validateRoomLayoutConfigurations = (dimensions = [], layouts = []) => {
 };
 
 module.exports = {
+  DIMENSIONLESS_LAYOUT_CONFIG_ID,
   matchDimensionFromSizeCategory,
   findLayoutByName,
   findLayoutConfiguration,

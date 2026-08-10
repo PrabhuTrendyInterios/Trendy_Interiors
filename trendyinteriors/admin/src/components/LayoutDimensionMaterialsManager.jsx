@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import RoomNestedManager from './RoomNestedManager';
 
+const DIMENSIONLESS_LAYOUT_CONFIG_ID = '__dimensionless__';
+
 const LAYOUT_MATERIAL_FIELDS = [
   { key: 'name', label: 'Name', required: true, fullWidth: true },
   { key: 'size', label: 'Size / Specification', placeholder: 'e.g. 6ft x 2ft, 18mm BWP' },
@@ -20,6 +22,15 @@ const matchConfiguration = (configurations, dimension, dimensionIndex) => {
   return configurations[dimensionIndex];
 };
 
+const normalizeMaterials = (materials = []) =>
+  (Array.isArray(materials) ? materials : []).map((material) => ({
+    ...material,
+    name: material.name || '',
+    size: material.size || '',
+    price: material.price ?? 0,
+    mandatory: material.mandatory ?? false,
+  }));
+
 const syncConfigurations = (dimensions, configurations) =>
   dimensions.map((dimension, index) => {
     const existing = matchConfiguration(configurations, dimension, index);
@@ -27,27 +38,44 @@ const syncConfigurations = (dimensions, configurations) =>
     return {
       ...(existing?._id ? { _id: existing._id } : {}),
       dimensionId: dimension._id || existing?.dimensionId || null,
-      materials: Array.isArray(existing?.materials)
-        ? existing.materials.map((material) => ({
-            ...material,
-            name: material.name || '',
-            size: material.size || '',
-            price: material.price ?? 0,
-            mandatory: material.mandatory ?? false,
-          }))
-        : [],
+      materials: normalizeMaterials(existing?.materials),
     };
   });
+
+const syncDimensionlessConfiguration = (configurations) => {
+  const existing = (Array.isArray(configurations) ? configurations : []).find((config) => {
+    const normalized = String(config?.dimensionId || '').trim().toLowerCase();
+    return normalized === DIMENSIONLESS_LAYOUT_CONFIG_ID || normalized === 'default';
+  }) || configurations?.[0];
+
+  return {
+    ...(existing?._id ? { _id: existing._id } : {}),
+    dimensionId: DIMENSIONLESS_LAYOUT_CONFIG_ID,
+    materials: normalizeMaterials(existing?.materials),
+  };
+};
 
 const LayoutDimensionMaterialsManager = ({
   dimensions = [],
   configurations = [],
   onChange,
   onEnsureDimensionId,
+  dimensionless = false,
 }) => {
   const [expandedDimIndex, setExpandedDimIndex] = useState(null);
 
   const syncedConfigurations = syncConfigurations(dimensions, configurations);
+  const dimensionlessConfiguration = syncDimensionlessConfiguration(configurations);
+
+  const handleDimensionlessMaterialsChange = (updatedMaterials) => {
+    onChange([
+      {
+        ...(dimensionlessConfiguration?._id ? { _id: dimensionlessConfiguration._id } : {}),
+        dimensionId: DIMENSIONLESS_LAYOUT_CONFIG_ID,
+        materials: updatedMaterials,
+      },
+    ]);
+  };
 
   const toggleExpandedDimension = (index) => {
     setExpandedDimIndex(expandedDimIndex === index ? null : index);
@@ -88,16 +116,42 @@ const LayoutDimensionMaterialsManager = ({
   return (
     <div className="layout-dimension-materials-manager">
       <div className="room-nested-header">
-        <h4 className="subsection-title">Dimension-wise Materials</h4>
+        <h4 className="subsection-title">
+          {dimensionless ? 'Layout Items' : 'Dimension-wise Materials'}
+        </h4>
       </div>
 
-      {dimensions.length === 0 && (
+      {dimensionless ? (
+        <div className="nested-manager-wrapper">
+          <p className="room-nested-empty">
+            This room does not require dimensions. Add the items that belong to this layout.
+          </p>
+          <RoomNestedManager
+            title="Items"
+            items={dimensionlessConfiguration.materials}
+            emptyItem={{ name: '', size: '', price: '', mandatory: false }}
+            fields={LAYOUT_MATERIAL_FIELDS}
+            onChange={handleDimensionlessMaterialsChange}
+            reorderable
+            renderSummary={(item) => (
+              <>
+                <h6>{item.name}</h6>
+                {item.size && <p>Size: {item.size}</p>}
+                <p>₹{Number(item.price || 0).toLocaleString('en-IN')}</p>
+                <p className="component-meta">
+                  {item.mandatory && <span className="badge mandatory">Mandatory</span>}
+                </p>
+              </>
+            )}
+          />
+        </div>
+      ) : dimensions.length === 0 && (
         <p className="room-nested-empty">
           No dimensions yet. Add dimensions in the Dimensions section above.
         </p>
       )}
 
-      {dimensions.length > 0 && (
+      {!dimensionless && dimensions.length > 0 && (
         <div className="cms-nested-list">
           {dimensions.map((dimension, dimIndex) => {
             const config = syncedConfigurations[dimIndex] || { materials: [] };

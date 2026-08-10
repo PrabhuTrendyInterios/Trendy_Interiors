@@ -83,6 +83,34 @@ describe('getLayoutMaterialsForRoom', () => {
     expect(result.materials).toEqual([]);
   });
 
+  test('returns default layout materials for dimensionless rooms', () => {
+    const result = getLayoutMaterialsForRoom({
+      room: {
+        name: 'Pooja Room',
+        requiresDimensions: false,
+        dimensions: [],
+        layouts: [
+          {
+            name: 'Base Unit & Panelling',
+            hasLayoutMaterials: true,
+            configurations: [
+              {
+                dimensionId: '__dimensionless__',
+                materials: [{ _id: 'pooja-base', name: 'Base Unit', price: 31500 }],
+              },
+            ],
+          },
+        ],
+      },
+      layoutName: 'Base Unit & Panelling',
+    });
+
+    expect(result.hasLayoutMaterials).toBe(true);
+    expect(result.materials).toEqual([
+      expect.objectContaining({ id: 'pooja-base', name: 'Base Unit', price: 31500 }),
+    ]);
+  });
+
   test('buildDefaultLayoutMaterialSelection selects every available material', () => {
     const selection = buildDefaultLayoutMaterialSelection([
       { id: 'mat-1', mandatory: true },

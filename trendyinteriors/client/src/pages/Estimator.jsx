@@ -1035,16 +1035,9 @@ const Estimator = () => {
               {quoteSummary && (
                 <>
                   <div className="quote-review-panel" style={{ padding: '2rem', backgroundColor: '#fffdf3', borderRadius: '12px', border: '2px solid var(--color-gold)' }}>
-                    <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '600' }}>Estimated Total Cost</p>
-                    <div className="quote-total-row" style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                      <span style={{ fontSize: '1.5rem', color: 'var(--color-gold-dark)' }}>₹</span>
-                      <p className="quote-total-amount" style={{ margin: 0, fontSize: '3rem', fontWeight: '800', color: 'var(--color-charcoal-dark)' }}>
-                        {quoteSummary.estimatedAmount.toLocaleString('en-IN')}
-                      </p>
-                    </div>
                   {/* Detailed Breakdown */}
                   {Array.isArray(quoteSummary.lineItems) && quoteSummary.lineItems.length > 0 && (
-                    <div className="quote-cost-breakdown" style={{ borderTop: '1px solid rgba(212, 175, 55, 0.2)', paddingTop: '1.5rem' }}>
+                    <div className="quote-cost-breakdown" style={{ borderTop: '0', paddingTop: 0 }}>
                       <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', fontWeight: '600', color: 'var(--color-charcoal-dark)' }}>Cost Breakdown</p>
                       {quoteSummary.lineItems.map((item) => (
                         <div className="quote-line-item" key={item.roomId} style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(212, 175, 55, 0.15)' }}>
@@ -1106,7 +1099,7 @@ const Estimator = () => {
                               </div>
                               {item.areaSqFt === 0 && item.layout && (
                                 <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#4b5563', fontWeight: 600 }}>
-                                  This room is priced by selected layout only because dimensions are optional for this room.
+                                  {item.layout}
                                 </p>
                               )}
                               {item.addonsCost > 0 && (
@@ -1118,7 +1111,7 @@ const Estimator = () => {
                               {/* Package Components Section */}
                               {item.roomId && Array.isArray(item.packageComponents) && item.packageComponents.length > 0 ? (
                                 <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
-                                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', fontWeight: '600', color: 'var(--color-charcoal-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Package Components</p>
+                                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', fontWeight: '600', color: 'var(--color-charcoal-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Items</p>
                                   
                                   {item.packageComponents.map((component) => {
                                     // Skip components without valid IDs
@@ -1209,7 +1202,7 @@ const Estimator = () => {
                                 return (
                                   <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(212, 175, 55, 0.2)' }}>
                                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', fontWeight: '600', color: 'var(--color-charcoal-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                      Package Materials
+                                      Items
                                     </p>
 
                                     {layoutData.hasLayoutMaterials && layoutData.materials.length > 0 && (

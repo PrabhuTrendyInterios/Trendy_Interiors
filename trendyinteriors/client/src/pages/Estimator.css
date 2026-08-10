@@ -3952,7 +3952,8 @@
 .estimator-page .quotation-review-card .review-selected-rooms > h4,
 .estimator-page .quotation-review-card .quote-line-item > p:first-child,
 .estimator-page .quotation-review-card .quote-line-item [style*="Package Components"],
-.estimator-page .quotation-review-card .quote-line-item [style*="Package Materials"] {
+.estimator-page .quotation-review-card .quote-line-item [style*="Package Materials"],
+.estimator-page .quotation-review-card .quote-line-item [style*="Items"] {
   color: var(--color-gold-light) !important;
   font-weight: 900 !important;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45) !important;
@@ -4207,7 +4208,8 @@
 }
 
 .estimator-page .quote-line-item [style*="Package Components"],
-.estimator-page .quote-line-item [style*="Package Materials"] {
+.estimator-page .quote-line-item [style*="Package Materials"],
+.estimator-page .quote-line-item [style*="Items"] {
   font-size: 0.82rem !important;
   line-height: 1.25 !important;
 }

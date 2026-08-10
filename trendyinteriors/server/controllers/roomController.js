@@ -119,6 +119,8 @@ const normalizeMaxSelectableRooms = (value, roomName = '') => {
 };
 
 const normalizeRoomPayload = (body = {}) => {
+  const requiresDimensions = body.requiresDimensions !== undefined ? toBoolean(body.requiresDimensions) : true;
+
   return {
     name: body.name?.trim(),
     description: body.description?.trim() || '',
@@ -126,10 +128,10 @@ const normalizeRoomPayload = (body = {}) => {
     pricePerSqFt: Number(body.pricePerSqFt) || 0,
     status: body.status === 'inactive' ? 'inactive' : 'active',
     displayOrder: Number(body.displayOrder) || 0,
-    allowCustomDimensions: toBoolean(body.allowCustomDimensions),
-    requiresDimensions: body.requiresDimensions !== undefined ? toBoolean(body.requiresDimensions) : true,
+    allowCustomDimensions: requiresDimensions ? toBoolean(body.allowCustomDimensions) : false,
+    requiresDimensions,
     maxSelectableRooms: normalizeMaxSelectableRooms(body.maxSelectableRooms, body.name),
-    dimensions: Array.isArray(body.dimensions)
+    dimensions: requiresDimensions && Array.isArray(body.dimensions)
       ? body.dimensions.map(normalizeDimension)
       : [],
     layouts: Array.isArray(body.layouts)
@@ -315,6 +317,11 @@ exports.updateRoom = async (req, res) => {
         normalizeAddon
       );
       console.log(`[updateRoom] Addons: updated to ${updates.addons.length} items`);
+    }
+
+    if (updates.requiresDimensions === false) {
+      updates.allowCustomDimensions = false;
+      updates.dimensions = [];
     }
 
     const dimensionsForValidation = Array.isArray(updates.dimensions)

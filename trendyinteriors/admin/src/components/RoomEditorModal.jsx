@@ -113,6 +113,8 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
       ...form,
       pricePerSqFt: Number(form.pricePerSqFt) || 0,
       maxSelectableRooms: Math.min(20, Math.max(1, Number(form.maxSelectableRooms) || 1)),
+      dimensions: form.requiresDimensions ? form.dimensions : [],
+      allowCustomDimensions: form.requiresDimensions ? form.allowCustomDimensions : false,
     });
   };
 
@@ -223,7 +225,14 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
                   <button
                     type="button"
                     className={`form-toggle ${form.requiresDimensions ? 'checked' : ''}`}
-                    onClick={() => setForm({ ...form, requiresDimensions: !form.requiresDimensions })}
+                    onClick={() => {
+                      const nextRequiresDimensions = !form.requiresDimensions;
+                      setForm({
+                        ...form,
+                        requiresDimensions: nextRequiresDimensions,
+                        allowCustomDimensions: nextRequiresDimensions ? form.allowCustomDimensions : false,
+                      });
+                    }}
                     aria-pressed={form.requiresDimensions}
                     title={form.requiresDimensions ? 'Disable dimension requirement' : 'Require dimensions'}
                   >
@@ -271,29 +280,42 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
           </section>
 
           <section className="room-editor-section">
-            <RoomNestedManager
-              title="Dimensions"
-              items={form.dimensions}
-              emptyItem={{ name: '', length: '', width: '', height: '' }}
-              fields={DIMENSION_FIELDS}
-              onChange={(dimensions) => setForm({ ...form, dimensions })}
-              renderSummary={(item) => (
-                <>
-                  <h5>{item.name}</h5>
-                  <p>
-                    {item.length || 0} × {item.width || 0} × {item.height || 0} ft
-                  </p>
-                </>
-              )}
-            />
+            {form.requiresDimensions ? (
+              <RoomNestedManager
+                title="Dimensions"
+                items={form.dimensions}
+                emptyItem={{ name: '', length: '', width: '', height: '' }}
+                fields={DIMENSION_FIELDS}
+                onChange={(dimensions) => setForm({ ...form, dimensions })}
+                renderSummary={(item) => (
+                  <>
+                    <h5>{item.name}</h5>
+                    <p>
+                      {item.length || 0} × {item.width || 0} × {item.height || 0} ft
+                    </p>
+                  </>
+                )}
+              />
+            ) : (
+              <>
+                <div className="room-nested-header">
+                  <h4 className="subsection-title">Dimensions</h4>
+                </div>
+                <p className="room-nested-empty">
+                  Dimensions are disabled for this room. Configure layout-specific items directly inside each layout.
+                </p>
+              </>
+            )}
           </section>
 
-          <section className="room-editor-section">
-            <DimensionPackageManager
-              dimensions={form.dimensions}
-              onChange={(dimensions) => setForm({ ...form, dimensions })}
-            />
-          </section>
+          {form.requiresDimensions && (
+            <section className="room-editor-section">
+              <DimensionPackageManager
+                dimensions={form.dimensions}
+                onChange={(dimensions) => setForm({ ...form, dimensions })}
+              />
+            </section>
+          )}
 
           <section className="room-editor-section">
             <RoomNestedManager
@@ -317,6 +339,7 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
                     configurations={draft.configurations || []}
                     onChange={(configurations) => setDraft({ ...draft, configurations })}
                     onEnsureDimensionId={ensureDimensionId}
+                    dimensionless={!form.requiresDimensions}
                   />
                 ) : null
               }

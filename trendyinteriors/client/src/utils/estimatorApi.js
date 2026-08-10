@@ -6,6 +6,8 @@ export const fetchEstimatorRooms = () => publicGet('/api/cms/rooms?status=active
 
 export const fetchGlobalAddons = () => publicGet('/api/cms/global-addons?active=true');
 
+export const DIMENSIONLESS_LAYOUT_CONFIG_ID = '__dimensionless__';
+
 export const slugifyRoomName = (name = '') =>
   String(name)
     .toLowerCase()
@@ -127,19 +129,28 @@ export const getLayoutMaterialsForRoom = ({
   const dimension = matchDimensionFromSizeCategory(room.dimensions, sizeCategory);
   const dimensionId = dimension?._id?.toString() || dimension?.id?.toString() || sizeCategory;
   const dimensionName = dimension?.name ? String(dimension.name).trim().toLowerCase() : '';
+  const isDimensionlessRoom = room.requiresDimensions === false || (room.dimensions || []).length === 0;
 
   const configuration = (layout.configurations || []).find((config) => {
     if (!config.dimensionId) return false;
+
+    if (isDimensionlessRoom) {
+      const normalizedConfigDimension = String(config.dimensionId).trim().toLowerCase();
+      return (
+        normalizedConfigDimension === DIMENSIONLESS_LAYOUT_CONFIG_ID ||
+        normalizedConfigDimension === 'default'
+      );
+    }
 
     return (
       String(config.dimensionId) === String(dimensionId) ||
       String(config.dimensionId) === String(sizeCategory) ||
       (dimensionName && String(config.dimensionId).trim().toLowerCase() === dimensionName)
     );
-  });
+  }) || (isDimensionlessRoom ? (layout.configurations || [])[0] : null);
 
   const materials = (configuration?.materials || []).map((material, index) => ({
-    id: material._id?.toString() || `${layoutName}-${dimensionId}-${index}`,
+    id: material._id?.toString() || `${layoutName}-${dimensionId || DIMENSIONLESS_LAYOUT_CONFIG_ID}-${index}`,
     name: material.name || '',
     size: material.size || '',
     price: Number(material.price) || 0,
