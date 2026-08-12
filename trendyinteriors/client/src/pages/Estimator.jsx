@@ -35,6 +35,95 @@ import './Estimator.css';
 const ESTIMATOR_DRAFT_KEY = 'trendyInteriorsEstimatorDraft';
 const ESTIMATOR_API_URL = `${API_BASE_URL}/api/estimators`;
 
+const QUOTATION_SWITCH_CRITICAL_CSS = `
+  .estimator-page .quotation-review-card .quote-option-cost-row {
+    grid-template-columns: 54px minmax(0, 1fr) minmax(58px, auto) !important;
+    align-items: center !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-addon-row,
+  .estimator-page .quotation-review-card .quote-addon-row label {
+    align-items: center !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-addon-row label {
+    grid-template-columns: 54px minmax(0, 1fr) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control,
+  .estimator-page .quotation-review-card .quote-toggle-control,
+  .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    box-sizing: border-box !important;
+    flex: 0 0 48px !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    overflow: hidden !important;
+    background: #d82323 !important;
+    background-color: #d82323 !important;
+    color: #d82323 !important;
+    box-shadow: 0 7px 16px rgba(0, 0, 0, 0.18) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control.selected,
+  .estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"],
+  .estimator-page .quotation-review-card .quote-switch-control[data-selected="true"],
+  .estimator-page .quotation-review-card .quote-toggle-control.selected,
+  .estimator-page .quotation-review-card .quote-toggle-control[aria-checked="true"],
+  .estimator-page .quotation-review-card .quote-toggle-control[data-selected="true"],
+  .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control.selected,
+  .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control[aria-checked="true"],
+  .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control[data-selected="true"],
+  .estimator-page .quotation-review-card .quote-addon-row button.quote-toggle-control.selected,
+  .estimator-page .quotation-review-card .quote-addon-row button.quote-toggle-control[aria-checked="true"],
+  .estimator-page .quotation-review-card .quote-addon-row button.quote-toggle-control[data-selected="true"] {
+    background: #20d79a !important;
+    background-color: #20d79a !important;
+    border-color: transparent !important;
+    color: #149a6d !important;
+    box-shadow: 0 7px 16px rgba(32, 215, 154, 0.24) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-knob {
+    position: absolute !important;
+    top: 2px !important;
+    left: 2px !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    color: currentColor !important;
+    transform: translateX(0) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control.selected .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"] .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-switch-control[data-selected="true"] .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-toggle-control.selected .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-toggle-control[aria-checked="true"] .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-toggle-control[data-selected="true"] .quote-switch-knob {
+    transform: translateX(18px) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-knob svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+`;
+
 const migrateRoomDimensions = (roomDimensionsByRoom) => {
   const migrated = {};
   Object.entries(roomDimensionsByRoom || {}).forEach(([roomId, dimensions]) => {
@@ -1071,6 +1160,8 @@ const Estimator = () => {
                                           }}
                                           role="switch"
                                           aria-checked={isSelected}
+                                          data-selected={isSelected ? 'true' : 'false'}
+                                          aria-label={`${isSelected ? 'Remove' : 'Add'} ${addon.name}`}
                                           title={isSelected ? 'Click to deselect' : 'Click to select'}
                                         >
                                           <span className="quote-switch-text">{isSelected ? 'ON' : 'OFF'}</span>
@@ -1135,6 +1226,7 @@ const Estimator = () => {
                                             onClick={() => item.roomId && component.id && togglePackageComponent(item.roomId, component.id)}
                                             role="switch"
                                             aria-checked={isSelected}
+                                            data-selected={isSelected ? 'true' : 'false'}
                                             aria-label={`${isSelected ? 'Remove' : 'Add'} ${component.name}`}
                                             title={isSelected ? 'Click to deselect' : 'Click to select'}
                                           >
@@ -1215,6 +1307,7 @@ const Estimator = () => {
                                                 title={isSelected ? 'Click to deselect' : 'Click to select'}
                                                 role="switch"
                                                 aria-checked={isSelected}
+                                                data-selected={isSelected ? 'true' : 'false'}
                                                 aria-label={`${material.mandatory ? 'Included' : isSelected ? 'Remove' : 'Add'} ${material.name}`}
                                               >
                                                 <span className="quote-switch-text">{isSelected ? 'ON' : 'OFF'}</span>
@@ -1383,6 +1476,7 @@ const Estimator = () => {
         backgroundRepeat: 'no-repeat',
       }}
     >
+      <style>{QUOTATION_SWITCH_CRITICAL_CSS}</style>
       <div className="estimator-header-bg">
         <div className="container">
           <h1 className="estimator-page-title">Quote Interior Yourself</h1>
