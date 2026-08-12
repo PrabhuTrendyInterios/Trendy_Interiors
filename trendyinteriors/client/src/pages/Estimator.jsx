@@ -1133,24 +1133,9 @@ const Estimator = () => {
                                             type="button"
                                             className={`quote-switch-control ${isSelected ? 'selected' : ''}`}
                                             onClick={() => item.roomId && component.id && togglePackageComponent(item.roomId, component.id)}
-                                            style={{ 
-                                              cursor: 'pointer',
-                                              width: '20px',
-                                              height: '20px',
-                                              minWidth: '20px',
-                                              minHeight: '20px',
-                                              borderRadius: '50%',
-                                              border: `2px solid ${isSelected ? 'var(--color-gold)' : '#c62828'}`,
-                                              backgroundColor: isSelected ? 'var(--color-gold)' : 'rgba(198, 40, 40, 0.08)',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'center',
-                                              padding: 0,
-                                              transition: 'all 0.3s ease',
-                                              boxShadow: isSelected ? '0 0 0 3px rgba(212, 175, 55, 0.1)' : 'none',
-                                            }}
                                             role="switch"
                                             aria-checked={isSelected}
+                                            aria-label={`${isSelected ? 'Remove' : 'Add'} ${component.name}`}
                                             title={isSelected ? 'Click to deselect' : 'Click to select'}
                                           >
                                             <span className="quote-switch-text">{isSelected ? 'ON' : 'OFF'}</span>
@@ -1230,22 +1215,7 @@ const Estimator = () => {
                                                 title={isSelected ? 'Click to deselect' : 'Click to select'}
                                                 role="switch"
                                                 aria-checked={isSelected}
-                                                style={{
-                                                  cursor: material.mandatory ? 'not-allowed' : 'pointer',
-                                                  width: '20px',
-                                                  height: '20px',
-                                                  minWidth: '20px',
-                                                  minHeight: '20px',
-                                                  borderRadius: '50%',
-                                                  border: `2px solid ${isSelected ? 'var(--color-gold)' : '#c62828'}`,
-                                                  backgroundColor: isSelected ? 'var(--color-gold)' : 'rgba(198, 40, 40, 0.08)',
-                                                  display: 'flex',
-                                                  alignItems: 'center',
-                                                  justifyContent: 'center',
-                                                  padding: 0,
-                                                  transition: 'all 0.3s ease',
-                                                  boxShadow: isSelected ? '0 0 0 3px rgba(212, 175, 55, 0.1)' : 'none',
-                                                }}
+                                                aria-label={`${material.mandatory ? 'Included' : isSelected ? 'Remove' : 'Add'} ${material.name}`}
                                               >
                                                 <span className="quote-switch-text">{isSelected ? 'ON' : 'OFF'}</span>
                                                 <span className="quote-switch-knob" aria-hidden="true">

@@ -4578,3 +4578,75 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Final mobile quotation switch sizing. */
+@media (max-width: 768px) {
+  .estimator-page .quotation-review-card .quote-option-cost-row,
+  .estimator-page .quotation-review-card .quote-addon-row {
+    align-items: center !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-option-cost-row {
+    grid-template-columns: 48px minmax(0, 1fr) minmax(58px, auto) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-addon-row label {
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+    align-items: center !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control,
+  .estimator-page .quotation-review-card .quote-addon-row .quote-toggle-control,
+  .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    box-sizing: border-box !important;
+    flex: 0 0 46px !important;
+    width: 46px !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    max-height: 26px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    overflow: hidden !important;
+    background: #d82323 !important;
+    color: #d82323 !important;
+    box-shadow: 0 7px 16px rgba(0, 0, 0, 0.18) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control.selected,
+  .estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"] {
+    background: #20d79a !important;
+    color: #20a977 !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-knob {
+    position: absolute !important;
+    top: 3px !important;
+    left: 3px !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    color: currentColor !important;
+    transform: translateX(0) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control.selected .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"] .quote-switch-knob {
+    transform: translateX(20px) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-knob svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+}
