@@ -21,7 +21,7 @@ const ESTIMATOR_SPEECH_MESSAGES = {
   2: 'TiJo here, select the dimensions of the page',
   3: 'TiJo here, choose the add-ons for your design',
   4: 'TiJo here, share your details to continue',
-  5: 'TiJo here, review your quote and submit',
+  5: 'TiJo here, review your quote and select or deselect room items based on your choice',
 };
 
 const getSpeechMessage = (pathname, estimatorStep) => {
