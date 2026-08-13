@@ -1,10 +1,40 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaComments, FaTimes, FaPaperPlane, FaSpinner, FaPaperclip } from 'react-icons/fa';
 import MarkdownText from '../utils/markdownParser';
 import './ChatBot.css';
 
-const ChatBot = () => {
+const DEFAULT_SPEECH_MESSAGE = 'Hi I am TiJo, Interior AI Assistant';
+
+const PAGE_SPEECH_MESSAGES = {
+  '/abouts': 'TiJo here, explore our story and design approach',
+  '/projects': 'TiJo here, browse our completed interior projects',
+  '/testimonials': 'TiJo here, see what our clients say',
+  '/give-testimonial': 'TiJo here, share your TrendyInterios experience',
+  '/reachus': 'TiJo here, contact us for your dream interiors',
+  '/buy-online': 'TiJo here, explore interior products online',
+};
+
+const ESTIMATOR_SPEECH_MESSAGES = {
+  1: 'TiJo here, select the rooms for design',
+  2: 'TiJo here, select the dimensions of the page',
+  3: 'TiJo here, choose the add-ons for your design',
+  4: 'TiJo here, share your details to continue',
+  5: 'TiJo here, review your quote and submit',
+};
+
+const getSpeechMessage = (pathname, estimatorStep) => {
+  if (pathname === '/estimator') {
+    return ESTIMATOR_SPEECH_MESSAGES[estimatorStep] || DEFAULT_SPEECH_MESSAGE;
+  }
+
+  return PAGE_SPEECH_MESSAGES[pathname] || DEFAULT_SPEECH_MESSAGE;
+};
+
+const ChatBot = ({ estimatorStep = null }) => {
+  const location = useLocation();
+  const speechMessage = getSpeechMessage(location.pathname, estimatorStep);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -184,7 +214,7 @@ const ChatBot = () => {
         title="Chat with us"
       >
         <img src="/assets/trendy-bot/trendy-bot-present.webp" alt="TiJo bot" />
-        <span className="chatbot-toggle-speech">Hi I am TiJo, Interior AI Assistant</span>
+        <span className="chatbot-toggle-speech">{speechMessage}</span>
       </button>
 
       {/* Chatbot Window */}

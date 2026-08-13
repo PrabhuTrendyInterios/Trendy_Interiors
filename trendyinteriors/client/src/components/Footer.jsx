@@ -4,7 +4,7 @@ import { FaArrowUp, FaWhatsapp, FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, Fa
 import ChatBot from './ChatBot';
 import './Footer.css';
 
-const Footer = () => {
+const Footer = ({ estimatorStep = null }) => {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
   const footerBackgroundClass = (() => {
@@ -142,7 +142,7 @@ const Footer = () => {
       </div>
 
       {/* Chatbot */}
-      <ChatBot />
+      <ChatBot estimatorStep={estimatorStep} />
     </footer>
   );
 };

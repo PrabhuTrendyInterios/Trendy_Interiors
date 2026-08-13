@@ -1551,7 +1551,7 @@ const Estimator = () => {
           </div>
         </div>
       </div>
-      <Footer />
+      <Footer estimatorStep={currentStep} />
     </div>
   );
 };
