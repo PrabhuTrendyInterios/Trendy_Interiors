@@ -1,17 +1,48 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaComments, FaTimes, FaPaperPlane, FaSpinner, FaPaperclip } from 'react-icons/fa';
 import MarkdownText from '../utils/markdownParser';
 import './ChatBot.css';
 
-const ChatBot = () => {
+const DEFAULT_SPEECH_MESSAGE = 'Hi I am TiJo, Interior AI Assistant';
+
+const PAGE_SPEECH_MESSAGES = {
+  '/abouts': 'TiJo here, explore our story and design approach',
+  '/projects': 'TiJo here, browse our completed interior projects',
+  '/testimonials': 'TiJo here, see what our clients say',
+  '/give-testimonial': 'TiJo here, share your TrendyInterios experience',
+  '/reachus': 'TiJo here, contact us for your dream interiors',
+  '/buy-online': 'TiJo here, explore interior products online',
+};
+
+const ESTIMATOR_SPEECH_MESSAGES = {
+  1: 'TiJo here, select the rooms for design',
+  2: 'TiJo here, select the dimensions of the page',
+  3: 'TiJo here, choose the add-ons for your design',
+  4: 'TiJo here, share your details to continue',
+  5: 'TiJo here, review your quote and select or deselect room items based on your choice',
+};
+
+const getSpeechMessage = (pathname, estimatorStep) => {
+  if (pathname === '/estimator') {
+    return ESTIMATOR_SPEECH_MESSAGES[estimatorStep] || DEFAULT_SPEECH_MESSAGE;
+  }
+
+  return PAGE_SPEECH_MESSAGES[pathname] || DEFAULT_SPEECH_MESSAGE;
+};
+
+const ChatBot = ({ estimatorStep = null }) => {
+  const location = useLocation();
+  const speechMessage = getSpeechMessage(location.pathname, estimatorStep);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: 'Hello! 👋 Welcome to TrendyInterios. How can we help you today?',
+      text: "Hi I'am TiJo, AI Interior Assistant, coming from the bot.",
       sender: 'bot',
-      timestamp: new Date()
+      timestamp: new Date(),
+      isWelcome: true
     }
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -22,7 +53,6 @@ const ChatBot = () => {
   const fileInputRef = useRef(null);
 
   const quickReplies = [
-    'View pricing',
     'Schedule consultation',
     'See portfolio',
     'Contact us'
@@ -49,6 +79,19 @@ const ChatBot = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const handleOpenChatbot = () => {
+      setIsOpen(true);
+    };
+
+    window.addEventListener('open-chatbot', handleOpenChatbot);
+
+    return () => {
+      window.removeEventListener('open-chatbot', handleOpenChatbot);
+    };
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -170,7 +213,8 @@ const ChatBot = () => {
         aria-label="Open chatbot"
         title="Chat with us"
       >
-        <FaComments />
+        <img src="/assets/trendy-bot/trendy-bot-present.webp" alt="TiJo bot" />
+        <span className="chatbot-toggle-speech">{speechMessage}</span>
       </button>
 
       {/* Chatbot Window */}
@@ -181,7 +225,7 @@ const ChatBot = () => {
             <div className="chatbot-title">
               <FaComments className="chatbot-icon" />
               <div>
-                <h3>TrendyInterios Chat</h3>
+                <h3>TiJo</h3>
                 <span className="status-indicator">Online</span>
               </div>
             </div>
@@ -197,10 +241,12 @@ const ChatBot = () => {
           {/* Messages */}
           <div className="chatbot-messages">
             {messages.map((msg) => (
-              <div key={msg.id} className={`message ${msg.sender}`}>
+              <div key={msg.id} className={`message ${msg.sender} ${msg.isWelcome ? 'welcome' : ''}`}>
                 <div className="message-content">
                   {msg.attachmentName && (
-                    <div className="message-attachment-chip">📎 {msg.attachmentName}</div>
+                    <div className="message-attachment-chip">
+                      <FaPaperclip aria-hidden="true" /> {msg.attachmentName}
+                    </div>
                   )}
                   <MarkdownText>{msg.text}</MarkdownText>
                   <small className="message-time">
@@ -280,7 +326,9 @@ const ChatBot = () => {
           </form>
           {selectedFile && (
             <div className="selected-file-row">
-              <span className="selected-file-name">📎 {selectedFile.name}</span>
+              <span className="selected-file-name">
+                <FaPaperclip aria-hidden="true" /> {selectedFile.name}
+              </span>
               <button type="button" className="clear-file-btn" onClick={clearSelectedFile} disabled={loading}>
                 Remove
               </button>

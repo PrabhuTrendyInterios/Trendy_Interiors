@@ -8,14 +8,15 @@
 /* 1. HERO SECTION */
 .testimonials-hero {
   position: relative;
-  height: 400px;
-  background-image: url('https://images.unsplash.com/photo-1556912173-46c336c7fd55?q=80&w=2070&auto=format&fit=crop');
+  height: clamp(520px, 62vh, 700px);
+  background-color: #0b121f;
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  overflow: hidden;
 }
 
 .hero-overlay {
@@ -45,12 +46,12 @@
 }
 
 .hero-subtitle {
-  font-size: 1.1rem;
+  font-size: clamp(1.1rem, 1.5vw, 1.35rem);
   font-weight: 300;
   letter-spacing: 0.5px;
   margin-bottom: 25px;
   color: #ddd;
-  max-width: 600px;
+  max-width: 760px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -83,10 +84,10 @@
 
 /* 2. TRUST INDICATORS */
 .trust-indicators {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.06);
   padding: 40px 0;
-  border-bottom: 1px solid #eaeaea;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
   position: relative;
   z-index: 5;
   margin-top: -40px;
@@ -95,7 +96,8 @@
   max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
-  border-radius: 8px;
+  border-radius: 28px;
+  backdrop-filter: blur(18px);
 }
 
 .trust-grid {
@@ -363,7 +365,7 @@
 }
 /* CTA Give Testimonial Button */
 .testimonial-cta .btn-gold-outline {
-  background: transparent;              /* 🔥 White remove */
+  background: transparent;              /* remove white fill */
   color: #d4af37;                        /* Gold text */
   border: 2px solid #d4af37;             /* Gold border */
   padding: 12px 26px;
@@ -485,4 +487,19 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.testimonials-page :is(
+  .hero-content,
+  .hero-content *,
+  .trust-indicators,
+  .trust-indicators *,
+  .section-header-center,
+  .section-header-center *,
+  .testimonial-card-premium,
+  .testimonial-card-premium *,
+  .testimonial-cta,
+  .testimonial-cta *
+) {
+  font-weight: 800 !important;
 }

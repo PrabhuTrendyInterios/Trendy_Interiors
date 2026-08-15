@@ -1,12 +1,22 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { FaWhatsapp, FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaLock, FaYoutube, FaStore } from 'react-icons/fa';
+import { Link, useLocation } from 'react-router-dom';
+import { FaArrowUp, FaWhatsapp, FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaYoutube, FaStore } from 'react-icons/fa';
 import ChatBot from './ChatBot';
 import './Footer.css';
 
-const Footer = () => {
+const Footer = ({ estimatorStep = null }) => {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+  const footerBackgroundClass = (() => {
+    if (location.pathname === '/estimator') return 'transparent estimator-transparent';
+    if (isHomePage) return 'transparent';
+    if (location.pathname === '/abouts' || location.pathname === '/testimonials') return 'page-background kitchen-background';
+    if (location.pathname === '/projects' || location.pathname === '/reachus') return 'page-background bedroom-background';
+    return 'page-background default-background';
+  })();
+
   return (
-    <footer className="footer">
+    <footer className={`footer ${footerBackgroundClass}`}>
       <div className="footer-container">
         {/* About Section */}
         <div className="footer-section">
@@ -26,9 +36,6 @@ const Footer = () => {
               <FaStore />
             </a>
           </div>
-          <Link to="/login" className="admin-use-only-link" title="For Admin Use Only">
-            <FaLock /> For Admin Use Only
-          </Link>
         </div>
 
         {/* Quick Links */}
@@ -110,18 +117,32 @@ const Footer = () => {
         <div className="footer-bottom-container">
           <p>&copy; {new Date().getFullYear()} <span className="brand-name">TrendyInterios</span>. All Rights Reserved.</p>
 
+      <center>
+        <span className="footer-credit premium">
+          Designed & Engineered by{" "}
+          <a
+            href="https://tekriq.in/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-link"
+          >
+            Tekriq Technologies
+          </a>
+        </span>
+      </center>
+
           <button
             className="back-to-top"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             aria-label="Back to Top"
           >
-            Back to Top ↑
+            Back to Top <FaArrowUp aria-hidden="true" />
           </button>
         </div>
       </div>
 
       {/* Chatbot */}
-      <ChatBot />
+      <ChatBot estimatorStep={estimatorStep} />
     </footer>
   );
 };

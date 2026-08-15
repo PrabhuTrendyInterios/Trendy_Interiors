@@ -39,16 +39,16 @@ describe('client/components/estimator/DimensionsSelection', () => {
     jest.clearAllMocks();
   });
 
-  // ============ Room Area Calculation Tests ============
-  test('renders computed room area', () => {
+  // ============ Room Size Display Tests ============
+  test('renders the configured room size', () => {
     render(<DimensionsSelection {...baseProps} />);
-    expect(screen.getAllByText(/120.00 sq. ft/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/10 X 12 sqft/i).length).toBeGreaterThan(0);
   });
 
-  test('updates area when dimensions change', () => {
+  test('updates the displayed size when dimensions change', () => {
     const { rerender } = render(<DimensionsSelection {...baseProps} />);
-    
-    expect(screen.getAllByText(/120.00 sq. ft/i).length).toBeGreaterThan(0);
+
+    expect(screen.getAllByText(/10 X 12 sqft/i).length).toBeGreaterThan(0);
 
     rerender(
       <DimensionsSelection
@@ -59,10 +59,10 @@ describe('client/components/estimator/DimensionsSelection', () => {
       />
     );
 
-    expect(screen.getAllByText(/225.00 sq. ft/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/15 X 15 sqft/i).length).toBeGreaterThan(0);
   });
 
-  test('calculates area correctly with different dimensions', () => {
+  test('renders different configured dimensions', () => {
     render(
       <DimensionsSelection
         {...baseProps}
@@ -72,7 +72,7 @@ describe('client/components/estimator/DimensionsSelection', () => {
       />
     );
 
-    expect(screen.getAllByText(/500.00 sq. ft/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/20 X 25 sqft/i).length).toBeGreaterThan(0);
   });
 
   // ============ Dimension Input Tests ============
@@ -114,7 +114,7 @@ describe('client/components/estimator/DimensionsSelection', () => {
   });
 
   // ============ Room Navigation Tests ============
-  test('displays room selection if available', () => {
+  test('does not render a room category dropdown', () => {
     render(
       <DimensionsSelection
         {...baseProps}
@@ -122,36 +122,72 @@ describe('client/components/estimator/DimensionsSelection', () => {
       />
     );
 
-    const buttons = screen.queryAllByRole('button');
-    expect(buttons.length >= 0).toBe(true);
+    expect(screen.queryByRole('combobox', { name: /selected room type/i })).not.toBeInTheDocument();
   });
 
-  test('shows room instances for multiple rooms', () => {
-    const { container } = render(
-      <DimensionsSelection
-        {...baseProps}
-        selectedRooms={{ Bedroom: 2 }}
-      />
-    );
-
-    expect(container).toBeInTheDocument();
-  });
-
-  test('onSelectRoom called when room card clicked', () => {
+  test('shows every room instance in the category on the same page', () => {
     render(
       <DimensionsSelection
         {...baseProps}
         selectedRooms={{ Bedroom: 2 }}
+        roomDimensions={{
+          'Bedroom-1': { length: '10', width: '12', height: '9', selectedDesignIdea: null },
+          'Bedroom-2': { length: '', width: '', height: '', selectedDesignIdea: null },
+        }}
       />
     );
 
-    const buttons = screen.queryAllByRole('button');
-    const roomButton = buttons.find(btn => btn.textContent.includes('Bedroom'));
-    
-    if (roomButton) {
-      fireEvent.click(roomButton);
-      expect(baseProps.onSelectRoom).toHaveBeenCalled();
-    }
+    expect(screen.getByRole('heading', { name: 'Bedroom 1' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Bedroom 2' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /next room/i })).not.toBeInTheDocument();
+  });
+
+  test('locks category navigation until every room in the category is complete', () => {
+    render(
+      <DimensionsSelection
+        {...baseProps}
+        selectedRooms={{ Bedroom: 2, Kitchen: 1 }}
+        roomDimensions={{
+          'Bedroom-1': { length: '10', width: '12', height: '9', selectedDesignIdea: null },
+          'Bedroom-2': { length: '', width: '', height: '', selectedDesignIdea: null },
+          'Kitchen-1': { length: '', width: '', height: '', selectedDesignIdea: null },
+        }}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: /next category/i })).toBeDisabled();
+  });
+
+  test('advances to the next category after every room on the page is complete', () => {
+    const orderedCatalog = [
+      sampleRoomsCatalog[0],
+      {
+        _id: '2',
+        id: 'kitchen',
+        name: 'Kitchen',
+        requiresDimensions: true,
+        dimensions: [{ id: 'mid', name: 'Mid', label: 'Mid', length: 12, width: 12, height: 9 }],
+        layouts: [],
+        addons: [],
+      },
+    ];
+
+    render(
+      <DimensionsSelection
+        {...baseProps}
+        roomsCatalog={orderedCatalog}
+        selectedRooms={{ Kitchen: 1, Bedroom: 2 }}
+        selectedRoom="Bedroom-2"
+        roomDimensions={{
+          'Bedroom-1': { length: '10', width: '12', height: '9', selectedDesignIdea: null },
+          'Bedroom-2': { length: '10', width: '12', height: '9', selectedDesignIdea: null },
+          'Kitchen-1': { length: '', width: '', height: '', selectedDesignIdea: null },
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /next category/i }));
+    expect(baseProps.onSelectRoom).toHaveBeenCalledWith('Kitchen-1');
   });
 
   // ============ Layout Selection Tests (Kitchen Layouts) ============
@@ -233,24 +269,36 @@ describe('client/components/estimator/DimensionsSelection', () => {
   });
 
   // ============ Special Room Handling Tests ============
-  test('pooja room has limited options', () => {
+  test('dimensionless pooja room still shows and selects layouts', () => {
+    const onSelectDesignIdea = jest.fn();
     render(
       <DimensionsSelection
         {...baseProps}
         selectedRooms={{ 'Pooja Room': 1 }}
         selectedRoom="Pooja Room-1"
-        roomDimensions={{
-          'Pooja Room-1': {
-            length: '4',
-            width: '4',
-            height: '7',
-            selectedDesignIdea: null
-          }
-        }}
+        roomDimensions={{ 'Pooja Room-1': { selectedDesignIdea: null } }}
+        roomsCatalog={[
+          {
+            id: 'poojaroom',
+            name: 'Pooja Room',
+            requiresDimensions: false,
+            dimensions: [],
+            layouts: [{ name: 'Pooja Unit', label: 'Pooja Unit', price: 45000 }],
+            addons: [],
+          },
+        ]}
+        onSelectDesignIdea={onSelectDesignIdea}
       />
     );
 
-    expect(true).toBe(true);
+    expect(screen.getByText(/does not require dimensions/i)).toBeInTheDocument();
+    const layoutButton = screen.getByRole('button', { name: /pooja unit/i });
+    expect(layoutButton).toBeEnabled();
+    fireEvent.click(layoutButton);
+    expect(onSelectDesignIdea).toHaveBeenCalledWith(
+      'Pooja Room-1',
+      expect.objectContaining({ layout: 'Pooja Unit' }),
+    );
   });
 
   // ============ Navigation Button Tests ============

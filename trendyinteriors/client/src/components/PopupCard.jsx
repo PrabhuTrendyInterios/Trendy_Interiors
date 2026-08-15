@@ -1,150 +1,134 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import "./PopupCard.css";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FaComments, FaHome, FaImages, FaRulerCombined } from "react-icons/fa";
+import PenguinPopup from "./PenguinPopup";
+
+const EXCLUDED_ROUTES = [
+  "/admin",
+  "/login",
+  "/register",
+  "/estimator",
+  "/quotation",
+];
+
+// Edit this object to change the site-wide popup copy or timing.
+export const TRENDY_BOT_POPUP_CONFIG = {
+  title: "Bring your dream interior to life",
+  description: "Explore completed spaces or build a personalized interior quote in minutes.",
+  actionLabel: "Quote Interior Yourself",
+  inactivityDelay: 10000,
+  showDelay: 0,
+  autoCloseDuration: 5000,
+  storageKey: "trendy-interiors-bot-popup-v1",
+  storageType: "none",
+};
 
 const PopupCard = () => {
-  const [visible, setVisible] = useState(false);
-  const [closing, setClosing] = useState(false);
-  const inactivityTimerRef = React.useRef(null);
-
+  const [popupCycle, setPopupCycle] = useState(null);
+  const inactivityTimerRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const isExcluded = EXCLUDED_ROUTES.some((route) =>
+    location.pathname.startsWith(route)
+  );
+
+  const finishCycle = useCallback(() => {
+    setPopupCycle(null);
+  }, []);
 
   useEffect(() => {
-    const excludedRoutes = [
-      "/admin",
-      "/login",
-      "/register",
-      "/estimator",
-      "/quotation",
-    ];
-
-    const resetInactivityTimer = () => {
+    const clearInactivityTimer = () => {
       if (inactivityTimerRef.current) {
-        clearTimeout(inactivityTimerRef.current);
+        window.clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
       }
-
-      inactivityTimerRef.current = setTimeout(() => {
-        // Only show popup if not already visible and not closing
-        if (!visible && !closing) {
-          setVisible(true);
-
-          const hideTimer = setTimeout(() => {
-            setClosing(true);
-
-            setTimeout(() => {
-              setVisible(false);
-              setClosing(false);
-            }, 400);
-          }, 6000);
-
-          return () => clearTimeout(hideTimer);
-        }
-      }, 10000); // 10 seconds of inactivity
     };
 
-    const isExcluded = excludedRoutes.some((route) =>
-      location.pathname.startsWith(route)
-    );
-
-    if (isExcluded) {
-      if (inactivityTimerRef.current) {
-        clearTimeout(inactivityTimerRef.current);
-      }
-      return;
+    if (isExcluded || popupCycle !== null) {
+      clearInactivityTimer();
+      return clearInactivityTimer;
     }
 
-    // Track user activity
-    const handleActivity = () => {
-      resetInactivityTimer();
+    const armInactivityTimer = () => {
+      clearInactivityTimer();
+      inactivityTimerRef.current = window.setTimeout(() => {
+        inactivityTimerRef.current = null;
+        setPopupCycle(Date.now());
+      }, TRENDY_BOT_POPUP_CONFIG.inactivityDelay);
     };
 
-    // Add event listeners for user activity
-    window.addEventListener("click", handleActivity);
-    window.addEventListener("scroll", handleActivity);
-    window.addEventListener("mousemove", handleActivity);
-    window.addEventListener("keypress", handleActivity);
-    window.addEventListener("touchstart", handleActivity);
+    const activityEvents = [
+      "pointermove",
+      "pointerdown",
+      "touchstart",
+      "scroll",
+      "keydown",
+    ];
 
-    // Initialize the inactivity timer
-    resetInactivityTimer();
+    activityEvents.forEach((eventName) =>
+      window.addEventListener(eventName, armInactivityTimer, { passive: true })
+    );
+    armInactivityTimer();
 
     return () => {
-      window.removeEventListener("click", handleActivity);
-      window.removeEventListener("scroll", handleActivity);
-      window.removeEventListener("mousemove", handleActivity);
-      window.removeEventListener("keypress", handleActivity);
-      window.removeEventListener("touchstart", handleActivity);
-      if (inactivityTimerRef.current) {
-        clearTimeout(inactivityTimerRef.current);
-      }
+      clearInactivityTimer();
+      activityEvents.forEach((eventName) =>
+        window.removeEventListener(eventName, armInactivityTimer)
+      );
     };
-  }, [location.pathname, visible, closing]);
+  }, [isExcluded, popupCycle]);
 
+  const informationRows = useMemo(
+    () => [
+      { id: "quote", icon: <FaRulerCombined />, label: "Personalized design quote" },
+      { id: "projects", icon: <FaImages />, label: "Completed interior projects" },
+    ],
+    []
+  );
 
-  const handleEstimate = () => {
-    setClosing(true);
+  const secondaryActions = useMemo(
+    () => [
+      {
+        id: "projects",
+        label: "View Projects",
+        icon: <FaImages />,
+        onAction: () => {
+          finishCycle();
+          navigate("/projects");
+        },
+      },
+      {
+        id: "chat",
+        label: "Chat",
+        ariaLabel: "Open chatbot",
+        title: "Chat with us",
+        icon: <FaComments />,
+        iconOnly: true,
+        onAction: () => {
+          finishCycle();
+          window.dispatchEvent(new Event("open-chatbot"));
+        },
+      },
+    ],
+    [finishCycle, navigate]
+  );
 
-    setTimeout(() => {
-      navigate("/estimator");
-    }, 400);
-  };
-
-  const handleCancel = () => {
-    setClosing(true);
-
-    setTimeout(() => {
-      setVisible(false);
-      setClosing(false);
-    }, 400);
-  };
-
-  if (!visible) return null;
+  if (isExcluded || popupCycle === null) return null;
 
   return (
-    <div
-      className={`popup-container ${
-        closing ? "popup-closing" : ""
-      }`}
-    >
-
-      <div className="penguin-wrapper">
-        <img
-          src="/images/penguin.png"
-          alt="Penguin Buddy"
-          className="penguin-image"
-        />
-      </div>
-
-      <div className="speech-bubble">
-        <button
-          className="popup-close"
-          onClick={handleCancel}
-          aria-label="Close popup"
-        >
-          x
-        </button>
-
-        <p>
-          🐧 <strong>Still thinking?</strong>
-          <br />
-          Looks like you've gone quiet for a bit! 🤔
-          <br />
-          Sometimes the perfect design needs a moment to sink in. ✨
-          <br />
-          Ready to see what your dream interior might cost?
-          <br />
-          Let's turn that inspiration into reality! 🏡
-        </p>
-
-        <button
-          className="popup-estimate-btn"
-          onClick={handleEstimate}
-        >
-          🏡 Show Me The Estimate
-        </button>
-      </div>
-    </div>
+    <PenguinPopup
+      key={popupCycle}
+      {...TRENDY_BOT_POPUP_CONFIG}
+      icon={<FaHome />}
+      informationRows={informationRows}
+      secondaryActions={secondaryActions}
+      onAction={() => {
+        finishCycle();
+        navigate("/estimator");
+      }}
+      onClose={finishCycle}
+      onAutoClose={finishCycle}
+    />
   );
 };
 

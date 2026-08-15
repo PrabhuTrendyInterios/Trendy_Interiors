@@ -16,6 +16,28 @@ const toPositiveNumber = (value) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
+const normalizeExtraAddonEntries = (extraAddons = []) => {
+  const seen = new Set();
+
+  return (Array.isArray(extraAddons) ? extraAddons : [])
+    .map((entry) => {
+      const addonId = entry?.id || entry?._id || entry;
+      const id = addonId != null ? String(addonId).trim() : '';
+      const count = Math.max(0, Number(entry?.count ?? 1) || 0);
+      const size = typeof entry?.size === 'string' ? entry.size.trim() : '';
+
+      return { id, count, size };
+    })
+    .filter((entry) => {
+      if (!entry.id || seen.has(entry.id) || entry.count <= 0) {
+        return false;
+      }
+
+      seen.add(entry.id);
+      return true;
+    });
+};
+
 const buildRoomInstances = (rooms) =>
   Object.entries(rooms || {}).flatMap(([roomName, count]) => {
     const quantity = Number(count) || 0;
@@ -75,6 +97,18 @@ const validateEstimatorPayload = (payload, roomsCatalog = [], options = {}) => {
       }
     });
   }
+
+  Object.entries(rooms).forEach(([roomName, count]) => {
+    const roomDoc = findRoomCatalogEntry(roomsCatalog, roomName);
+    const configuredLimit = Number(roomDoc?.maxSelectableRooms);
+    const legacyLimit = String(roomName).toLowerCase().includes("bedroom") ? 6 : 2;
+    const limit = Number.isInteger(configuredLimit) && configuredLimit > 0
+      ? configuredLimit
+      : legacyLimit;
+    if ((Number(count) || 0) > limit) {
+      errors.push(`${roomName} quantity cannot exceed ${limit}.`);
+    }
+  });
 
   const normalizedDimensions = {};
 
@@ -138,13 +172,13 @@ const validateEstimatorPayload = (payload, roomsCatalog = [], options = {}) => {
     rooms,
     selectedRoomForDimensions: normalizedSelectedRoom,
     customerInfo: payload?.customerInfo || {},
-    extraAddons: Array.isArray(payload?.extraAddons) ? payload.extraAddons : [],
+    extraAddons: normalizeExtraAddonEntries(payload?.extraAddons),
   };
 };
 
 const loadEstimatorData = async () => {
   const [roomsCatalog, globalAddons] = await Promise.all([
-    Room.find({ status: 'active' }).sort({ name: 1 }),
+    Room.find({ status: 'active' }).sort({ displayOrder: 1, name: 1 }),
     GlobalAddon.find({ active: true }).sort({ order: 1, name: 1 }),
   ]);
 

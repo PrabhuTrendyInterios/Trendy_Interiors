@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
-  FaTrophy, FaSmile, FaStopwatch, FaCheckCircle, FaQuoteLeft,
-  FaLinkedin, FaInstagram, FaPhone, FaEye, FaBullseye
+  FaTrophy, FaSmile, FaStopwatch, FaCheckCircle, FaQuoteLeft, FaHandshake, FaGem,
+  FaLinkedin, FaInstagram, FaPhone, FaEye, FaBullseye, FaYoutube
 } from 'react-icons/fa';
 import DesignCarousel from '../components/DesignCarousel';
+import ScrollVideoBackground from '../components/ScrollVideoBackground';
 import { publicGet, normalizeMemberForDisplay, getMemberImage, getMemberContact } from '../utils/publicApi';
 import './About.css';
 
@@ -53,17 +53,14 @@ const About = () => {
 
   return (
     <div className="about-page">
+      <ScrollVideoBackground imageSrc="/images/kitchen-image.png" videoSrc="/video/kitchen-video.mp4" />
+
       {/* Hero Section */}
       <section className="about-hero">
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1>About Us</h1>
           <div className="hero-divider"></div>
-          <div className="breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="separator">/</span>
-            <span className="current">About</span>
-          </div>
         </div>
       </section>
 
@@ -77,35 +74,53 @@ const About = () => {
               <p className="lead-text">
                 Trendy Interiors is one of the premier design firms in Erode, known for our exquisite craftsmanship and attention to detail.
               </p>
-              <p className="body-text">
-                With a passion for creating spaces that are both functional and beautiful, we have established ourselves as leaders in residential and commercial interior design. Our journey begins with understanding your vision and translating it into a reality that exceeds expectations. From modern minimalist homes to luxurious office suites, we handle every project with the same level of dedication and artistic flair.
-              </p>
-
               <div className="key-highlights">
                 <div className="highlight-item">
-                  <span className="highlight-check">✓</span>
-                  <span>10+ Years of Design Excellence</span>
+                  <span className="highlight-check"><FaCheckCircle aria-hidden="true" /></span>
+                  <span>Personal designs shaped around your daily lifestyle</span>
                 </div>
                 <div className="highlight-item">
-                  <span className="highlight-check">✓</span>
-                  <span>Certified Professional Team</span>
+                  <span className="highlight-check"><FaTrophy aria-hidden="true" /></span>
+                  <span>Premium finish with practical space planning</span>
                 </div>
                 <div className="highlight-item">
-                  <span className="highlight-check">✓</span>
-                  <span>End-to-End Project Management</span>
+                  <span className="highlight-check"><FaHandshake aria-hidden="true" /></span>
+                  <span>Clear coordination from concept to handover</span>
+                </div>
+                <div className="highlight-item">
+                  <span className="highlight-check"><FaGem aria-hidden="true" /></span>
+                  <span>Luxury details selected with care and restraint</span>
                 </div>
               </div>
             </div>
 
             <div className="about-image-wrapper">
-              <img
-                src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=800&auto=format&fit=crop"
-                alt="Trendy Interiors Office"
-                className="about-feature-img"
-              />
-              <div className="experience-badge">
-                <span className="years">10+</span>
-                <span className="text">Years of<br />Experience</span>
+              <div className="about-youtube-card">
+                <div className="about-youtube-heading">
+                  <FaYoutube aria-hidden="true" />
+                  <span>About Us</span>
+                </div>
+                <iframe
+                  src="https://www.youtube.com/embed/waC8JKrk43Y?autoplay=1&mute=1&loop=1&playlist=waC8JKrk43Y&controls=0&disablekb=1&playsinline=1&modestbranding=1"
+                  title="About Trendy Interios"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+                <div className="about-client-review-link">
+                  <div>
+                    <strong>Client Review</strong>
+                    <span>See what our clients say about their interiors.</span>
+                  </div>
+                  <a
+                    href="https://youtu.be/z96yDS1d8CM?si=Hd_7ImBKyZ3NCOuQ"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Watch Here
+                    <FaYoutube aria-hidden="true" />
+                  </a>
+                </div>
               </div>
             </div>
           </div>

@@ -1,13 +1,15 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { buildRoomInstances, findRoomByName } from '../../utils/estimatorApi';
 
 const DEFAULT_ROOM_IMAGE =
   'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80';
 
+const isKitchenRoom = (roomName = '') => String(roomName).toLowerCase().includes('kitchen');
+
 const getRoomOptions = (roomName, roomsCatalog = []) => {
   const room = findRoomByName(roomsCatalog, roomName);
   const layouts = room?.layouts || [];
-  const addons = room?.addons || [];
+  const addons = isKitchenRoom(roomName) ? [] : room?.addons || [];
 
   return {
     showLayout: layouts.length > 0,
@@ -40,10 +42,21 @@ const getRoomImage = (roomName, roomsCatalog = []) => {
   return room?.image || DEFAULT_ROOM_IMAGE;
 };
 
+const getDefaultDimensions = () => ({
+  length: '',
+  width: '',
+  height: '',
+  sizeCategory: '',
+  selectedDesignIdea: {
+    layout: '',
+    addons: [],
+    room: '',
+  },
+});
+
 const DimensionsSelection = ({
   selectedRooms,
   selectedRoom,
-  isStepCompleted,
   onSelectRoom,
   roomDimensions,
   onUpdateRoomDimensions,
@@ -53,423 +66,240 @@ const DimensionsSelection = ({
   onPrev,
   isCalculating = false,
 }) => {
-  const [showCustomDimensions, setShowCustomDimensions] = React.useState(false);
+  const [customOpenByRoom, setCustomOpenByRoom] = useState({});
+  const roomPanelRef = useRef(null);
 
-  const roomEntries = useMemo(() => buildRoomInstances(selectedRooms || {}), [selectedRooms]);
+  const roomEntries = useMemo(() => {
+    const selected = selectedRooms || {};
+    const orderedSelections = {};
 
-  const selectedRoomEntry = roomEntries.find((room) => room.id === selectedRoom);
+    roomsCatalog.forEach((room) => {
+      if (Number(selected[room.name]) > 0) {
+        orderedSelections[room.name] = selected[room.name];
+      }
+    });
 
-  const selectedRoomDimensions = roomDimensions?.[selectedRoom] || {
-    length: '',
-    width: '',
-    height: '',
-    sizeCategory: '',
-    selectedDesignIdea: {
-      layout: '',
-      addons: [],
-      room: '',
-    },
-  };
+    Object.entries(selected).forEach(([roomName, count]) => {
+      if (!(roomName in orderedSelections) && Number(count) > 0) {
+        orderedSelections[roomName] = count;
+      }
+    });
 
-  const selectedDesign = selectedRoomDimensions.selectedDesignIdea || {
-    layout: '',
-    addons: [],
-    room: '',
-  };
+    return buildRoomInstances(orderedSelections);
+  }, [roomsCatalog, selectedRooms]);
+  const roomTypeEntries = useMemo(
+    () => Array.from(new Set(roomEntries.map((room) => room.roomName))),
+    [roomEntries],
+  );
 
-  const currentOptions = getRoomOptions(selectedRoomEntry?.roomName, roomsCatalog);
-  const dimensionPresets = getDimensionPresets(selectedRoomEntry?.roomName, roomsCatalog);
-  const presetEntries = Object.entries(dimensionPresets);
-  const selectedRoomData = selectedRoomEntry
-    ? findRoomByName(roomsCatalog, selectedRoomEntry.roomName)
-    : null;
-  const allowCustomDimensions = Boolean(selectedRoomData?.allowCustomDimensions);
+  const selectedRoomType = useMemo(() => {
+    if (roomTypeEntries.includes(selectedRoom)) {
+      return selectedRoom;
+    }
+
+    return roomEntries.find((room) => room.id === selectedRoom)?.roomName || roomTypeEntries[0] || '';
+  }, [roomEntries, roomTypeEntries, selectedRoom]);
+
+  const visibleRoomEntries = roomEntries.filter((room) => room.roomName === selectedRoomType);
+  const selectedRoomData = findRoomByName(roomsCatalog, selectedRoomType);
   const requiresDimensions = selectedRoomData?.requiresDimensions !== false;
+  const allowCustomDimensions = Boolean(selectedRoomData?.allowCustomDimensions);
+  const currentOptions = getRoomOptions(selectedRoomType, roomsCatalog);
+  const dimensionPresets = getDimensionPresets(selectedRoomType, roomsCatalog);
+  const presetEntries = Object.entries(dimensionPresets);
 
   useEffect(() => {
-    if (selectedRoomData) {
-      console.log(`Room: ${selectedRoomData.name}, requiresDimensions:`, selectedRoomData.requiresDimensions);
+    if (roomEntries.length === 0) {
+      return;
     }
-  }, [selectedRoomData]);
 
-  useEffect(() => {
-    if (!selectedRoom && roomEntries.length > 0) {
-      onSelectRoom(roomEntries[0].id);
-      setShowCustomDimensions(false);
+    if (!roomEntries.some((room) => room.id === selectedRoom)) {
+      const fallbackRoom = roomEntries.find((room) => room.roomName === selectedRoomType) || roomEntries[0];
+      onSelectRoom(fallbackRoom.id);
     }
-  }, [selectedRoom, roomEntries, onSelectRoom]);
+  }, [onSelectRoom, roomEntries, selectedRoom, selectedRoomType]);
 
-  useEffect(() => {
-    if (!allowCustomDimensions && showCustomDimensions) {
-      setShowCustomDimensions(false);
-    }
-  }, [allowCustomDimensions, showCustomDimensions]);
+  const getDimensions = (roomId) => roomDimensions?.[roomId] || getDefaultDimensions();
 
-  useEffect(() => {
-    if (
-      selectedRoom &&
-      !roomEntries.some((room) => room.id === selectedRoom) &&
-      roomEntries.length > 0
-    ) {
-      onSelectRoom(roomEntries[0].id);
-      setShowCustomDimensions(false);
-    }
-  }, [roomEntries, selectedRoom, onSelectRoom]);
-
-  const length = Number(selectedRoomDimensions.length) || 0;
-  const width = Number(selectedRoomDimensions.width) || 0;
-  const area = length * width;
-
-  const currentRoomIndex = selectedRoom ? roomEntries.findIndex((room) => room.id === selectedRoom) : -1;
-  const currentRoomLabel = selectedRoomEntry?.label || 'your selected room';
-
-  const roomIsComplete = (roomId) => {
-    const roomEntry = roomEntries.find((room) => room.id === roomId);
-    if (!roomEntry) return false;
-
-    const roomData = findRoomByName(roomsCatalog, roomEntry.roomName);
+  const roomIsComplete = (room) => {
+    const roomData = findRoomByName(roomsCatalog, room.roomName);
+    const dimensions = getDimensions(room.id);
+    const roomOptions = getRoomOptions(room.roomName, roomsCatalog);
     const requiresDims = roomData?.requiresDimensions !== false;
-
-    if (!requiresDims) {
-      return true; // Room doesn't require dimensions
-    }
-
-    const dimensions = roomDimensions?.[roomId] || {};
-    return (
-      Number(dimensions.length) > 0 &&
-      Number(dimensions.width) > 0 &&
-      Number(dimensions.height) > 0
-    );
-  };
-
-  const completedRoomCount = roomEntries.filter((room) => roomIsComplete(room.id)).length;
-
-  const isRoomFullyConfigured = (roomId) => {
-    // Get room info
-    const roomEntry = roomEntries.find((room) => room.id === roomId);
-    if (!roomEntry) return false;
-
-    const roomData = findRoomByName(roomsCatalog, roomEntry.roomName);
-    const requiresDims = roomData?.requiresDimensions !== false;
-
-    // Check if room has dimensions (only if required)
-    const dimensions = roomDimensions?.[roomId] || {};
     const hasDimensions =
       Number(dimensions.length) > 0 &&
       Number(dimensions.width) > 0 &&
       Number(dimensions.height) > 0;
+    const hasLayout = Boolean(dimensions.selectedDesignIdea?.layout);
 
-    // If dimensions are required but not provided, room is not configured
-    if (requiresDims && !hasDimensions) return false;
-
-    // Get room options to check if layout is required
-    const roomOptions = getRoomOptions(roomEntry.roomName, roomsCatalog);
-    
-    // If layout is required, check if it's selected
-    if (roomOptions.showLayout) {
-      const selectedLayout = dimensions.selectedDesignIdea?.layout || '';
-      return selectedLayout !== '';
+    if (requiresDims && !hasDimensions) {
+      return false;
     }
 
-    // Room is complete (dimensions provided if required, no layout required)
+    if (roomOptions.showLayout && !hasLayout) {
+      return false;
+    }
+
     return true;
   };
 
-  const allRoomsConfigured = roomEntries.length > 0 && roomEntries.every((room) => isRoomFullyConfigured(room.id));
+  const allRoomsConfigured = roomEntries.length > 0 && roomEntries.every(roomIsComplete);
+  const completedRoomCount = roomEntries.filter(roomIsComplete).length;
+  const completedCategoryRoomCount = visibleRoomEntries.filter(roomIsComplete).length;
+  const selectedCategoryIndex = roomTypeEntries.indexOf(selectedRoomType);
+  const currentCategoryComplete =
+    visibleRoomEntries.length > 0 && visibleRoomEntries.every(roomIsComplete);
+  const hasPreviousCategory = selectedCategoryIndex > 0;
+  const hasNextCategory =
+    selectedCategoryIndex >= 0 && selectedCategoryIndex < roomTypeEntries.length - 1;
 
-  const handleRoomMove = (direction) => {
-    if (!roomEntries.length) return;
+  const selectCategoryAtIndex = (categoryIndex) => {
+    const roomType = roomTypeEntries[categoryIndex];
+    if (!roomType) {
+      return;
+    }
 
-    const fallbackIndex = currentRoomIndex >= 0 ? currentRoomIndex : 0;
-    const nextIndex = direction === 'prev' ? fallbackIndex - 1 : fallbackIndex + 1;
-    const normalizedIndex = Math.min(Math.max(nextIndex, 0), roomEntries.length - 1);
-
-    onSelectRoom(roomEntries[normalizedIndex].id);
+    const categoryRooms = roomEntries.filter((room) => room.roomName === roomType);
+    if (categoryRooms[0]) {
+      onSelectRoom(categoryRooms[0].id);
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (roomPanelRef.current) {
+          roomPanelRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
   };
 
-  const saveDesign = (nextDesign) => {
-    if (!selectedRoom) return;
+  const navigateBackward = () => {
+    if (hasPreviousCategory) {
+      selectCategoryAtIndex(selectedCategoryIndex - 1);
+      return;
+    }
 
-    onSelectDesignIdea(selectedRoom, {
+    onPrev();
+  };
+
+  const navigateForward = () => {
+    if (!currentCategoryComplete || isCalculating) {
+      return;
+    }
+
+    if (hasNextCategory) {
+      selectCategoryAtIndex(selectedCategoryIndex + 1);
+      return;
+    }
+
+    if (allRoomsConfigured) {
+      onNext();
+    }
+  };
+
+  const saveDesign = (room, nextDesign) => {
+    onSelectDesignIdea(room.id, {
       layout: nextDesign.layout || '',
       addons: nextDesign.addons || [],
-      room: selectedRoomEntry?.roomName || '',
+      room: room.roomName || '',
     });
   };
 
-  const handleLayoutSelect = (layout) => {
-    if (!currentOptions.showLayout) return;
-
-    saveDesign({
-      ...selectedDesign,
-      layout,
-    });
-  };
-
-  const handleAddonToggle = (addon) => {
-    if (!currentOptions.showAddons) return;
-
-    const currentAddons = selectedDesign.addons || [];
-    const updatedAddons = currentAddons.includes(addon)
-      ? currentAddons.filter((item) => item !== addon)
-      : [...currentAddons, addon];
-
-    saveDesign({
-      ...selectedDesign,
-      addons: updatedAddons,
-    });
-  };
-
-  const handleSizeSelect = (sizeKey) => {
-    if (!selectedRoom) return;
-
+  const handleSizeSelect = (roomId, sizeKey) => {
     const preset = dimensionPresets[sizeKey];
     if (!preset) return;
 
-    onUpdateRoomDimensions(selectedRoom, 'sizeCategory', sizeKey);
-    onUpdateRoomDimensions(selectedRoom, 'length', String(preset.length));
-    onUpdateRoomDimensions(selectedRoom, 'width', String(preset.width));
-    onUpdateRoomDimensions(selectedRoom, 'height', String(preset.height));
+    onUpdateRoomDimensions(roomId, 'sizeCategory', sizeKey);
+    onUpdateRoomDimensions(roomId, 'length', String(preset.length));
+    onUpdateRoomDimensions(roomId, 'width', String(preset.width));
+    onUpdateRoomDimensions(roomId, 'height', String(preset.height));
   };
 
-  const handleCustomDimensionChange = (key, value) => {
-    if (!selectedRoom) return;
-    onUpdateRoomDimensions(selectedRoom, key, value);
-    if (selectedRoomDimensions.sizeCategory) {
-      onUpdateRoomDimensions(selectedRoom, 'sizeCategory', '');
+  const handleCustomDimensionChange = (roomId, key, value) => {
+    onUpdateRoomDimensions(roomId, key, value);
+    if (getDimensions(roomId).sizeCategory) {
+      onUpdateRoomDimensions(roomId, 'sizeCategory', '');
     }
   };
 
-  const matchedSize = useMemo(() => {
-    const len = Number(selectedRoomDimensions.length) || 0;
-    const wid = Number(selectedRoomDimensions.width) || 0;
-    const hei = Number(selectedRoomDimensions.height) || 0;
+  const renderRoomPanel = (room) => {
+    const dimensions = getDimensions(room.id);
+    const selectedDesign = dimensions.selectedDesignIdea || getDefaultDimensions().selectedDesignIdea;
+    const customOpen = Boolean(customOpenByRoom[room.id]);
+    const hasLayout = Boolean(selectedDesign.layout);
+    const canChooseLayout = true;
+    const canChooseSize = !currentOptions.showLayout || hasLayout;
+    const layoutSection = currentOptions.showLayout ? (
+      <div className={`premium-design-section dimension-layout-inline ${canChooseLayout ? '' : 'is-disabled'}`}>
+        <h4>{currentOptions.layoutTitle}</h4>
 
-    if (len === 0 || wid === 0 || hei === 0 || presetEntries.length === 0) return null;
+        <div className="dimension-text-option-grid">
+          {currentOptions.layouts.map((layout) => {
+            const layoutLabel = layout.label || layout.name;
+            const layoutKey = layout.name || String(layout._id || '');
 
-    let closestKey = null;
-    let smallestDifference = Infinity;
-
-    for (const [key, preset] of presetEntries) {
-      const totalDifference =
-        Math.abs(preset.length - len) +
-        Math.abs(preset.width - wid) +
-        Math.abs(preset.height - hei);
-
-      if (totalDifference < smallestDifference) {
-        smallestDifference = totalDifference;
-        closestKey = key;
-      }
-    }
-
-    return closestKey;
-  }, [
-    selectedRoomDimensions.length,
-    selectedRoomDimensions.width,
-    selectedRoomDimensions.height,
-    presetEntries,
-  ]);
-
-  const getSelectedSummary = () => {
-    if (!currentOptions.showLayout && !currentOptions.showAddons) {
-      return `${currentRoomLabel} only requires measurement inputs.`;
-    }
-
-    if (currentOptions.showLayout && !selectedDesign.layout) {
-      return 'No layout selected yet.';
-    }
-
-    if (
-      !currentOptions.showLayout &&
-      currentOptions.showAddons &&
-      (!selectedDesign.addons || selectedDesign.addons.length === 0)
-    ) {
-      return 'No add-ons selected yet.';
-    }
-
-    let layoutText = '';
-    if (selectedDesign.layout) {
-      const matchedLayout = (currentOptions.layouts || []).find((l) =>
-        (l.name && l.name === selectedDesign.layout) ||
-        (l.label && l.label === selectedDesign.layout) ||
-        String(l._id) === selectedDesign.layout
-      );
-      layoutText = matchedLayout ? (matchedLayout.label || matchedLayout.name) : selectedDesign.layout;
-    }
-    const addonsText =
-      selectedDesign.addons && selectedDesign.addons.length > 0
-        ? selectedDesign.addons.join(', ')
-        : '';
-        
-    const len = selectedRoomDimensions.length;
-    const wid = selectedRoomDimensions.width;
-    const dimText = (len && wid) ? `(${len} x ${wid})` : '';
-
-    if (layoutText && addonsText) {
-      return `${layoutText} with ${addonsText} for ${currentRoomLabel} ${dimText}`.trim();
-    }
-
-    if (layoutText) {
-      return `${layoutText} for ${currentRoomLabel} ${dimText}`.trim();
-    }
-
-    if (addonsText) {
-      return `${addonsText} for ${currentRoomLabel} ${dimText}`.trim();
-    }
-    
-    return `Measurements provided for ${currentRoomLabel} ${dimText}`.trim();
-  };
-
-  return (
-    <div className="dimensions-step-container">
-      <div className="dimensions-step-header">
-        <h2>Room Dimensions & Design Options</h2>
-        <p>
-          Add room measurements and select room-specific layout or add-ons only where required.
-        </p>
-      </div>
-
-      <div className="dimensions-top-row">
-        <div className="dimensions-room-selector">
-          <label htmlFor="estimator-room">Selected Room</label>
-          <select
-            id="estimator-room"
-            value={selectedRoom || ''}
-            onChange={(event) => onSelectRoom(event.target.value)}
-            disabled={roomEntries.length === 0}
-          >
-            {roomEntries.length === 0 ? (
-              <option value="">No room selected</option>
-            ) : (
-              roomEntries.map((room) => (
-                <option key={room.id} value={room.id}>
-                  {room.label}
-                </option>
-              ))
-            )}
-          </select>
+            return (
+              <button
+                type="button"
+                key={layoutKey}
+                className={`dimension-text-option ${selectedDesign.layout === layoutKey ? 'selected' : ''}`}
+                onClick={() => canChooseLayout && saveDesign(room, { ...selectedDesign, layout: layoutKey })}
+                disabled={!canChooseLayout}
+              >
+                <span>{layoutLabel}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
+    ) : null;
 
-      <div className="dimensions-room-navigation">
-        <button
-          type="button"
-          className="btn-secondary"
-          onClick={() => handleRoomMove('prev')}
-          disabled={currentRoomIndex <= 0}
-        >
-          Previous Room
-        </button>
+    return (
+      <section className="dimensions-room-section" key={room.id} aria-labelledby={`room-title-${room.id}`}>
+        <span className="premium-panel-label">Room Configuration</span>
+        <h3 id={`room-title-${room.id}`}>{room.label}</h3>
 
-        <div className="dimensions-room-status">
-          <span>
-            Room {currentRoomIndex >= 0 ? currentRoomIndex + 1 : 0} of {roomEntries.length || 0}
-          </span>
-          <strong>{currentRoomLabel}</strong>
-        </div>
-
-        <button
-          type="button"
-          className="btn-secondary"
-          onClick={() => handleRoomMove('next')}
-          disabled={currentRoomIndex < 0 || currentRoomIndex >= roomEntries.length - 1}
-        >
-          Next Room
-        </button>
-      </div>
-
-      <div className="premium-design-focus">
-        <div
-          className="premium-design-image-card"
-          style={{
-            backgroundImage: `url(${getRoomImage(selectedRoomEntry?.roomName, roomsCatalog)})`,
-          }}
-        >
-          <div className="premium-design-image-overlay"></div>
-
-          <div className="premium-design-image-content">
-            <span>{selectedRoomEntry?.roomName || 'Room'}</span>
-            <h3>{currentRoomLabel}</h3>
-            <p>{area > 0 ? `${area.toFixed(2)} sq.ft` : 'Add measurements'}</p>
-          </div>
-        </div>
-
-        <div className="premium-design-control-panel">
-          <span className="premium-panel-label">Room Configuration</span>
-
-          <h3>{currentRoomLabel}</h3>
-
-          {currentOptions.showLayout || currentOptions.showAddons ? (
-            <p>
-              Showing relevant options for <strong>{selectedRoomEntry?.roomName}</strong>.
-            </p>
-          ) : (
-            <p>
-              This room only needs measurement details. No layout or add-ons are required.
-            </p>
-          )}
-
-          {!requiresDimensions && (
-            <div style={{
-              margin: '1rem 0',
-              padding: '1rem',
-              borderRadius: '12px',
-              backgroundColor: '#fff9e6',
-              border: '1px solid rgba(212, 175, 55, 0.25)',
-              color: 'var(--color-charcoal-dark)',
-              fontSize: '0.9rem',
-            }}>
-              {selectedDesign.layout ? (
-                <>
-                  This room does not require dimensions. Your selected layout <strong>{(() => {
-                    const matched = (currentOptions.layouts || []).find((l) =>
-                      (l.name && l.name === selectedDesign.layout) ||
-                      (l.label && l.label === selectedDesign.layout) ||
-                      String(l._id) === selectedDesign.layout
-                    );
-                    return matched ? (matched.label || matched.name) : selectedDesign.layout;
-                  })()}</strong> will be used for pricing.
-                </>
-              ) : (
-                <>This room does not require dimensions. Choose a layout below to calculate the quote for this space.</>
-              )}
-            </div>
-          )}
-
-          {requiresDimensions && (
-            <div className="dimension-input-card">
-              <h3>Room Size</h3>
-
-            <div className="size-buttons-container">
+        {requiresDimensions && (
+          <div className="dimension-input-card">
+            {layoutSection}
+            <h3>Room Size</h3>
+            <div className={`size-buttons-container ${canChooseSize ? '' : 'is-locked'}`}>
               <label>
                 {allowCustomDimensions
-                  ? 'Select a preset size or enter custom dimensions:'
-                  : 'Select a preset size:'}
+                  ? 'Choose a layout, then select size or custom dimensions:'
+                  : 'Choose a layout, then select size:'}
               </label>
+              {!canChooseSize && (
+                <p className="dimension-lock-note">Select a layout to unlock room size options.</p>
+              )}
               <div className="size-button-group">
                 {presetEntries.map(([key, preset]) => (
                   <button
                     key={key}
                     type="button"
                     className={`size-button ${
-                      (matchedSize === key || selectedRoomDimensions.sizeCategory === key) &&
-                      !showCustomDimensions
+                      dimensions.sizeCategory === key && !customOpen
                         ? 'selected'
                         : ''
                     }`}
+                    disabled={!canChooseSize}
                     onClick={() => {
-                      handleSizeSelect(key);
-                      setShowCustomDimensions(false);
+                      if (!canChooseSize) return;
+                      handleSizeSelect(room.id, key);
+                      setCustomOpenByRoom((prev) => ({ ...prev, [room.id]: false }));
                     }}
                   >
-                    {preset.label}
+                    <span>{preset.label}</span>
+                    <strong>{preset.length} X {preset.width} sqft</strong>
                   </button>
                 ))}
                 {allowCustomDimensions && (
                   <button
                     type="button"
-                    className={`size-button ${showCustomDimensions ? 'selected' : ''}`}
-                    onClick={() => setShowCustomDimensions(!showCustomDimensions)}
+                    className={`size-button ${customOpen ? 'selected' : ''}`}
+                    disabled={!canChooseSize}
+                    onClick={() => {
+                      if (!canChooseSize) return;
+                      setCustomOpenByRoom((prev) => ({ ...prev, [room.id]: !customOpen }));
+                    }}
                   >
                     Custom
                   </button>
@@ -477,171 +307,123 @@ const DimensionsSelection = ({
               </div>
             </div>
 
-            {allowCustomDimensions && showCustomDimensions && (
+            {allowCustomDimensions && customOpen && (
               <>
-                <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>Enter Custom Dimensions</h4>
-
+                <h4>Enter Custom Dimensions</h4>
                 <div className="custom-dimensions-inputs">
-                  <div className="custom-input-field">
-                    <label htmlFor={`length-${selectedRoom}`}>
-                      Length (ft)
-                      <input
-                        id={`length-${selectedRoom}`}
-                        type="number"
-                        min="0"
-                        step="0.1"
-                        value={String(selectedRoomDimensions.length || '')}
-                        onChange={(event) => handleCustomDimensionChange('length', event.target.value)}
-                        placeholder="e.g. 16"
-                        disabled={!selectedRoom}
-                      />
-                    </label>
-                  </div>
-                  <div className="custom-input-field">
-                    <label htmlFor={`width-${selectedRoom}`}>
-                      Width (ft)
-                      <input
-                        id={`width-${selectedRoom}`}
-                        type="number"
-                        min="0"
-                        step="0.1"
-                        value={String(selectedRoomDimensions.width || '')}
-                        onChange={(event) => handleCustomDimensionChange('width', event.target.value)}
-                        placeholder="e.g. 12"
-                        disabled={!selectedRoom}
-                      />
-                    </label>
-                  </div>
-                  <div className="custom-input-field">
-                    <label htmlFor={`height-${selectedRoom}`}>
-                      Height (ft)
-                      <input
-                        id={`height-${selectedRoom}`}
-                        type="number"
-                        min="0"
-                        step="0.1"
-                        value={String(selectedRoomDimensions.height || '')}
-                        onChange={(event) => handleCustomDimensionChange('height', event.target.value)}
-                        placeholder="e.g. 10"
-                        disabled={!selectedRoom}
-                      />
-                    </label>
-                  </div>
+                  {['length', 'width', 'height'].map((key) => (
+                    <div className="custom-input-field" key={key}>
+                      <label htmlFor={`${key}-${room.id}`}>
+                        {key.charAt(0).toUpperCase() + key.slice(1)} (ft)
+                        <input
+                          id={`${key}-${room.id}`}
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={String(dimensions[key] || '')}
+                          onChange={(event) => handleCustomDimensionChange(room.id, key, event.target.value)}
+                          placeholder={key === 'height' ? 'e.g. 10' : 'e.g. 12'}
+                        />
+                      </label>
+                    </div>
+                  ))}
                 </div>
               </>
             )}
-
-            {(Number(selectedRoomDimensions.length) > 0 ||
-              Number(selectedRoomDimensions.width) > 0 ||
-              Number(selectedRoomDimensions.height) > 0) && (
-              <div className="size-info-box">
-                <div className="area-card">
-                  <span>Room Area</span>
-                  <strong>{area.toFixed(2)} sq. ft</strong>
-                </div>
-                {matchedSize && dimensionPresets[matchedSize] && (
-                  <div className="size-match-card">
-                    <span>Matches</span>
-                    <strong>{dimensionPresets[matchedSize].label}</strong>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
-          )}
+        )}
 
-          {currentOptions.showLayout && (
-            <div className="premium-design-section">
-              <h4>{currentOptions.layoutTitle}</h4>
+        {!requiresDimensions && (
+          <div className="dimension-input-card">
+            <p className="dimension-lock-note">This room does not require dimensions. Choose a layout below to calculate this space.</p>
+            {layoutSection}
+          </div>
+        )}
 
-              <div className="premium-image-option-grid">
-                {currentOptions.layouts.map((layout) => {
-                  const layoutLabel = layout.label || layout.name;
-                  const layoutKey = layout.name || String(layout._id || '');
-                  const layoutCost = Number(layout.price) || 0;
+        {currentOptions.showAddons && (
+          <div className="premium-design-section">
+            <h4>{currentOptions.addonTitle}</h4>
+            <div className="dimension-text-option-grid">
+              {currentOptions.addons.map((addon) => {
+                const addonLabel = addon.label || addon.name;
+                const addonCost = Number(addon.price) || 0;
 
-                  return (
-                    <button
-                      type="button"
-                      key={layoutKey}
-                      className={`premium-image-option ${
-                        selectedDesign.layout === layoutKey ? 'selected' : ''
-                      }`}
-                      style={{ backgroundImage: layout.image ? `url(${layout.image})` : undefined }}
-                      onClick={() => handleLayoutSelect(layoutKey)}
-                    >
-                      <div className="premium-image-option-overlay"></div>
-                      <span>{layoutLabel}</span>
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          marginTop: '4px',
-                          fontWeight: 'bold',
-                          color: '#d4af37',
-                        }}
-                      >
-                        ₹{layoutCost.toLocaleString('en-IN')}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                return (
+                  <button
+                    type="button"
+                    key={addonLabel}
+                    className={`dimension-text-option ${
+                      selectedDesign.addons?.includes(addonLabel) ? 'selected' : ''
+                    }`}
+                    onClick={() => {
+                      const currentAddons = selectedDesign.addons || [];
+                      const updatedAddons = currentAddons.includes(addonLabel)
+                        ? currentAddons.filter((item) => item !== addonLabel)
+                        : [...currentAddons, addonLabel];
+                      saveDesign(room, { ...selectedDesign, addons: updatedAddons });
+                    }}
+                  >
+                    <span>{addonLabel}</span>
+                    <strong>₹{addonCost.toLocaleString('en-IN')}</strong>
+                  </button>
+                );
+              })}
             </div>
-          )}
+          </div>
+        )}
+      </section>
+    );
+  };
 
-          {currentOptions.showAddons && (
-            <div className="premium-design-section">
-              <h4>{currentOptions.addonTitle}</h4>
-
-              <div className="premium-image-option-grid">
-                {currentOptions.addons.map((addon) => {
-                  const addonLabel = addon.label || addon.name;
-                  const addonCost = Number(addon.price) || 0;
-
-                  return (
-                    <button
-                      type="button"
-                      key={addonLabel}
-                      className={`premium-image-option ${
-                        selectedDesign.addons?.includes(addonLabel) ? 'selected' : ''
-                      }`}
-                      style={{ backgroundImage: addon.image ? `url(${addon.image})` : undefined }}
-                      onClick={() => handleAddonToggle(addonLabel)}
-                    >
-                      <div className="premium-image-option-overlay"></div>
-                      <span>{addonLabel}</span>
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          marginTop: '4px',
-                          fontWeight: 'bold',
-                          color: '#d4af37',
-                        }}
-                      >
-                        ₹{addonCost.toLocaleString('en-IN')}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {!currentOptions.showLayout && !currentOptions.showAddons && (
-            <div className="selected-summary">
-              Only measurement inputs are required for this room.
-              {Number(selectedRoomDimensions.length) > 0 && Number(selectedRoomDimensions.width) > 0 && (
-                <div style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>
-                  Dimensions: {selectedRoomDimensions.length} x {selectedRoomDimensions.width}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+  return (
+    <div className="dimensions-step-container">
+      <div className="dimensions-step-header">
+        <h2>Room Dimensions & Design Options</h2>
+        <p>Swipe through every room in this category, configure each one, then continue to the next category.</p>
       </div>
 
-      <div className="selected-summary">
-        <strong>Selected for quote:</strong> {getSelectedSummary()}
+      <div className="dimensions-category-progress" aria-label="Room category progress">
+        {roomTypeEntries.map((roomType, index) => {
+          const categoryRooms = roomEntries.filter((room) => room.roomName === roomType);
+          const completedCount = categoryRooms.filter(roomIsComplete).length;
+          const isCurrent = index === selectedCategoryIndex;
+          const isComplete = completedCount === categoryRooms.length;
+
+          return (
+            <button
+              type="button"
+              key={roomType}
+              className={`dimensions-category-tab ${isCurrent ? 'selected' : ''} ${isComplete ? 'complete' : ''}`}
+              aria-current={isCurrent ? 'step' : undefined}
+              onClick={() => selectCategoryAtIndex(index)}
+            >
+              <span>{roomType}</span>
+              <strong>{completedCount}/{categoryRooms.length}</strong>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="premium-design-focus">
+        <div
+          className="premium-design-image-card"
+          style={{ backgroundImage: `url(${getRoomImage(selectedRoomType, roomsCatalog)})` }}
+        >
+          <div className="premium-design-image-overlay"></div>
+          <div className="premium-design-image-content">
+            <span>{selectedRoomType || 'Room'}</span>
+            <h3>{visibleRoomEntries.length} selected</h3>
+            <p>{completedCategoryRoomCount} of {visibleRoomEntries.length || 0} in this category ready</p>
+          </div>
+        </div>
+
+        <div
+          ref={roomPanelRef}
+          className="premium-design-control-panel dimensions-category-room-scroll"
+          aria-label={`${selectedRoomType} rooms`}
+        >
+          {visibleRoomEntries.map(renderRoomPanel)}
+        </div>
       </div>
 
       <div className="quote-progress-note">
@@ -649,16 +431,19 @@ const DimensionsSelection = ({
       </div>
 
       <div className="estimator-actions">
-        <button className="btn-secondary" onClick={onPrev}>
-          Back
+        <button
+          className={`btn-secondary ${hasPreviousCategory ? 'previous-category-btn' : ''}`}
+          onClick={navigateBackward}
+        >
+          {hasPreviousCategory ? 'Previous Category' : 'Back'}
         </button>
         <button
           type="button"
           className="btn-primary"
-          onClick={onNext}
-          disabled={!allRoomsConfigured || isCalculating}
+          onClick={navigateForward}
+          disabled={!currentCategoryComplete || isCalculating}
         >
-          Next
+          {hasNextCategory ? 'Next Category' : 'Next'}
         </button>
       </div>
     </div>

@@ -1,64 +1,101 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FaHandshake, FaPalette, FaFileInvoiceDollar, FaClipboardCheck, FaTruck, FaTools, FaCheckCircle, FaKey } from 'react-icons/fa';
-import Carousel from '../components/Carousel';
+import {
+  FaBuilding,
+  FaCheckCircle,
+  FaClipboardCheck,
+  FaDraftingCompass,
+  FaFileInvoiceDollar,
+  FaGem,
+  FaHandshake,
+  FaKey,
+  FaPalette,
+  FaStar,
+  FaTools,
+  FaTrophy,
+  FaTruck,
+} from 'react-icons/fa';
 import PremiumSectionHeader from '../components/PremiumSectionHeader';
 import { useAuth } from '../context/AuthContext';
 import { publicGet, normalizeProjectForDisplay, getProjectCover } from '../utils/publicApi';
+import useScrollScrubbedVideo from '../hooks/useScrollScrubbedVideo';
 import './Home.css';
 import './PremiumSectionHeader.css';
 import './HomeEnhancements.css';
 
+const HERO_IMAGE = '/images/hero-sectionn.webp';
+const HERO_IMAGE_FALLBACK = '/images/hero-sectionn.png';
+const HERO_IMAGE_PLACEHOLDER = '/images/hero-sectionn-placeholder.webp';
+
 const Home = () => {
   const { user } = useAuth();
+  const videoRef = useRef(null);
+  const [heroImageSrc, setHeroImageSrc] = useState(HERO_IMAGE_PLACEHOLDER);
+  const [isHeroImageLoaded, setIsHeroImageLoaded] = useState(false);
+  const [isHeroVideoReady, setIsHeroVideoReady] = useState(false);
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [testimonials, setTestimonials] = useState([]);
   const [loadingTestimonials, setLoadingTestimonials] = useState(true);
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
+  const isScrolled = useScrollScrubbedVideo(videoRef);
+  const shouldShowVideo = isScrolled && isHeroVideoReady;
 
-  const heroSlides = [
-    {
-      image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1974&auto=format&fit=crop',
-      title: 'LUXURY LIVING SPACES',
-      description: 'Transform your home into a masterpiece of elegance and comfort',
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1556912173-46c336c7fd55?q=80&w=2070&auto=format&fit=crop',
-      title: 'MODULAR KITCHEN DESIGN',
-      description: 'Elegant, clutter-free kitchens with smart storage and premium finishes',
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=2032&auto=format&fit=crop',
-      title: 'BEDROOM SANCTUARIES',
-      description: 'Relaxing master bedrooms with warm lighting and sophisticated design',
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=2069&auto=format&fit=crop',
-      title: 'PROFESSIONAL WORKSPACES',
-      description: 'Modern office interiors designed for productivity and inspiration',
-    },
-  ];
+  useEffect(() => {
+    let isCancelled = false;
+    const image = new Image();
+
+    const commitLoadedImage = (src) => {
+      if (isCancelled) {
+        return;
+      }
+
+      setHeroImageSrc(src);
+      setIsHeroImageLoaded(true);
+    };
+
+    image.decoding = 'async';
+    image.fetchPriority = 'high';
+    image.onload = () => {
+      if (image.decode) {
+        image.decode().then(
+          () => commitLoadedImage(HERO_IMAGE),
+          () => commitLoadedImage(HERO_IMAGE)
+        );
+        return;
+      }
+
+      commitLoadedImage(HERO_IMAGE);
+    };
+    image.onerror = () => commitLoadedImage(HERO_IMAGE_FALLBACK);
+    image.src = HERO_IMAGE;
+
+    return () => {
+      isCancelled = true;
+      image.onload = null;
+      image.onerror = null;
+    };
+  }, []);
 
   const defaultServices = [
     {
       title: 'Interior Design',
       description:
         'Transform your space with our expert interior design services. We create personalized environments that reflect your style and enhance your lifestyle with meticulous attention to detail.',
-      icon: '🏛️',
+      icon: null,
     },
     {
       title: 'Modern Design',
       description:
         'Experience contemporary aesthetics with our modern design solutions. We blend functionality with cutting-edge style to create spaces that are both beautiful and practical.',
-      icon: '✨',
+      icon: null,
     },
     {
       title: 'Planning & Consultation',
       description:
         'Comprehensive planning services from concept to completion. Our expert consultants guide you through every step, ensuring your vision becomes reality with precision and care.',
-      icon: '📐',
+      icon: null,
     },
   ];
 
@@ -125,33 +162,106 @@ const Home = () => {
     { step: 'Site Handover', icon: <FaKey />, description: 'Final walkthrough and project completion' },
   ];
 
+  const getServiceIcon = (service, index) => {
+    const title = `${service?.title || ''}`.toLowerCase();
+
+    if (title.includes('plan') || title.includes('consult')) {
+      return <FaDraftingCompass aria-hidden="true" />;
+    }
+
+    if (title.includes('modern') || title.includes('luxury')) {
+      return <FaGem aria-hidden="true" />;
+    }
+
+    if (title.includes('delivery') || title.includes('material')) {
+      return <FaTruck aria-hidden="true" />;
+    }
+
+    if (title.includes('install') || title.includes('implement') || title.includes('execute')) {
+      return <FaTools aria-hidden="true" />;
+    }
+
+    const fallbackIcons = [
+      <FaBuilding aria-hidden="true" />,
+      <FaGem aria-hidden="true" />,
+      <FaDraftingCompass aria-hidden="true" />,
+    ];
+
+    return fallbackIcons[index % fallbackIcons.length];
+  };
+
   return (
     <div className="home-page">
+      {/* Background image that fades out on scroll */}
+      <div
+        className="home-fixed-bg"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: `url(${heroImageSrc})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          opacity: shouldShowVideo ? 0 : 1,
+          transition: 'opacity 0.6s ease',
+          zIndex: 0,
+          pointerEvents: 'none'
+        }}
+      />
+
+      {/* Video background that fades in on scroll */}
+      <video
+        ref={videoRef}
+        className="home-bg-video"
+        muted
+        playsInline
+        preload="metadata"
+        poster={isHeroImageLoaded ? HERO_IMAGE : HERO_IMAGE_PLACEHOLDER}
+        onLoadedData={() => setIsHeroVideoReady(true)}
+        onCanPlay={() => setIsHeroVideoReady(true)}
+        style={{ opacity: shouldShowVideo ? 1 : 0, transition: 'opacity 0.6s ease' }}
+      >
+        <source src="/video/hero-section.mp4" type="video/mp4" />
+      </video>
+
       {/* Hero Carousel Section */}
       <section className="hero-section">
-        <Carousel slides={heroSlides} autoPlay={true} interval={5000} />
         <div className="tagline">
           {user && (
             <div className="welcome-message">
-              <p className="welcome-text">Welcome to Trendy Interiors! 👋</p>
+              <p className="welcome-text">Welcome to Trendy Interiors</p>
             </div>
           )}
-          <h1>Filling the Heart, Not Just Space</h1>
+          <h1>Filling the Heart, Not Space</h1>
           <p>Premium Interior Design Solutions for Modern Living</p>
           <div className="hero-cta-buttons">
             <Link
-              to="/projects"
-              className="btn-primary tour-view-projects-btn"
+              to="/estimator"
+              className="btn-primary tour-estimator-btn"
               style={{ textDecoration: 'none' }}
+              aria-label="Quote Interior Yourself"
             >
-              View Projects
+              <span className="quote-cta-label" aria-hidden="true">
+                {'Quote Interior Yourself'.split('').map((character, index) => (
+                  <span
+                    className="quote-cta-letter"
+                    style={{ '--letter-index': index }}
+                    key={`${character}-${index}`}
+                  >
+                    {character === ' ' ? '\u00A0' : character}
+                  </span>
+                ))}
+              </span>
             </Link>
             <Link
-              to="/estimator"
-              className="btn-secondary tour-estimator-btn"
+              to="/projects"
+              className="btn-secondary tour-view-projects-btn"
               style={{ textDecoration: 'none' }}
             >
-              Design Your Dream Interior
+              Watch Gallery
             </Link>
           </div>
         </div>
@@ -168,7 +278,7 @@ const Home = () => {
           <div className="services-grid">
             {defaultServices.map((service, index) => (
               <div key={index} className="service-card">
-                <div className="service-icon">{service.icon}</div>
+                <div className="service-icon">{getServiceIcon(service, index)}</div>
                 <h3>{service.title}</h3>
                 <p>{service.description}</p>
               </div>
@@ -250,14 +360,18 @@ const Home = () => {
             {loadingTestimonials ? (
               <p className="loading-text" style={{ textAlign: 'center', color: 'var(--color-gold)' }}>Loading testimonials...</p>
             ) : testimonials.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--color-gray)', fontSize: '16px' }}>
+              <p style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.92)', fontSize: '16px' }}>
                 No testimonials yet. Submit your feedback to help us improve!
               </p>
             ) : (
               testimonials.map((t, idx) => (
                 <div key={idx} className="testimonial-card">
                   <div className="quote-icon">"</div>
-                  <div className="stars">{'★'.repeat(t.rating || 5)}</div>
+                  <div className="stars" aria-label={`${t.rating || 5} star rating`}>
+                    {Array.from({ length: t.rating || 5 }, (_, starIndex) => (
+                      <FaStar key={starIndex} aria-hidden="true" />
+                    ))}
+                  </div>
                   <p className="testimonial-text">"{t.testimonialText}"</p>
                   <div className="customer-info">
                     <div className="customer-avatar">{t.name ? t.name.charAt(0).toUpperCase() : '?'}</div>
@@ -273,21 +387,21 @@ const Home = () => {
 
           <div className="trust-badges">
             <div className="trust-badge">
-              <div className="badge-icon">🏆</div>
+              <div className="badge-icon"><FaTrophy aria-hidden="true" /></div>
               <div className="badge-text">
                 <h3>200+</h3>
                 <p>Happy Clients</p>
               </div>
             </div>
             <div className="trust-badge">
-              <div className="badge-icon">⭐</div>
+              <div className="badge-icon"><FaStar aria-hidden="true" /></div>
               <div className="badge-text">
                 <h3>4.9/5</h3>
                 <p>Average Rating</p>
               </div>
             </div>
             <div className="trust-badge">
-              <div className="badge-icon">✓</div>
+              <div className="badge-icon"><FaCheckCircle aria-hidden="true" /></div>
               <div className="badge-text">
                 <h3>100%</h3>
                 <p>Satisfaction</p>
@@ -314,7 +428,7 @@ const Home = () => {
               services.map((service, index) => (
                 <div key={service._id || index} className="service-detail">
                   <div className="service-icon" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
-                    {service.icon}
+                    {getServiceIcon(service, index)}
                   </div>
                   <h3>{service.title}</h3>
                   <p>{service.description}</p>

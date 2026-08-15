@@ -1,4 +1,5 @@
 const Room = require('../models/Room');
+const mongoose = require('mongoose');
 const { formatValidationError, sendError, sendSuccess } = require('../utils/controllerHelpers');
 const { formatRoomResponse } = require('../utils/formatRoomResponse');
 const { validateRoomLayoutConfigurations } = require('../utils/layoutMaterials');
@@ -60,6 +61,7 @@ const normalizeDimension = (item = {}) => ({
 const normalizeLayoutMaterial = (material = {}) => ({
   ...(material._id ? { _id: material._id } : {}),
   name: String(material.name || '').trim(),
+  size: String(material.size || '').trim(),
   price: Number(material.price) || 0,
   mandatory: Boolean(material.mandatory),
 });
@@ -102,16 +104,34 @@ const toBoolean = (value) => {
   return Boolean(value);
 };
 
+const getLegacyRoomLimit = (roomName = '') =>
+  String(roomName).toLowerCase().includes('bedroom') ? 6 : 2;
+
+const normalizeMaxSelectableRooms = (value, roomName = '') => {
+  const parsed = Number(value);
+  const fallback = getLegacyRoomLimit(roomName);
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.min(20, Math.max(1, Math.trunc(parsed)));
+};
+
 const normalizeRoomPayload = (body = {}) => {
+  const requiresDimensions = body.requiresDimensions !== undefined ? toBoolean(body.requiresDimensions) : true;
+
   return {
     name: body.name?.trim(),
     description: body.description?.trim() || '',
     imageUrl: body.imageUrl?.trim() || '',
     pricePerSqFt: Number(body.pricePerSqFt) || 0,
     status: body.status === 'inactive' ? 'inactive' : 'active',
-    allowCustomDimensions: toBoolean(body.allowCustomDimensions),
-    requiresDimensions: body.requiresDimensions !== undefined ? toBoolean(body.requiresDimensions) : true,
-    dimensions: Array.isArray(body.dimensions)
+    displayOrder: Number(body.displayOrder) || 0,
+    allowCustomDimensions: requiresDimensions ? toBoolean(body.allowCustomDimensions) : false,
+    requiresDimensions,
+    maxSelectableRooms: normalizeMaxSelectableRooms(body.maxSelectableRooms, body.name),
+    dimensions: requiresDimensions && Array.isArray(body.dimensions)
       ? body.dimensions.map(normalizeDimension)
       : [],
     layouts: Array.isArray(body.layouts)
@@ -125,7 +145,7 @@ const normalizeRoomPayload = (body = {}) => {
 
 exports.getRooms = async (req, res) => {
   try {
-    const rooms = await Room.find(buildRoomFilter(req.query)).sort({ name: 1 });
+    const rooms = await Room.find(buildRoomFilter(req.query)).sort({ displayOrder: 1, name: 1 });
 
     sendSuccess(res, 200, {
       count: rooms.length,
@@ -168,6 +188,11 @@ exports.createRoom = async (req, res) => {
   try {
     const payload = normalizeRoomPayload(req.body);
 
+    if (payload.displayOrder <= 0) {
+      const lastRoom = await Room.findOne({}).sort({ displayOrder: -1 }).select('displayOrder');
+      payload.displayOrder = (Number(lastRoom?.displayOrder) || 0) + 1;
+    }
+
     const layoutErrors = validateRoomLayoutConfigurations(payload.dimensions, payload.layouts);
     if (layoutErrors.length > 0) {
       return sendError(res, 400, layoutErrors.join(' '));
@@ -194,6 +219,49 @@ exports.createRoom = async (req, res) => {
   }
 };
 
+exports.reorderRooms = async (req, res) => {
+  try {
+    const orderedRoomIds = Array.isArray(req.body?.orderedRoomIds)
+      ? req.body.orderedRoomIds.map((id) => String(id))
+      : [];
+    const uniqueIds = new Set(orderedRoomIds);
+
+    if (
+      orderedRoomIds.length === 0 ||
+      uniqueIds.size !== orderedRoomIds.length ||
+      orderedRoomIds.some((id) => !mongoose.Types.ObjectId.isValid(id))
+    ) {
+      return sendError(res, 400, 'A unique orderedRoomIds array is required.');
+    }
+
+    const [roomCount, matchedRoomCount] = await Promise.all([
+      Room.countDocuments({}),
+      Room.countDocuments({ _id: { $in: orderedRoomIds } }),
+    ]);
+
+    if (orderedRoomIds.length !== roomCount || matchedRoomCount !== roomCount) {
+      return sendError(res, 400, 'The room order must include every configured room exactly once.');
+    }
+
+    await Room.bulkWrite(
+      orderedRoomIds.map((roomId, index) => ({
+        updateOne: {
+          filter: { _id: roomId },
+          update: { $set: { displayOrder: index + 1 } },
+        },
+      }))
+    );
+
+    const rooms = await Room.find({}).sort({ displayOrder: 1, name: 1 });
+    return sendSuccess(res, 200, {
+      message: 'Room visibility order updated successfully.',
+      data: rooms.map(formatRoomResponse),
+    });
+  } catch (err) {
+    return sendError(res, 500, formatValidationError(err));
+  }
+};
+
 exports.updateRoom = async (req, res) => {
   try {
     const roomId = req.params.id;
@@ -213,6 +281,9 @@ exports.updateRoom = async (req, res) => {
       status: req.body.status !== undefined ? (req.body.status === 'inactive' ? 'inactive' : 'active') : existingRoom.status,
       allowCustomDimensions: req.body.allowCustomDimensions !== undefined ? toBoolean(req.body.allowCustomDimensions) : existingRoom.allowCustomDimensions,
       requiresDimensions: req.body.requiresDimensions !== undefined ? toBoolean(req.body.requiresDimensions) : existingRoom.requiresDimensions,
+      maxSelectableRooms: req.body.maxSelectableRooms !== undefined
+        ? normalizeMaxSelectableRooms(req.body.maxSelectableRooms, req.body.name || existingRoom.name)
+        : normalizeMaxSelectableRooms(existingRoom.maxSelectableRooms, existingRoom.name),
     };
 
     console.log(`[updateRoom] Processing updates for "${req.body.name}":`, {
@@ -246,6 +317,11 @@ exports.updateRoom = async (req, res) => {
         normalizeAddon
       );
       console.log(`[updateRoom] Addons: updated to ${updates.addons.length} items`);
+    }
+
+    if (updates.requiresDimensions === false) {
+      updates.allowCustomDimensions = false;
+      updates.dimensions = [];
     }
 
     const dimensionsForValidation = Array.isArray(updates.dimensions)

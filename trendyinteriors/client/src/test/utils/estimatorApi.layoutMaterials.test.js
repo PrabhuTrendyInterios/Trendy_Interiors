@@ -3,6 +3,8 @@ import {
   getLayoutMaterialsForRoom,
   getLayoutMaterialsTotal,
   isLayoutMaterialSelected,
+  normalizeLayoutMaterialSelection,
+  normalizeEstimatorRoom,
   reloadLayoutMaterialSelection,
   toggleLayoutMaterialSelection,
 } from '../../utils/estimatorApi';
@@ -48,6 +50,28 @@ describe('getLayoutMaterialsForRoom', () => {
     expect(result.materials[0].name).toBe('Laminate');
   });
 
+  test('matches a name-keyed configuration when sizeCategory contains a dimension id', () => {
+    const result = getLayoutMaterialsForRoom({
+      room: {
+        name: 'Kitchen',
+        dimensions: [{ _id: 'kitchen-low-id', id: 'kitchen-low-id', name: 'Low' }],
+        layouts: [{
+          name: 'U Shape',
+          hasLayoutMaterials: true,
+          configurations: [{
+            dimensionId: 'Low',
+            materials: [{ _id: 'u-low-1', name: 'Laminate', price: 10000 }],
+          }],
+        }],
+      },
+      layoutName: 'U Shape',
+      sizeCategory: 'kitchen-low-id',
+    });
+
+    expect(result.materials).toHaveLength(1);
+    expect(result.materials[0].name).toBe('Laminate');
+  });
+
   test('returns empty materials when layout material mode is disabled', () => {
     const result = getLayoutMaterialsForRoom({
       room,
@@ -59,10 +83,38 @@ describe('getLayoutMaterialsForRoom', () => {
     expect(result.materials).toEqual([]);
   });
 
-  test('buildDefaultLayoutMaterialSelection sets all materials to true', () => {
+  test('returns default layout materials for dimensionless rooms', () => {
+    const result = getLayoutMaterialsForRoom({
+      room: {
+        name: 'Pooja Room',
+        requiresDimensions: false,
+        dimensions: [],
+        layouts: [
+          {
+            name: 'Base Unit & Panelling',
+            hasLayoutMaterials: true,
+            configurations: [
+              {
+                dimensionId: '__dimensionless__',
+                materials: [{ _id: 'pooja-base', name: 'Base Unit', price: 31500 }],
+              },
+            ],
+          },
+        ],
+      },
+      layoutName: 'Base Unit & Panelling',
+    });
+
+    expect(result.hasLayoutMaterials).toBe(true);
+    expect(result.materials).toEqual([
+      expect.objectContaining({ id: 'pooja-base', name: 'Base Unit', price: 31500 }),
+    ]);
+  });
+
+  test('buildDefaultLayoutMaterialSelection selects every available material', () => {
     const selection = buildDefaultLayoutMaterialSelection([
-      { id: 'mat-1' },
-      { id: 'mat-2' },
+      { id: 'mat-1', mandatory: true },
+      { id: 'mat-2', mandatory: false },
     ]);
 
     expect(selection).toEqual({ 'mat-1': true, 'mat-2': true });
@@ -76,13 +128,41 @@ describe('getLayoutMaterialsForRoom', () => {
     expect(restored).toEqual({ 'mat-1': true });
   });
 
+  test('normalizes nested room selections without dropping deselected materials', () => {
+    const selection = normalizeLayoutMaterialSelection({
+      'Kitchen-1': {
+        'base-unit': true,
+        'tandem-drawer': false,
+        'wall-unit': true,
+      },
+      'Kitchen-2': {
+        'base-unit': true,
+        'tandem-drawer': true,
+        'wall-unit': false,
+      },
+    });
+
+    expect(selection).toEqual({
+      'Kitchen-1': {
+        'base-unit': true,
+        'tandem-drawer': false,
+        'wall-unit': true,
+      },
+      'Kitchen-2': {
+        'base-unit': true,
+        'tandem-drawer': true,
+        'wall-unit': false,
+      },
+    });
+  });
+
   test('isLayoutMaterialSelected keeps mandatory materials selected', () => {
     expect(isLayoutMaterialSelected({ 'mat-1': false }, 'mat-1', true)).toBe(true);
-    expect(isLayoutMaterialSelected({}, 'mat-1', false)).toBe(true);
+    expect(isLayoutMaterialSelected({}, 'mat-1', false)).toBe(false);
     expect(isLayoutMaterialSelected({ 'mat-1': false }, 'mat-1', false)).toBe(false);
   });
 
-  test('reloadLayoutMaterialSelection returns all materials checked for layout and dimension', () => {
+  test('reloadLayoutMaterialSelection returns all materials checked', () => {
     const selection = reloadLayoutMaterialSelection({
       roomsCatalog: [room],
       roomName: 'Bedroom',
@@ -113,7 +193,31 @@ describe('getLayoutMaterialsForRoom', () => {
       { id: 'mat-2', price: 1200, mandatory: false },
     ];
 
-    expect(getLayoutMaterialsTotal(materials, {})).toBe(6200);
+    expect(getLayoutMaterialsTotal(materials, {})).toBe(5000);
     expect(getLayoutMaterialsTotal(materials, { 'mat-2': false })).toBe(5000);
+  });
+});
+
+describe('normalizeEstimatorRoom package components', () => {
+  test('preserves and normalizes package components returned by the rooms API', () => {
+    const room = normalizeEstimatorRoom({
+      _id: 'room-1',
+      name: 'Bedroom',
+      dimensions: [
+        {
+          _id: 'dim-1',
+          name: 'Low',
+          packageComponents: [
+            { _id: 'component-2', name: 'Handles', price: '1500', displayOrder: 2 },
+            { _id: 'component-1', name: 'Hinges', price: '2000', mandatory: true, displayOrder: 1 },
+          ],
+        },
+      ],
+    });
+
+    expect(room.dimensions[0].packageComponents).toEqual([
+      expect.objectContaining({ id: 'component-1', name: 'Hinges', price: 2000, mandatory: true }),
+      expect.objectContaining({ id: 'component-2', name: 'Handles', price: 1500, mandatory: false }),
+    ]);
   });
 });

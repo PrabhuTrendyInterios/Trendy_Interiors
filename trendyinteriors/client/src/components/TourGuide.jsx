@@ -15,28 +15,8 @@ const steps = [
   },
   {
     selector: ".tour-estimator-btn",
-    title: "Dream Interior",
-    text: "Design your dream interior and get a quick estimate."
-  },
-  {
-    selector: ".tour-projects",
-    title: "Our Projects",
-    text: "Explore some of our latest interior transformations."
-  },
-  {
-    selector: ".tour-process",
-    title: "Design Journey",
-    text: "See how we bring your dream space to life."
-  },
-  {
-    selector: ".tour-testimonials",
-    title: "Client Reviews",
-    text: "Hear from homeowners who trusted us."
-  },
-  {
-    selector: ".tour-services",
-    title: "Our Services",
-    text: "Discover our complete interior solutions."
+    title: "Quote Interior Yourself",
+    text: "Design your dream interior and build your quote step by step."
   },
   {
     selector: ".chatbot-toggle",
@@ -54,7 +34,7 @@ export default function TourGuide() {
   const [visible, setVisible] = useState(() => {
     return !sessionStorage.getItem("tourCompleted");
   });
-  const [penguinState, setPenguinState] = useState("normal");
+  const [botState, setBotState] = useState("normal");
   const imageTimeoutRef = useRef(null);
   const clickActionRef = useRef(null);
   const [viewport, setViewport] = useState({
@@ -122,12 +102,12 @@ export default function TourGuide() {
     };
   }, [step, visible, calculatePosition]);
 
-  // Prefetch alternate penguin images and clear any pending timeouts on unmount
+  // Prefetch alternate mascot images and clear any pending timeouts on unmount
   useEffect(() => {
     const clickedImg = new Image();
-    clickedImg.src = "/images/penguin-clicked.png";
+    clickedImg.src = "/assets/trendy-bot/trendy-bot-wave.webp";
     const angryImg = new Image();
-    angryImg.src = "/images/penguin-angry.png";
+    angryImg.src = "/assets/trendy-bot/trendy-bot-peek-mobile.webp";
 
     return () => {
       if (imageTimeoutRef.current) {
@@ -247,13 +227,13 @@ export default function TourGuide() {
         >
           <motion.img
             src={
-              penguinState === "angry"
-                ? "/images/penguin-angry.png"
-                : penguinState === "clicked"
-                ? "/images/penguin-clicked.png"
-                : "/images/penguin-normal.png"
+              botState === "angry"
+                ? "/assets/trendy-bot/trendy-bot-peek-mobile.webp"
+                : botState === "clicked"
+                ? "/assets/trendy-bot/trendy-bot-wave.webp"
+                : "/assets/trendy-bot/trendy-bot-present.webp"
             }
-            alt="Penguin"
+            alt="Trendy bot"
             className="tour-penguin" style={{ cursor: 'pointer' }}
             animate={isExiting ? { scale: 0.2, y: 0 } : { y: [0, -10, 0] }}
             onClick={() => {
@@ -267,9 +247,9 @@ export default function TourGuide() {
                   clearTimeout(imageTimeoutRef.current);
                   imageTimeoutRef.current = null;
                 }
-                setPenguinState("clicked");
+                setBotState("clicked");
                 imageTimeoutRef.current = window.setTimeout(() => {
-                  setPenguinState("normal");
+                  setBotState("normal");
                   imageTimeoutRef.current = null;
                 }, 1000);
                 clickActionRef.current = null;
@@ -285,9 +265,9 @@ export default function TourGuide() {
                 clearTimeout(imageTimeoutRef.current);
                 imageTimeoutRef.current = null;
               }
-              setPenguinState("angry");
+              setBotState("angry");
               imageTimeoutRef.current = window.setTimeout(() => {
-                setPenguinState("normal");
+                setBotState("normal");
                 imageTimeoutRef.current = null;
               }, 1000);
             }}

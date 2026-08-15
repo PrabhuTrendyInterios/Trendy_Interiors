@@ -1,6 +1,7 @@
 const formatLayoutMaterial = (material = {}) => ({
   ...(material._id ? { _id: material._id } : {}),
   name: material.name || '',
+  size: material.size || '',
   price: Number(material.price) || 0,
   mandatory: Boolean(material.mandatory),
 });
@@ -27,11 +28,16 @@ const formatLayoutResponse = (layout = {}) => ({
 
 const formatRoomResponse = (room) => {
   const doc = room?.toObject ? room.toObject() : { ...room };
+  const legacyLimit = String(doc.name || '').toLowerCase().includes('bedroom') ? 6 : 2;
+  const configuredLimit = Number(doc.maxSelectableRooms);
 
   return {
     ...doc,
     allowCustomDimensions: doc.allowCustomDimensions ?? false,
     requiresDimensions: doc.requiresDimensions ?? true,
+    maxSelectableRooms: Number.isInteger(configuredLimit) && configuredLimit > 0
+      ? configuredLimit
+      : legacyLimit,
     layouts: (doc.layouts || []).map(formatLayoutResponse),
   };
 };

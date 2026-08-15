@@ -27,9 +27,7 @@ jest.mock('../../utils/quotationPDF', () => ({
     if (callback) callback(null);
     else res.end();
   }),
-  generateQuotationPDFBuffer: jest.fn((estimator, callback) => {
-    if (callback) callback(null, Buffer.from('mock-pdf'));
-  }),
+  generateQuotationPDFBuffer: jest.fn((_estimator, callback) => callback(null, null)),
 }));
 
 const express = require('express');
@@ -90,6 +88,25 @@ describe('server/routes/estimators', () => {
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
+    });
+
+    test('enforces the room quantity configured in CMS', async () => {
+      Room.find.mockReturnValue({
+        sort: jest.fn().mockResolvedValue([
+          { ...mockRoomsCatalog[0], maxSelectableRooms: 2 },
+        ]),
+      });
+
+      const res = await request(app).post('/api/estimators/calculate').send({
+        rooms: { Bedroom: 3 },
+        selectedRoomForDimensions: 'Bedroom-1',
+        roomDimensionsByRoom: {},
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toEqual(
+        expect.arrayContaining([expect.stringContaining('cannot exceed 2')]),
+      );
     });
 
     test('handles server error during calculation', async () => {
@@ -383,6 +400,111 @@ describe('server/routes/estimators', () => {
       expect(res.status).toBe(200);
       expect(generateQuotationPDF).toHaveBeenCalled();
     }, 10000);
+
+    test('excludes deselected layout materials from PDF quote totals', async () => {
+      Room.find.mockReturnValue({
+        sort: jest.fn().mockResolvedValue([
+          {
+            name: 'Kitchen',
+            status: 'active',
+            pricePerSqFt: 1350,
+            dimensions: [{ _id: 'kitchen-dim', name: 'Standard' }],
+            layouts: [
+              {
+                name: 'U Shape',
+                fixedPrice: 20000,
+                hasLayoutMaterials: true,
+                configurations: [
+                  {
+                    dimensionId: 'kitchen-dim',
+                    materials: [
+                      { _id: 'k1-base', name: 'Base Unit', price: 132000 },
+                      { _id: 'k1-drawer', name: 'Tandem Drawer Box', price: 9600 },
+                      { _id: 'k1-wall', name: 'Wall Unit', price: 43500 },
+                    ],
+                  },
+                ],
+              },
+              {
+                name: 'Straight',
+                fixedPrice: 12000,
+                hasLayoutMaterials: true,
+                configurations: [
+                  {
+                    dimensionId: 'kitchen-dim',
+                    materials: [
+                      { _id: 'k2-base', name: 'Base Unit', price: 60000 },
+                      { _id: 'k2-drawer', name: 'Tandem Drawer Box', price: 9600 },
+                      { _id: 'k2-wall', name: 'Wall Unit', price: 15600 },
+                    ],
+                  },
+                ],
+              },
+            ],
+            addons: [],
+          },
+        ]),
+      });
+
+      const { generateQuotationPDF } = require('../../utils/quotationPDF');
+      generateQuotationPDF.mockClear();
+      generateQuotationPDF.mockImplementation((_estimator, res) => {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.end();
+      });
+
+      const res = await request(app)
+        .post('/api/estimators/pdf/download')
+        .send({
+          rooms: { Kitchen: 2 },
+          selectedRoomForDimensions: 'Kitchen-1',
+          roomDimensionsByRoom: {
+            'Kitchen-1': {
+              length: 10,
+              width: 10,
+              height: 9,
+              sizeCategory: 'kitchen-dim',
+              selectedDesignIdea: { layout: 'U Shape', addons: [], room: 'Kitchen' },
+            },
+            'Kitchen-2': {
+              length: 10,
+              width: 10,
+              height: 9,
+              sizeCategory: 'kitchen-dim',
+              selectedDesignIdea: { layout: 'Straight', addons: [], room: 'Kitchen' },
+            },
+          },
+          selectedLayoutMaterials: {
+            'Kitchen-1': {
+              'k1-base': true,
+              'k1-drawer': false,
+              'k1-wall': true,
+            },
+            'Kitchen-2': {
+              'k2-base': true,
+              'k2-drawer': true,
+              'k2-wall': false,
+            },
+          },
+          customerInfo: {
+            name: 'Pricing Test',
+            email: 'pricing@example.com',
+            phone: '1234567890',
+          },
+        });
+
+      expect(res.status).toBe(200);
+      const pdfEstimator = generateQuotationPDF.mock.calls[0][0];
+      const kitchenItems = pdfEstimator.quoteSummary.lineItems.filter(
+        (item) => item.roomId !== 'global-addons',
+      );
+
+      expect(kitchenItems[0].layoutMaterialsCost).toBe(175500);
+      expect(kitchenItems[0].estimatedCost).toBe(330500);
+      expect(kitchenItems[1].layoutMaterialsCost).toBe(69600);
+      expect(kitchenItems[1].estimatedCost).toBe(216600);
+      expect(pdfEstimator.quoteSummary.roomTotals).toBe(547100);
+    });
 
     test('returns 400 when preview data is invalid', async () => {
       const res = await request(app).post('/api/estimators/pdf/download').send({});

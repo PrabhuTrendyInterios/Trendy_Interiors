@@ -21,6 +21,17 @@ describe('formatRoomResponse', () => {
       hasLayoutMaterials: false,
       configurations: [],
     });
+    expect(formatted.maxSelectableRooms).toBe(6);
+  });
+
+  test('preserves an admin-configured maximum room selection', () => {
+    const formatted = formatRoomResponse({
+      name: 'Pooja Room',
+      maxSelectableRooms: 4,
+      layouts: [],
+    });
+
+    expect(formatted.maxSelectableRooms).toBe(4);
   });
 
   test('preserves layout material configurations in the response', () => {

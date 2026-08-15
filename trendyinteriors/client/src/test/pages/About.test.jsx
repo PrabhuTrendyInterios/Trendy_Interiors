@@ -22,7 +22,12 @@ describe('client/pages/About', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/about us/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: /about us/i })).toBeInTheDocument();
+    expect(screen.getByText('Client Review')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /watch here/i })).toHaveAttribute(
+      'href',
+      'https://www.youtube.com/@prabul7047',
+    );
     await waitFor(() => expect(screen.getByText('DesignCarousel Mock')).toBeInTheDocument());
   });
 });

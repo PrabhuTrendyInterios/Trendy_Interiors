@@ -15,6 +15,12 @@ const globalAddonSchema = new mongoose.Schema(
       min: [0, 'Price cannot be negative'],
       default: 0,
     },
+    size: {
+      type: String,
+      trim: true,
+      maxlength: 80,
+      default: '',
+    },
     description: {
       type: String,
       trim: true,

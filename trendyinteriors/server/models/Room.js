@@ -71,6 +71,12 @@ const layoutMaterialSchema = new mongoose.Schema(
       trim: true,
       maxlength: 100,
     },
+    size: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+      default: '',
+    },
     price: {
       type: Number,
       min: [0, 'Price cannot be negative'],
@@ -196,6 +202,11 @@ const roomSchema = new mongoose.Schema(
       enum: ['active', 'inactive'],
       default: 'active',
     },
+    displayOrder: {
+      type: Number,
+      default: 0,
+      min: [0, 'Display order cannot be negative'],
+    },
     allowCustomDimensions: {
       type: Boolean,
       default: false,
@@ -203,6 +214,11 @@ const roomSchema = new mongoose.Schema(
     requiresDimensions: {
       type: Boolean,
       default: true,
+    },
+    maxSelectableRooms: {
+      type: Number,
+      min: [1, 'Maximum selectable rooms must be at least 1'],
+      max: [20, 'Maximum selectable rooms cannot exceed 20'],
     },
     dimensions: {
       type: [dimensionSchema],
@@ -220,6 +236,6 @@ const roomSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-roomSchema.index({ status: 1, name: 1 });
+roomSchema.index({ status: 1, displayOrder: 1, name: 1 });
 
 module.exports = mongoose.model('Room', roomSchema);

@@ -49,4 +49,19 @@ describe('client/components/estimator/RoomSelection', () => {
     );
     expect(screen.getByText(/selected:/i)).toBeInTheDocument();
   });
+
+  test('uses the CMS maximum room quantity', () => {
+    const onUpdateRoomCount = jest.fn();
+    render(
+      <RoomSelection
+        rooms={[{ ...sampleRooms[0], maxSelectableRooms: 3 }]}
+        selectedRooms={{ Bedroom: 3 }}
+        onUpdateRoomCount={onUpdateRoomCount}
+        onNext={jest.fn()}
+      />
+    );
+
+    expect(screen.getByLabelText('Increase quantity')).toBeDisabled();
+    expect(screen.getByTitle('Maximum 3')).toBeInTheDocument();
+  });
 });

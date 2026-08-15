@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
   FaMapMarkerAlt,
   FaEnvelope,
@@ -10,6 +9,7 @@ import {
   FaStore
 } from 'react-icons/fa';
 import ContactForm from '../components/ContactForm';
+import ScrollVideoBackground from '../components/ScrollVideoBackground';
 import './ReachUs.css';
 
 const ReachUs = () => {
@@ -19,6 +19,7 @@ const ReachUs = () => {
 
   return (
     <div className="reach-us-page">
+      <ScrollVideoBackground imageSrc="/images/bedroom-image.png" videoSrc="/video/bedroom-video.mp4" />
 
       {/* Hero */}
       <section className="reach-hero">
@@ -28,11 +29,6 @@ const ReachUs = () => {
           <p className="hero-subtitle">
             Let's start the conversation about your dream space
           </p>
-          <div className="breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="separator">/</span>
-            <span className="current">Contact</span>
-          </div>
         </div>
       </section>
 

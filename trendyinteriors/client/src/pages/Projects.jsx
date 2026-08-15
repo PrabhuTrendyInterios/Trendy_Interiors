@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaMapMarkerAlt, FaLongArrowAltRight } from 'react-icons/fa';
 import ProjectSlideshow from '../components/ProjectSlideshow';
+import ScrollVideoBackground from '../components/ScrollVideoBackground';
 import { publicGet, normalizeProjectForDisplay, getProjectCover } from '../utils/publicApi';
 import './Projects.css';
 
@@ -88,16 +89,13 @@ const Projects = () => {
 
   return (
     <div className="projects-page">
+      <ScrollVideoBackground imageSrc="/images/bedroom-image.png" videoSrc="/video/bedroom-video.mp4" />
+
       <section className="projects-hero">
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1>Our Projects</h1>
           <p className="hero-subtitle">Crafted spaces that define excellence &amp; luxury</p>
-          <div className="breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="separator">/</span>
-            <span className="current">Projects</span>
-          </div>
         </div>
       </section>
 
@@ -161,7 +159,7 @@ const Projects = () => {
             <h2>Have a project in mind?</h2>
             <p>Let's collaborate to create something extraordinary for your space.</p>
             <Link to="/estimator" style={{ textDecoration: 'none' }}>
-              <button className="btn-cta-gold">Get Free Consultation</button>
+              <button className="btn-cta-gold">Quote Interior Yourself</button>
             </Link>
           </div>
         </div>

@@ -1,16 +1,50 @@
 /* ===== PREMIUM LUXURY FOOTER ===== */
 .footer {
-  background-color: #0f1214;
-  /* Deep charcoal almost black */
-  background-image:
-    radial-gradient(at 0% 0%, rgba(44, 62, 80, 0.2) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(212, 175, 55, 0.05) 0px, transparent 50%);
-  color: #e0e0e0;
+  background: transparent;
+  color: #ffffff;
   padding-top: 5rem;
   position: relative;
   font-family: 'Inter', sans-serif;
   overflow: hidden;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top: 0;
+  box-shadow: none;
+}
+
+.footer.page-background {
+  background: transparent;
+}
+
+.footer.page-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.34);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.footer.transparent::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.34);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.footer.estimator-transparent::before {
+  background: transparent;
+}
+
+.footer.transparent {
+  background: transparent;
+  background-color: transparent;
+  backdrop-filter: none;
+  color: rgba(255, 255, 255, 0.92);
+  border: none;
+  box-shadow: none;
 }
 
 /* Entrance Animation */
@@ -49,6 +83,11 @@
   grid-template-columns: 1.5fr 0.8fr 1fr 1.2fr;
   /* Optimized column widths */
   gap: 3rem;
+  position: relative;
+  z-index: 2;
+}
+
+.footer-bottom {
   position: relative;
   z-index: 2;
 }
@@ -93,7 +132,7 @@
 }
 
 .footer-description {
-  color: #999;
+  color: rgba(255, 255, 255, 0.92);
   line-height: 1.7;
   font-size: 0.95rem;
   max-width: 300px;
@@ -192,10 +231,13 @@
 /* Newsletter - Integrated into layout better */
 .footer-newsletter {
   grid-column: 1 / -1;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03), transparent);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   padding: 2.5rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -235,8 +277,9 @@
 }
 
 .newsletter-form input {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   padding: 12px 20px;
   border-radius: 4px;
@@ -287,9 +330,12 @@
 
 /* Footer Bottom Bar */
 .footer-bottom {
-  background: #000000;
+  background: transparent;
+  background-color: transparent;
+  backdrop-filter: none;
   padding: 1.5rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border: none;
+  box-shadow: none;
   font-size: 0.85rem;
   color: #666;
 }
@@ -461,4 +507,86 @@
 
 .admin-use-only-link:active {
   transform: translateY(0);
+}
+
+.footer-credit {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.5px;
+}
+
+.footer-credit a.footer-link {
+  color: #f1c40f; /* or your theme accent */
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.footer-credit a.footer-link:hover {
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(255, 122, 162, 0.6);
+}
+
+/* Keep footer copy legible over every page background. */
+.footer.page-background::before,
+.footer.transparent::before,
+.footer.estimator-transparent::before {
+  background: rgba(0, 0, 0, 0.64);
+}
+
+.footer,
+.footer p,
+.footer li,
+.footer a,
+.footer span,
+.footer button,
+.footer-section h3,
+.footer-tagline,
+.footer-description,
+.contact-item p,
+.footer-bottom,
+.brand-name,
+.footer-credit,
+.footer-credit a.footer-link {
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 2px 7px rgba(0, 0, 0, 0.72);
+}
+
+.footer-section h3 {
+  font-weight: 800;
+}
+
+.footer-section a:hover,
+.footer-credit a.footer-link:hover,
+.back-to-top:hover {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.65);
+}
+
+.footer-social a,
+.contact-icon {
+  color: #d4af37;
+  text-shadow: none;
+}
+
+.footer-social a:hover {
+  color: #171717;
+}
+
+.back-to-top {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-color: rgba(255, 255, 255, 0.72);
+  font-weight: 800;
+}
+
+.footer-section h3,
+.footer-section a,
+.footer-credit a.footer-link,
+.footer-bottom-container > p,
+.footer-bottom-container > p .brand-name {
+  color: #f3cf45;
 }

@@ -116,6 +116,28 @@ const resolveGlobalAddon = (globalAddons = [], addonId) =>
       addon.name === addonId
   );
 
+const normalizeExtraAddonEntries = (extraAddons = []) => {
+  const seen = new Set();
+
+  return (Array.isArray(extraAddons) ? extraAddons : [])
+    .map((entry) => {
+      const addonId = entry?.id || entry?._id || entry;
+      const id = addonId != null ? String(addonId).trim() : '';
+      const count = Math.max(0, Number(entry?.count ?? 1) || 0);
+      const size = typeof entry?.size === 'string' ? entry.size.trim() : '';
+
+      return { id, count, size };
+    })
+    .filter((entry) => {
+      if (!entry.id || seen.has(entry.id) || entry.count <= 0) {
+        return false;
+      }
+
+      seen.add(entry.id);
+      return true;
+    });
+};
+
 /**
  * Pricing rules:
  * - Area = Length × Width (height is informational only)
@@ -165,8 +187,20 @@ const calculateEstimate = ({
         }
       }
     
-    // Get package components for this dimension
-    const packageComponentsArray = getPackageComponentsForDimension(roomDoc, sizeCategory);
+    const layoutMaterialsResult = resolveLayoutMaterials(
+      roomDoc,
+      selectedDesignIdea.layout,
+      sizeCategory
+    );
+    const usesLayoutScopedMaterials = roomDoc?.layouts?.some(
+      (layout) => layout.hasLayoutMaterials || layout.configurations?.length > 0
+    );
+
+    // Layout-driven rooms resolve materials by layout + size. Layoutless rooms
+    // (for example Hall) resolve their package directly from the selected size.
+    const packageComponentsArray = usesLayoutScopedMaterials
+      ? []
+      : getPackageComponentsForDimension(roomDoc, sizeCategory);
     const selectedIds = (selectedPackageComponents[room.id] || []);
     const packageComponentsTotal = roundMoney(getPackageComponentsTotal(packageComponentsArray, selectedIds));
 
@@ -188,11 +222,6 @@ const calculateEstimate = ({
     console.log(`  Selected Component IDs: ${selectedIds.length}`, selectedIds);
     console.log(`  Package Components Total: ₹${packageComponentsTotal}`);
     
-    const layoutMaterialsResult = resolveLayoutMaterials(
-      roomDoc,
-      selectedDesignIdea.layout,
-      sizeCategory
-    );
     const layoutMaterialsArray = layoutMaterialsResult.materials;
 
     if (layoutMaterialsResult.skipped && layoutMaterialsResult.validationError) {
@@ -254,17 +283,23 @@ const calculateEstimate = ({
 
   const addonDetails = [];
   let globalAddonsTotal = 0;
+  const normalizedExtraAddons = normalizeExtraAddonEntries(extraAddons);
 
-  if (Array.isArray(extraAddons) && extraAddons.length > 0) {
-    extraAddons.forEach((addonId) => {
-      const addon = resolveGlobalAddon(globalAddons, addonId);
+  if (normalizedExtraAddons.length > 0) {
+    normalizedExtraAddons.forEach((selectedAddon) => {
+      const addon = resolveGlobalAddon(globalAddons, selectedAddon.id);
       if (addon && addon.active !== false) {
         const price = Number(addon.price) || 0;
-        globalAddonsTotal = roundMoney(globalAddonsTotal + price);
+        const count = Math.max(1, Number(selectedAddon.count) || 1);
+        const totalPrice = roundMoney(price * count);
+        globalAddonsTotal = roundMoney(globalAddonsTotal + totalPrice);
         addonDetails.push({
-          id: addon._id?.toString() || String(addonId),
+          id: addon._id?.toString() || String(selectedAddon.id),
           name: addon.name,
+          size: selectedAddon.size || addon.size || '',
+          count,
           price,
+          totalPrice,
         });
       }
     });
