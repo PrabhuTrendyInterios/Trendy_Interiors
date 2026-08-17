@@ -202,12 +202,16 @@ const PenguinPopup = ({
         return;
       }
 
-      phaseRef.current = PHASE.PRESENTING;
-      setPhase(PHASE.PRESENTING);
+      phaseRef.current = PHASE.PEEK;
+      setPhase(PHASE.PEEK);
+      schedule(() => {
+        phaseRef.current = PHASE.PRESENTING;
+        setPhase(PHASE.PRESENTING);
+      }, 1700);
       schedule(() => {
         phaseRef.current = PHASE.VISIBLE;
         setPhase(PHASE.VISIBLE);
-      }, 720);
+      }, 2420);
     }, safeDelay);
 
     return clearTimers;
