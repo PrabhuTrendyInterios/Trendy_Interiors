@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaArrowUp, FaWhatsapp, FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaYoutube, FaStore } from 'react-icons/fa';
+import { FaArrowUp, FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaYoutube, FaInstagram, FaFacebook } from 'react-icons/fa';
 import ChatBot from './ChatBot';
 import './Footer.css';
 
@@ -26,14 +26,14 @@ const Footer = ({ estimatorStep = null }) => {
             Premium interior design solutions that transform spaces into extraordinary living experiences.
           </p>
           <div className="footer-social">
-            <a href="https://wa.me/919965299777" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
-              <FaWhatsapp />
-            </a>
-            <a href="https://www.youtube.com/@prabul7047" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+            <a href="https://www.youtube.com/@Trendy_InterioS/featured" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
               <FaYoutube />
             </a>
-            <a href="http://indiamart.com/trendy-interios/" target="_blank" rel="noopener noreferrer" aria-label="IndiaMART">
-              <FaStore />
+            <a href="https://www.instagram.com/trendyinterioserode/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <FaInstagram />
+            </a>
+            <a href="https://www.facebook.com/profile.php?id=100090290169549" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <FaFacebook />
             </a>
           </div>
         </div>
