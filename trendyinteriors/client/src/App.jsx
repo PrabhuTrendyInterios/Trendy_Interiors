@@ -11,7 +11,6 @@ import GiveTestimonial from './pages/GiveTestimonial';
 import Projects from './pages/Projects';
 import BuyOnline from './pages/BuyOnline';
 import Estimator from './pages/Estimator';
-import PopupCard from "./components/PopupCard";
 import './App.css';
 import './pages/PageTheme.css';
 import './MobileFirst.css';
@@ -34,7 +33,6 @@ const Layout = () => {
           <Route path="/buy-online" element={<BuyOnline />} />
           <Route path="/estimator" element={<Estimator />} />
         </Routes>
-        <PopupCard />
         {showFooter && <Footer />}
       </main>
     </div>

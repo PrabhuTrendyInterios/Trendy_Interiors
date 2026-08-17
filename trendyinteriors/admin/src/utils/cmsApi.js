@@ -31,6 +31,12 @@ const parseResponse = async (response) => {
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      throw new Error('Admin session expired. Please log in again and retry.');
+    }
+
     const message =
       body.message ||
       body.error ||

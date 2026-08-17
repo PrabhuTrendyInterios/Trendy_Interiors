@@ -21,6 +21,46 @@ export const emptyRoom = {
   addons: [],
 };
 
+const toNumberOrZero = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+export const normalizeRoomForSave = (form) => ({
+  ...form,
+  pricePerSqFt: toNumberOrZero(form.pricePerSqFt),
+  maxSelectableRooms: Math.min(20, Math.max(1, Number(form.maxSelectableRooms) || 1)),
+  dimensions: form.requiresDimensions
+    ? (form.dimensions || []).map((dimension) => ({
+        ...dimension,
+        length: toNumberOrZero(dimension.length),
+        width: toNumberOrZero(dimension.width),
+        height: toNumberOrZero(dimension.height),
+        packageComponents: (dimension.packageComponents || []).map((component) => ({
+          ...component,
+          price: toNumberOrZero(component.price),
+          displayOrder: toNumberOrZero(component.displayOrder),
+        })),
+      }))
+    : [],
+  layouts: (form.layouts || []).map((layout) => ({
+    ...layout,
+    fixedPrice: toNumberOrZero(layout.fixedPrice ?? layout.price),
+    configurations: (layout.configurations || []).map((configuration) => ({
+      ...configuration,
+      materials: (configuration.materials || []).map((material) => ({
+        ...material,
+        price: toNumberOrZero(material.price),
+      })),
+    })),
+  })),
+  addons: (form.addons || []).map((addon) => ({
+    ...addon,
+    price: toNumberOrZero(addon.price),
+  })),
+  allowCustomDimensions: form.requiresDimensions ? form.allowCustomDimensions : false,
+});
+
 const DIMENSION_FIELDS = [
   { key: 'name', label: 'Name', required: true, placeholder: 'e.g. Standard' },
   { key: 'length', label: 'Length (ft)', type: 'number', step: '0.1', min: 0 },
@@ -109,13 +149,7 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({
-      ...form,
-      pricePerSqFt: Number(form.pricePerSqFt) || 0,
-      maxSelectableRooms: Math.min(20, Math.max(1, Number(form.maxSelectableRooms) || 1)),
-      dimensions: form.requiresDimensions ? form.dimensions : [],
-      allowCustomDimensions: form.requiresDimensions ? form.allowCustomDimensions : false,
-    });
+    onSave(normalizeRoomForSave(form));
   };
 
   const ensureDimensionId = (dimensionIndex) => {
