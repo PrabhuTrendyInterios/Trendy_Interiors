@@ -209,8 +209,10 @@ doc.lineWidth(1).strokeColor(GOLD);
 doc.moveTo(MARGIN, currentY).lineTo(MARGIN + CONTENT_W, currentY).stroke();
 doc.moveTo(MARGIN, currentY + totalHeight).lineTo(MARGIN + CONTENT_W, currentY + totalHeight).stroke();
 doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(9);
-doc.text(totalRow[0], MARGIN + 10, currentY + 8, { width: colWidths[0] + colWidths[1] - 20, align: "left" });
-doc.text(totalRow[2], MARGIN + colWidths[0] + colWidths[1] + 8, currentY + 8, { width: colWidths[2] - 16, align: "right" });
+const leftSpan = colWidths.slice(0, colWidths.length - 1).reduce((a, b) => a + b, 0);
+const rightSpan = colWidths[colWidths.length - 1];
+doc.text(totalRow[0], MARGIN + 10, currentY + 8, { width: leftSpan - 20, align: "left" });
+doc.text(totalRow[totalRow.length - 1], MARGIN + leftSpan + 8, currentY + 8, { width: rightSpan - 16, align: "right" });
 doc.y = currentY + totalHeight + 10;
 } else {
 doc.y += 10;
@@ -485,7 +487,7 @@ const layoutCost = item.layoutCost || 0;
 // 1. Layout installation cost — only show if the layout has an explicit fixed price
 //    (most layouts use layoutMaterials instead, so layoutCost is typically 0)
 if (layoutCost > 0 && item.layout) {
-  allItems.push({ name: `Layout: ${item.layout} - Installation`, size: sizeString, price: layoutCost });
+  allItems.push({ name: `${item.layout}`, size: sizeString, price: layoutCost });
 }
 
 // 2. Layout materials (e.g. Base Unit, Tandem Drawer Box, Wall Unit for Kitchen)
@@ -528,16 +530,17 @@ if (quotation.global_addons && quotation.global_addons.length > 0) {
 drawSectionHeader(doc, "EXTRA ADD-ONS");
 const gaRows = quotation.global_addons.map(a => [
 a.name,
+a.size || "-",
 String(a.count || 1),
 fmt(a.totalPrice || a.price || 0)
 ]);
 const gaTotal = quotation.global_addons.reduce((acc, curr) => acc + (curr.totalPrice || curr.price || 0), 0);
 drawDataTable(
 doc,
-["Item Name", "Qty", "Item Cost"],
+["Item Name", "Size", "Qty", "Item Cost"],
 gaRows,
-[CONTENT_W * 0.55, CONTENT_W * 0.15, CONTENT_W * 0.30],
-["EXTRA ADD-ONS TOTAL", "", fmt(gaTotal)]
+[CONTENT_W * 0.45, CONTENT_W * 0.20, CONTENT_W * 0.10, CONTENT_W * 0.25],
+["EXTRA ADD-ONS TOTAL", "", "", fmt(gaTotal)]
 );
 doc.y += 15;
 }
