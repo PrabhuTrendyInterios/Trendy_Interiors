@@ -3,12 +3,9 @@ require('dotenv').config();
 const Category = require('./models/Category');
 const connectDB = require('./config/db');
 
-const seedCategories = async () => {
+const seedCategories = async ({ closeConnection = true } = {}) => {
     try {
         await connectDB();
-
-        // Clear existing categories
-        await Category.deleteMany({});
 
         const defaultCategories = [
             {
@@ -34,13 +31,33 @@ const seedCategories = async () => {
             }
         ];
 
-        await Category.insertMany(defaultCategories);
+        for (const category of defaultCategories) {
+            await Category.findOneAndUpdate({ name: category.name }, category, {
+                upsert: true,
+                new: true,
+                runValidators: true,
+                setDefaultsOnInsert: true,
+            });
+        }
+
         console.log('✓ Default categories seeded successfully');
-        process.exit(0);
+
+        if (closeConnection && mongoose.connection.readyState === 1) {
+            await mongoose.connection.close();
+        }
     } catch (error) {
         console.error('Error seeding categories:', error.message);
-        process.exit(1);
+        if (closeConnection && mongoose.connection.readyState === 1) {
+            await mongoose.connection.close();
+        }
+        throw error;
     }
 };
 
-seedCategories();
+if (require.main === module) {
+    seedCategories()
+        .then(() => process.exit(0))
+        .catch(() => process.exit(1));
+}
+
+module.exports = seedCategories;

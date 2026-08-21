@@ -16,16 +16,6 @@ const selectedDesignIdeaSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
-    roomType: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    planTier: {
-      type: String,
-      trim: true,
-      default: "",
-    },
   },
   { _id: false }
 );
@@ -54,8 +44,6 @@ const roomDimensionSchema = new mongoose.Schema(
         layout: "",
         addons: [],
         room: "",
-        roomType: "",
-        planTier: "",
       }),
     },
   },
@@ -79,6 +67,21 @@ const roomLineItemSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    length: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    width: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    height: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
     areaSqFt: {
       type: Number,
       required: true,
@@ -89,19 +92,75 @@ const roomLineItemSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-    roomMultiplier: {
+    baseCost: {
       type: Number,
-      required: true,
       min: 0,
+      default: 0,
     },
     layout: {
       type: String,
       trim: true,
       default: "",
     },
+    layoutCost: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
     addons: {
       type: [String],
       default: [],
+    },
+    addonsCost: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    addonDetails: {
+      type: [
+        {
+          id: String,
+          name: String,
+          size: String,
+          count: Number,
+          price: Number,
+          totalPrice: Number,
+        },
+      ],
+      default: [],
+    },
+    packageComponents: {
+      type: [
+        {
+          id: String,
+          name: String,
+          description: String,
+          price: Number,
+          mandatory: Boolean,
+        },
+      ],
+      default: [],
+    },
+    packageComponentsTotal: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    layoutMaterials: {
+      type: [
+        {
+          id: String,
+          name: String,
+          price: Number,
+          mandatory: Boolean,
+        },
+      ],
+      default: [],
+    },
+    layoutMaterialsCost: {
+      type: Number,
+      min: 0,
+      default: 0,
     },
     estimatedCost: {
       type: Number,
@@ -115,6 +174,16 @@ const roomLineItemSchema = new mongoose.Schema(
 const quoteSummarySchema = new mongoose.Schema(
   {
     totalAreaSqFt: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    roomTotals: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    globalAddonsTotal: {
       type: Number,
       default: 0,
       min: 0,
@@ -176,12 +245,6 @@ const estimatorSchema = new mongoose.Schema(
       required: true,
       default: {},
     },
-    budgetPlan: {
-      type: String,
-      required: true,
-      enum: ["starter", "budgetFriendly", "premium", "signature"],
-      trim: true,
-    },
     selectedRoomForDimensions: {
       type: String,
       default: "",
@@ -211,7 +274,13 @@ const estimatorSchema = new mongoose.Schema(
       default: "submitted",
     },
     extraAddons: {
-      type: [String],
+      type: [
+        {
+          id: String,
+          size: String,
+          count: Number,
+        },
+      ],
       default: [],
     },
   },

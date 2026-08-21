@@ -2,15 +2,31 @@
 .estimator-page {
   padding-bottom: var(--spacing-lg);
   min-height: 100vh;
-  background-color: var(--color-off-white);
+  background:
+    linear-gradient(135deg, rgba(14, 14, 14, 0.72), rgba(14, 14, 14, 0.45)),
+    url('../../public/images/hero-sectionn.png') center/cover no-repeat;
 }
 
 .estimator-header-bg {
-  background-color: var(--color-charcoal);
+  background: transparent;
   color: var(--color-white);
   padding: var(--spacing-xl) 0 var(--spacing-lg);
   text-align: center;
   margin-bottom: -40px;
+  position: relative;
+}
+
+.estimator-header-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  z-index: 0;
+}
+
+.estimator-header-bg > .container {
+  position: relative;
+  z-index: 1;
 }
 
 .estimator-page-title {
@@ -138,12 +154,22 @@
 .selected-summary {
   text-align: center;
   margin-bottom: var(--spacing-md);
-  padding: 15px;
-  background-color: #fff9eb;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: var(--radius-sm);
+  margin-top: var(--spacing-lg);
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.03) 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.25);
+  border-radius: 12px;
   color: var(--color-charcoal-dark);
   font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.06);
+  transition: all 0.25s ease;
+}
+
+.selected-summary strong {
+  color: var(--color-gold-dark);
+  font-weight: 700;
 }
 
 .quote-progress-note {
@@ -157,64 +183,11 @@
 .estimator-actions {
   display: flex;
   justify-content: space-between;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
   margin-top: var(--spacing-md);
-  border-top: 1px solid var(--color-gray-lighter);
+  border-top: 2px solid rgba(212, 175, 55, 0.1);
   padding-top: var(--spacing-md);
 }
-
-.btn-secondary,
-.btn-primary {
-  padding: 12px 32px;
-  border-radius: var(--radius-sm);
-  font-weight: 700;
-  font-size: 1rem;
-  white-space: nowrap;
-  width: auto;
-}
-
-.btn-primary {
-  background-color: var(--color-gold);
-  color: var(--color-white);
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--color-gold-dark);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.btn-secondary {
-  background-color: transparent;
-  color: var(--color-charcoal);
-  border: 1px solid var(--color-charcoal);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: var(--color-charcoal);
-  color: var(--color-white);
-}
-
-.btn-primary:disabled,
-.btn-secondary:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-/* Button Hidden State */
-.btn-hidden {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  cursor: default !important;
-  animation: none !important;
-}
-
-/* Button Animations */
-.estimator-actions > button:not(.btn-hidden):nth-child(1) {
-  animation: slideInFromLeft 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
 .estimator-actions > button:not(.btn-hidden):nth-child(2) {
   animation: slideInFromRightSlow 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
@@ -245,98 +218,175 @@
 
 .room-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+
+  max-width: 900px;
+  margin: 0 auto; /* centers grid */
+
+  align-items: stretch; /* IMPORTANT */
 }
 
 .room-card {
   background-color: var(--color-off-white);
   background-size: cover;
   background-position: center;
-  border: 2px solid transparent;
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
-  text-align: center;
-  cursor: pointer;
-  transition: all var(--transition-normal);
+
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 16px;
+
+  height: 320px; /* keep this */
+
+  padding: var(--spacing-lg); /* restore padding */
+
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* keeps the card content stacked */
+
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  box-shadow: var(--shadow-sm);
+
+  gap: var(--spacing-md); /* ensures vertical spacing */
+
+  text-align: center;
+  cursor: pointer;
+
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  position: relative;
+  overflow: hidden;
+}
+
+.room-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(212, 175, 55, 0) 100%);
+  opacity: 0;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+.room-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.2),
+    rgba(0,0,0,0.7)
+  );
+  z-index: 1;
 }
 
 .room-card:hover,
 .room-card.selected {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-8px);
+  box-shadow: 0 16px 48px rgba(212, 175, 55, 0.15);
   border-color: var(--color-gold);
 }
 
-.room-card-livingRoom {
-  grid-column: span 3;
-  grid-row: span 2;
-  padding: var(--spacing-xl);
+.room-card:hover::before,
+.room-card.selected::before {
+  opacity: 1;
 }
 
+.room-card-kitchen,
 .room-card-bedroom,
-.room-card-kitchen {
-  grid-column: span 3;
-}
-
-.room-card-bathroom,
-.room-card-dining,
-.room-card-office {
-  grid-column: span 2;
+.room-card-hall,
+.room-card-poojaroom {
+  grid-column: span 1;
 }
 
 .room-icon {
-  font-size: 3rem;
+  font-size: 3.5rem;
   color: var(--color-white);
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 2;
+}
+
+.room-card:hover .room-icon,
+.room-card.selected .room-icon {
+  transform: scale(1.15);
 }
 
 .room-name {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--color-white);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 2;
 }
 
 .room-counter {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 8px;
+  padding: 10px 18px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 50px;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 2;
+  transition: all 0.25s ease;
   width: 140px;
-  margin-top: 15px;
-  padding: 6px 15px;
-  background-color: var(--color-white);
-  border-radius: 30px;
-  border: 1px solid var(--color-gray-lighter);
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 50px;
+
+}
+
+.room-card:hover .room-counter,
+.room-card.selected .room-counter {
+  border-color: var(--color-gold);
+  background-color: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.12);
 }
 
 .counter-btn {
   background-color: transparent;
-  border: 1px solid var(--color-gray-lighter);
+  border: 1.5px solid rgba(212, 175, 55, 0.4);
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   cursor: pointer;
-  color: var(--color-charcoal);
+  color: var(--color-charcoal-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  font-weight: 600;
 }
 
 .counter-btn:hover:not(:disabled) {
-  background-color: var(--color-gold);
+  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-dark) 100%);
   color: var(--color-white);
   border-color: var(--color-gold);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.counter-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .counter-value {
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-charcoal-dark);
+  font-size: 1.1rem;
+  min-width: 24px;
+  text-align: center;
 }
 
 /* Budget */
@@ -596,10 +646,10 @@
 }
 
 .dimensions-room-navigation {
-  display: grid;
-  grid-template-columns: 180px minmax(0, 1fr) 180px;
-  gap: var(--spacing-sm);
+  display: flex;
   align-items: center;
+  justify-content: flex-start;
+  gap: var(--spacing-sm);
   margin-bottom: var(--spacing-md);
   padding: 12px;
   border: 1px solid rgba(212, 175, 55, 0.25);
@@ -607,11 +657,45 @@
   background: rgba(255, 249, 235, 0.65);
 }
 
+.dimensions-room-navigation button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  min-width: 50px;
+  white-space: nowrap;
+}
+
+.dimensions-room-navigation .btn-secondary {
+  background-color: #ffffff;
+  color: #202124;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.dimensions-room-navigation .btn-secondary:hover:not(:disabled) {
+  background-color: #202124;
+  color: #ffffff;
+}
+
+.dimensions-room-navigation .btn-secondary:disabled {
+  opacity: 0.75;
+  color: #5f6368;
+  background-color: rgba(255, 255, 255, 0.92);
+}
+
 .dimensions-room-status {
   text-align: center;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 4px;
+  align-items: center;
 }
 
 .dimensions-room-status span {
@@ -786,9 +870,304 @@
   margin-top: 4px;
 }
 
+.size-info-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: var(--spacing-md);
+}
+
+.size-match-card {
+  margin-top: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  background-color: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+.size-match-card span {
+  color: var(--color-gray);
+  font-size: 0.85rem;
+}
+
+.size-match-card strong {
+  display: block;
+  color: #000000;
+  font-size: 1.5rem;
+  margin-top: 4px;
+}
+
+/* Size Buttons Container */
+.size-buttons-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: var(--spacing-md);
+}
+
+.size-buttons-container label {
+  font-weight: 600;
+  color: var(--color-charcoal-dark);
+  font-size: 0.9rem;
+}
+
+.size-button-group {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.size-button {
+  padding: 12px 16px;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-white);
+  color: var(--color-charcoal-dark);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-align: center;
+}
+
+.size-button:hover {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+  transform: translateY(-2px);
+}
+
+.size-button:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.size-button.selected {
+  border-color: var(--color-gold);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.04) 100%);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+  color: var(--color-gold);
+  font-weight: 700;
+}
+
+/* Size Dropdown Container - DEPRECATED but kept for backwards compatibility */
+.size-dropdown-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: var(--spacing-md);
+}
+
+.size-dropdown-container label {
+  font-weight: 600;
+  color: var(--color-charcoal-dark);
+  font-size: 0.9rem;
+}
+
+.size-dropdown-container select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-white);
+  color: var(--color-charcoal-dark);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 40px;
+}
+
+.size-dropdown-container select:hover {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.size-dropdown-container select:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.size-dropdown-container select:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Size Presets */
+.size-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: var(--spacing-md);
+}
+
+.size-preset-card {
+  position: relative;
+  padding: 20px 16px;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-white);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.size-preset-card:hover {
+  border-color: var(--color-gold);
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.2);
+  transform: translateY(-3px);
+}
+
+.size-preset-card.selected {
+  border-color: var(--color-gold);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.04) 100%);
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.25);
+  transform: translateY(-3px);
+}
+
+.size-preset-header {
+  width: 100%;
+}
+
+.size-preset-title {
+  margin: 0;
+  color: var(--color-charcoal-dark);
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.size-preset-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.size-detail {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.size-detail-label {
+  font-size: 0.7rem;
+  color: var(--color-gray-light);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 1px;
+  min-width: 16px;
+}
+
+.size-detail-value {
+  font-weight: 700;
+  color: var(--color-charcoal-dark);
+  font-size: 0.95rem;
+}
+
+.size-preset-checkmark {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--color-gold);
+  font-weight: 800;
+  font-size: 1.2rem;
+  opacity: 0;
+  transition: all var(--transition-normal);
+}
+
+.size-preset-card.selected .size-preset-checkmark {
+  opacity: 1;
+  background-color: var(--color-gold);
+  color: var(--color-white);
+}
+
+.custom-card .size-preset-details .size-detail-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* Custom Dimensions Inputs */
+.custom-dimensions-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+  margin-bottom: var(--spacing-md);
+  padding: 16px;
+  background-color: rgba(212, 175, 55, 0.04);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.custom-input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.custom-input-field label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--color-charcoal-dark);
+  font-size: 0.9rem;
+}
+
+.custom-input-field input {
+  width: 100%;
+  height: 40px;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  background-color: var(--color-white);
+  color: var(--color-charcoal-dark);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all var(--transition-normal);
+}
+
+.custom-input-field input:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.custom-input-field input:disabled {
+  background-color: #f5f5f5;
+  color: var(--color-gray-light);
+}
+
 /* Layout/Add-on Sections */
 .premium-design-section {
   margin-bottom: calc(var(--spacing-md) * 1.4);
+}
+
+.dimension-layout-inline {
+  margin-top: 1.25rem;
+  margin-bottom: 0;
+  padding-top: 1.15rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.22);
 }
 
 .premium-design-section h4 {
@@ -1130,6 +1509,212 @@
   }
 }
 
+/* Client change request: lighter defaults with red selected states in estimator controls. */
+.dimensions-room-panels {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  position: relative;
+}
+
+.dimensions-room-carousel {
+  position: relative;
+  min-width: 0;
+}
+
+.room-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 5;
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid var(--color-gold);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.82);
+  color: var(--color-gold-light);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transform: translateY(-50%);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.room-carousel-arrow:hover {
+  background: var(--color-gold);
+  color: var(--color-charcoal-dark);
+  transform: translateY(-50%) scale(1.06);
+}
+
+.room-carousel-arrow:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+  transform: translateY(-50%);
+  box-shadow: none;
+}
+
+.room-carousel-arrow:disabled:hover {
+  background: rgba(0, 0, 0, 0.82);
+  color: var(--color-gold-light);
+}
+
+.room-carousel-next {
+  left: -24px;
+}
+
+.room-carousel-prev {
+  right: -24px;
+}
+
+.room-carousel-position {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 3;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.72);
+  color: var(--color-gold-light);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.dimension-lock-note {
+  margin: -0.25rem 0 0.85rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.86rem;
+}
+
+.premium-design-section.is-disabled {
+  opacity: 0.74;
+}
+
+.estimator-page .counter-btn,
+.estimator-page .btn-primary {
+  background: linear-gradient(135deg, #fff2a8, #f8d95d) !important;
+  border-color: #f8d95d !important;
+  color: #1b1407 !important;
+}
+
+.estimator-page .size-button.selected,
+.estimator-page .premium-image-option.selected,
+.estimator-page .room-card.selected,
+.estimator-page .progress-step.current {
+  border-color: #d82323 !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.estimator-page .size-button.selected,
+.estimator-page .premium-image-option.selected {
+  color: inherit !important;
+  transform: none;
+}
+
+.estimator-page .premium-image-option.selected span {
+  color: var(--color-white) !important;
+}
+
+.quote-terms-notes {
+  margin-top: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--color-gold);
+  list-style: disc;
+  padding-left: 2rem;
+}
+
+.quote-terms-notes li {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.quote-terms-notes li + li {
+  margin-top: 0.2rem;
+}
+
+.quote-terms-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  margin: -3px 2px;
+  padding: 3px 7px !important;
+  border: 1px solid transparent !important;
+  border-radius: 6px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transform-origin: center;
+}
+
+.quote-terms-link.needs-attention {
+  border-color: var(--color-gold) !important;
+  background: rgba(212, 175, 55, 0.22) !important;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.14), 0 0 20px rgba(212, 175, 55, 0.5);
+  animation: terms-link-attention 0.9s ease-in-out 2;
+}
+
+.quote-terms-prompt {
+  flex: 1 0 100%;
+  min-height: 1.25rem;
+  color: transparent !important;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.quote-terms-prompt.visible {
+  color: var(--color-gold-dark) !important;
+}
+
+@keyframes terms-link-attention {
+  0%, 100% { transform: translateX(0) scale(1); }
+  20% { transform: translateX(-5px) scale(1.04); }
+  40% { transform: translateX(5px) scale(1.04); }
+  60% { transform: translateX(-3px) scale(1.04); }
+  80% { transform: translateX(3px) scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quote-terms-link.needs-attention {
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .room-carousel-arrow {
+    width: 42px;
+    height: 42px;
+  }
+
+  .room-carousel-next {
+    left: 4px;
+  }
+
+  .room-carousel-prev {
+    right: 30px;
+  }
+}
+
+.estimator-page .size-button strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 768px) {
+  .premium-design-focus {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dimensions-room-panels {
+    gap: 14px;
+  }
+}
+
 @keyframes slideOutToLeft {
   from {
     opacity: 1;
@@ -1232,16 +1817,18 @@
     grid-template-columns: 1fr;
   }
 
+  .size-button-group {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .premium-image-option-grid {
     grid-template-columns: 1fr;
   }
 
-  .room-card-livingRoom,
-  .room-card-bedroom,
   .room-card-kitchen,
-  .room-card-bathroom,
-  .room-card-dining,
-  .room-card-office {
+  .room-card-bedroom,
+  .room-card-hall,
+  .room-card-poojaroom {
     grid-column: span 1;
   }
 
@@ -1299,6 +1886,33 @@
     gap: var(--spacing-sm);
   }
 
+  .size-presets-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .size-button-group {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .custom-dimensions-inputs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .size-info-box {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .area-card span,
+  .size-match-card span {
+    font-size: 0.75rem;
+  }
+
+  .area-card strong,
+  .size-match-card strong {
+    font-size: 1.2rem;
+  }
+
   .budget-plan-price {
     font-size: 1.5rem;
   }
@@ -1349,6 +1963,75 @@
   .premium-layout-grid {
     grid-template-columns: 1fr;
     gap: var(--spacing-sm);
+  }
+
+  .size-presets-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .size-preset-card {
+    padding: 16px 12px;
+  }
+
+  .size-preset-title {
+    font-size: 1.1rem;
+  }
+
+  .size-detail-value {
+    font-size: 0.85rem;
+  }
+
+  .size-button-group {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .size-button {
+    min-height: 68px;
+    padding: 12px 14px;
+  }
+
+  .premium-design-control-panel {
+    padding: 18px 14px;
+  }
+
+  .dimension-input-card {
+    padding: 18px 14px;
+    margin-bottom: 16px;
+  }
+
+  .size-buttons-container {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .estimator-actions {
+    padding-right: 28px;
+  }
+
+  .custom-dimensions-inputs {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .custom-input-field input {
+    height: 36px;
+    font-size: 0.85rem;
+  }
+
+  .size-info-box {
+    grid-template-columns: 1fr;
+  }
+
+  .area-card span,
+  .size-match-card span {
+    font-size: 0.7rem;
+  }
+
+  .area-card strong,
+  .size-match-card strong {
+    font-size: 1.1rem;
   }
 
   .premium-layout-card {
@@ -1473,6 +2156,16 @@
     width: 22px;
     height: 22px;
   }
+
+  .area-card span,
+  .size-match-card span {
+    font-size: 0.65rem;
+  }
+
+  .area-card strong,
+  .size-match-card strong {
+    font-size: 1rem;
+  }
 }
 
 /* Review Container - Responsive */
@@ -1491,7 +2184,7 @@
   }
 
   .review-container > div:first-child img {
-    height: 400px !important;
+    height: 400px;
   }
 }
 
@@ -1502,11 +2195,11 @@
   }
 
   .review-container > div:first-child {
-    display: none !important;
+    display: none;
   }
 
   .review-container h2 {
-    font-size: 1.5rem !important;
+    font-size: 1.5rem;
   }
 }
 
@@ -1517,11 +2210,11 @@
   }
 
   .review-container > div:first-child {
-    display: none !important;
+    display: none;
   }
 
   .review-container h2 {
-    font-size: 1.3rem !important;
+    font-size: 1.3rem;
   }
 }
 
@@ -1531,16 +2224,16 @@
   }
 
   .review-container > div:first-child {
-    display: none !important;
+    display: none;
   }
 
   .review-container h2 {
-    font-size: 1.1rem !important;
-    margin-bottom: 0.75rem !important;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
   }
 
   .review-container h4 {
-    font-size: 0.9rem !important;
+    font-size: 0.9rem;
   }
 }
 
@@ -1578,4 +2271,2399 @@
 .premium-design-control-panel::-webkit-scrollbar-thumb:hover,
 .premium-room-control-panel::-webkit-scrollbar-thumb:hover {
   background: rgba(212, 175, 55, 0.85);
+}
+
+/* Dark glass estimator surface overrides */
+.estimator-wrapper,
+.budget-selection-container,
+.premium-design-control-panel,
+.premium-room-control-panel,
+.dimension-input-card,
+.room-dimensions-panel,
+.design-gallery-card,
+.budget-card,
+.size-preset-card,
+.premium-size-card,
+.premium-choice-card,
+.room-completion-item,
+.budget-summary,
+.dimensions-room-navigation,
+.dimensions-plan-pill,
+.custom-dimensions-inputs,
+.premium-room-selected,
+.selected-summary {
+  background: rgba(0, 0, 0, 0.44) !important;
+  border: 4px solid var(--color-gold) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), var(--shadow-gold) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.budget-card:hover,
+.budget-card.selected,
+.budget-card.popular,
+.budget-card.popular.selected,
+.size-preset-card:hover,
+.size-preset-card.selected,
+.premium-size-card:hover,
+.premium-size-card.selected,
+.premium-choice-card:hover,
+.premium-choice-card.selected,
+.room-completion-item.complete {
+  background: rgba(212, 175, 55, 0.16) !important;
+  border-color: var(--color-gold-light) !important;
+}
+
+.room-selection-header h2,
+.budget-selection-header h2,
+.dimensions-step-header h2,
+.premium-design-control-panel h3,
+.premium-room-control-panel h3,
+.dimension-input-card h3,
+.room-dimensions-panel h3,
+.design-gallery-card h3,
+.budget-plan-title,
+.budget-plan-price,
+.dimensions-plan-pill strong,
+.dimensions-room-status strong,
+.area-card strong,
+.size-match-card strong,
+.size-preset-title,
+.size-detail-value,
+.premium-design-section h4,
+.premium-size-card strong,
+.premium-choice-card,
+.premium-manual-input,
+.premium-room-selected,
+.selected-summary {
+  color: #ffffff !important;
+}
+
+.room-selection-header p,
+.budget-selection-header p,
+.dimensions-step-header p,
+.premium-design-control-panel p,
+.premium-room-control-panel p,
+.budget-plan-details li,
+.price-unit,
+.dimensions-room-status span,
+.area-card span,
+.size-match-card span,
+.size-detail-label,
+.premium-size-card p,
+.quote-progress-note {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.selected-summary strong,
+.budget-card-icon,
+.premium-step-label,
+.premium-size-card span,
+.premium-panel-label {
+  color: var(--color-gold-light) !important;
+}
+
+.plan-badge,
+.premium-step-label,
+.budget-card-cta,
+.premium-room-tab,
+.premium-room-tab span,
+.premium-layout-check {
+  background: rgba(0, 0, 0, 0.38) !important;
+  border-color: rgba(212, 175, 55, 0.68) !important;
+  color: var(--color-gold-light) !important;
+}
+
+.budget-card-cta.active,
+.premium-room-tab.active,
+.premium-room-tab.completed,
+.premium-room-tab.active span,
+.premium-room-tab.completed span,
+.premium-layout-card.selected .premium-layout-check,
+.size-preset-card.selected .size-preset-checkmark {
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-dark)) !important;
+  color: #ffffff !important;
+}
+
+.room-counter {
+  background: rgba(0, 0, 0, 0.52) !important;
+  border-color: var(--color-gold) !important;
+}
+
+.counter-value,
+.counter-btn {
+  color: #ffffff !important;
+}
+
+.counter-btn {
+  border-color: rgba(212, 175, 55, 0.7) !important;
+}
+
+.dimensions-room-selector label,
+.dimension-field-grid label,
+.size-buttons-container label,
+.size-dropdown-container label,
+.custom-input-field label {
+  color: var(--color-gold-light) !important;
+}
+
+.dimensions-room-selector select,
+.dimension-field-grid input,
+.size-button,
+.size-dropdown-container select,
+.custom-input-field input,
+.premium-manual-input input {
+  background-color: rgba(0, 0, 0, 0.32) !important;
+  border: 2px solid rgba(212, 175, 55, 0.72) !important;
+  color: #ffffff !important;
+}
+
+.dimensions-room-selector select option,
+.size-dropdown-container select option {
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+.dimensions-room-selector select:disabled,
+.size-dropdown-container select:disabled,
+.custom-input-field input:disabled {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.size-button:hover,
+.size-button.selected {
+  background: rgba(212, 175, 55, 0.18) !important;
+  color: var(--color-gold-light) !important;
+}
+
+.estimator-page .btn-primary,
+.estimator-page .btn-secondary {
+  border-radius: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.estimator-page .btn-primary {
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light)) !important;
+  color: var(--color-charcoal-dark) !important;
+  border: 2px solid var(--color-gold) !important;
+  box-shadow: var(--shadow-gold) !important;
+}
+
+.estimator-page .btn-secondary,
+.estimator-page .estimator-back-btn {
+  background: rgba(0, 0, 0, 0.36) !important;
+  color: var(--color-gold-light) !important;
+  border: 2px solid var(--color-gold) !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22) !important;
+}
+
+.estimator-page .btn-primary:hover:not(:disabled),
+.estimator-page .btn-secondary:hover:not(:disabled),
+.estimator-page .estimator-back-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+/* Review step: neutralize legacy inline cream/white quote styling */
+.review-container > div:first-child {
+  border: 4px solid var(--color-gold) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), var(--shadow-gold) !important;
+}
+
+.review-container > div:last-child,
+.review-container > div:last-child > div:not(:first-child):not(.estimator-actions),
+.review-container [style*="#fffdf3"],
+.review-container [style*="#eef4f9"],
+.review-container [style*="#fff0f0"],
+.review-container [style*="#eefaf0"],
+.review-container [style*="#fff4f4"],
+.review-container [style*="rgba(212, 175, 55, 0.1)"] {
+  background: rgba(0, 0, 0, 0.46) !important;
+  border: 4px solid var(--color-gold) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), var(--shadow-gold) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.review-container > div:last-child div {
+  background-color: transparent !important;
+}
+
+.review-container > div:last-child > div:not(:first-child):not(.estimator-actions) {
+  background:
+    radial-gradient(circle at 18% 10%, rgba(232, 201, 104, 0.14), transparent 32%),
+    rgba(0, 0, 0, 0.46) !important;
+  padding: 1.25rem !important;
+}
+
+.review-container h2,
+.review-container h4,
+.review-container p,
+.review-container label,
+.review-container span,
+.review-container strong,
+.review-container button {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.review-container [style*="var(--color-charcoal-dark)"],
+.review-container [style*="var(--color-gray)"],
+.review-container [style*="#1e5b7f"],
+.review-container [style*="#8b1f1f"],
+.review-container [style*="#1e5b2f"] {
+  color: rgba(255, 255, 255, 0.86) !important;
+}
+
+.review-container [style*="var(--color-gold-dark)"],
+.review-container button[style*="transparent"] strong {
+  color: var(--color-gold-light) !important;
+}
+
+.review-container input[type="checkbox"] {
+  accent-color: var(--color-gold);
+}
+
+.review-container button[style*="backgroundColor: isSelected"],
+.review-container button[style*="backgroundColor"] {
+  border-color: var(--color-gold) !important;
+}
+
+.review-container button[style*="white"] {
+  background-color: rgba(0, 0, 0, 0.52) !important;
+}
+
+.review-container > div:last-child > div:first-child {
+  text-align: center;
+}
+
+.review-container > div:last-child > div:first-child h2,
+.review-container > div:last-child > div:first-child p {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+@media (max-width: 600px) {
+  .review-container > div:last-child {
+    gap: 1rem !important;
+  }
+
+  .review-container > div:last-child > div:not(:first-child):not(.estimator-actions) {
+    padding: 1rem !important;
+    border-radius: 18px !important;
+  }
+
+  .review-container [style*="justifyContent: 'space-between'"],
+  .review-container [style*='justifyContent: "space-between"'] {
+    align-items: flex-start !important;
+    gap: 0.65rem !important;
+  }
+
+  .review-container label {
+    min-width: 0;
+  }
+
+  .review-container p[style*="minWidth: '90px'"],
+  .review-container p[style*='minWidth: "90px"'] {
+    min-width: 68px !important;
+  }
+}
+
+/* White glass estimator surface overrides */
+.estimator-page {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.14)),
+    url('../../public/images/hero-sectionn.png') center/cover fixed no-repeat;
+}
+
+.estimator-header-bg::before {
+  background: transparent;
+}
+
+.estimator-page-title {
+  color: var(--color-white);
+}
+
+.estimator-page-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.estimator-wrapper,
+.budget-selection-container,
+.premium-design-control-panel,
+.premium-room-control-panel,
+.dimension-input-card,
+.room-dimensions-panel,
+.design-gallery-card,
+.budget-card,
+.size-preset-card,
+.premium-size-card,
+.premium-choice-card,
+.room-completion-item,
+.budget-summary,
+.dimensions-room-navigation,
+.dimensions-plan-pill,
+.custom-dimensions-inputs,
+.premium-room-selected,
+.selected-summary {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+  color: var(--color-charcoal-dark) !important;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.budget-card:hover,
+.budget-card.selected,
+.budget-card.popular,
+.budget-card.popular.selected,
+.size-preset-card:hover,
+.size-preset-card.selected,
+.premium-size-card:hover,
+.premium-size-card.selected,
+.premium-choice-card:hover,
+.premium-choice-card.selected,
+.room-completion-item.complete {
+  background: rgba(255, 255, 255, 0.24) !important;
+  border-color: rgba(212, 175, 55, 0.72) !important;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.16), var(--shadow-gold) !important;
+}
+
+.room-selection-header h2,
+.budget-selection-header h2,
+.dimensions-step-header h2,
+.premium-design-control-panel h3,
+.premium-room-control-panel h3,
+.dimension-input-card h3,
+.room-dimensions-panel h3,
+.design-gallery-card h3,
+.budget-plan-title,
+.budget-plan-price,
+.dimensions-plan-pill strong,
+.dimensions-room-status strong,
+.area-card strong,
+.size-match-card strong,
+.size-preset-title,
+.size-detail-value,
+.premium-design-section h4,
+.premium-size-card strong,
+.premium-choice-card,
+.premium-manual-input,
+.premium-room-selected,
+.selected-summary {
+  color: var(--color-charcoal-dark) !important;
+}
+
+.room-selection-header p,
+.budget-selection-header p,
+.dimensions-step-header p,
+.premium-design-control-panel p,
+.premium-room-control-panel p,
+.budget-plan-details li,
+.price-unit,
+.dimensions-room-status span,
+.area-card span,
+.size-match-card span,
+.size-detail-label,
+.premium-size-card p,
+.quote-progress-note {
+  color: rgba(26, 26, 26, 0.72) !important;
+}
+
+.selected-summary strong,
+.budget-card-icon,
+.premium-step-label,
+.premium-size-card span,
+.premium-panel-label {
+  color: var(--color-gold-dark) !important;
+}
+
+.plan-badge,
+.premium-step-label,
+.budget-card-cta,
+.premium-room-tab,
+.premium-room-tab span,
+.premium-layout-check {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(212, 175, 55, 0.48) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.budget-card-cta.active,
+.premium-room-tab.active,
+.premium-room-tab.completed,
+.premium-room-tab.active span,
+.premium-room-tab.completed span,
+.premium-layout-card.selected .premium-layout-check,
+.size-preset-card.selected .size-preset-checkmark {
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light)) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.room-counter {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-color: rgba(212, 175, 55, 0.58) !important;
+}
+
+.counter-value,
+.counter-btn {
+  color: var(--color-charcoal-dark) !important;
+}
+
+.counter-btn {
+  border-color: rgba(212, 175, 55, 0.7) !important;
+  background-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.dimensions-room-selector label,
+.dimension-field-grid label,
+.size-buttons-container label,
+.size-dropdown-container label,
+.custom-input-field label {
+  color: var(--color-charcoal-dark) !important;
+}
+
+.dimensions-room-selector select,
+.dimension-field-grid input,
+.size-button,
+.size-dropdown-container select,
+.custom-input-field input,
+.premium-manual-input input {
+  background-color: rgba(255, 255, 255, 0.24) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.dimensions-room-selector select option,
+.size-dropdown-container select option {
+  background: var(--color-white);
+  color: var(--color-charcoal-dark);
+}
+
+.dimensions-room-selector select:disabled,
+.size-dropdown-container select:disabled,
+.custom-input-field input:disabled {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  color: rgba(26, 26, 26, 0.45) !important;
+}
+
+.size-button:hover,
+.size-button.selected {
+  background: rgba(255, 255, 255, 0.28) !important;
+  border-color: rgba(212, 175, 55, 0.72) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.estimator-page .btn-primary,
+.estimator-page .btn-secondary {
+  border-radius: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.estimator-page .btn-primary {
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light)) !important;
+  color: var(--color-charcoal-dark) !important;
+  border: 1px solid rgba(212, 175, 55, 0.58) !important;
+  box-shadow: var(--shadow-gold) !important;
+}
+
+.estimator-page .btn-secondary,
+.estimator-page .estimator-back-btn {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: var(--color-charcoal-dark) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.estimator-page .btn-secondary:hover:not(:disabled),
+.estimator-page .estimator-back-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.review-container > div:first-child {
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+}
+
+.review-container > div:last-child,
+.review-container > div:last-child > div:not(:first-child):not(.estimator-actions),
+.review-container [style*="#fffdf3"],
+.review-container [style*="#eef4f9"],
+.review-container [style*="#fff0f0"],
+.review-container [style*="#eefaf0"],
+.review-container [style*="#fff4f4"],
+.review-container [style*="rgba(212, 175, 55, 0.1)"] {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.review-container > div:last-child > div:not(:first-child):not(.estimator-actions) {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+.review-container h2,
+.review-container h4,
+.review-container p,
+.review-container label,
+.review-container span,
+.review-container strong,
+.review-container button,
+.review-container [style*="var(--color-charcoal-dark)"],
+.review-container [style*="var(--color-gray)"],
+.review-container [style*="#1e5b7f"],
+.review-container [style*="#8b1f1f"],
+.review-container [style*="#1e5b2f"] {
+  color: var(--color-charcoal-dark) !important;
+}
+
+.review-container [style*="var(--color-gold-dark)"],
+.review-container button[style*="transparent"] strong {
+  color: var(--color-gold-dark) !important;
+}
+
+.review-container button[style*="white"] {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.review-container [style*="#3a2b08"],
+.review-container [style*="#4b5563"] {
+  color: inherit !important;
+}
+
+.review-container [style*="#3a2b08"] {
+  color: #3a2b08 !important;
+  font-weight: 700 !important;
+}
+
+.review-container [style*="#4b5563"] {
+  color: #4b5563 !important;
+  font-weight: 600 !important;
+}
+
+.review-container input + span,
+.review-container [style*="Room Add-ons"],
+.review-container [style*="Layout Materials"] {
+  text-shadow: none !important;
+}
+
+@media (max-width: 768px) {
+  .estimator-page {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--color-charcoal-dark) !important;
+    background-color: var(--color-charcoal-dark);
+  }
+
+  .estimator-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100lvh;
+    min-height: 100svh;
+    z-index: 0;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+      url('../../public/images/hero-sectionn.png') center top / cover no-repeat;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+
+  .estimator-page::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100lvh;
+    min-height: 100svh;
+    z-index: 0;
+    background: rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+
+  .estimator-page > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .estimator-header-bg::before {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.16) 0%, rgba(255, 255, 255, 0.02) 100%);
+  }
+
+  .estimator-wrapper {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+/* Compact, light-yellow dimensions controls. */
+.dimensions-category-progress {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 20px;
+  padding: 3px 2px 12px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.7) transparent;
+}
+
+.dimensions-category-tab {
+  flex: 0 0 auto;
+  min-width: 148px;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 13px;
+  border: 2px solid #ecd66f;
+  border-radius: 8px;
+  background: rgba(255, 249, 211, 0.88);
+  color: var(--color-charcoal-dark);
+  font: inherit;
+  font-weight: 800;
+  cursor: default;
+  scroll-snap-align: start;
+  transition: border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.dimensions-category-tab strong {
+  color: #8b6c00;
+  font-size: 0.78rem;
+}
+
+.dimensions-category-tab.selected {
+  border-color: #d82323;
+  background: #fff6c9;
+  box-shadow: 0 0 0 2px rgba(216, 35, 35, 0.1);
+}
+
+.dimensions-category-tab.complete:not(.selected) {
+  border-color: #d4af37;
+}
+
+.dimensions-category-room-scroll {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  max-height: min(72vh, 900px);
+  padding: 20px 18px 20px 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-block: auto;
+  scroll-snap-type: y proximity;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.75) transparent;
+}
+
+.dimensions-room-section {
+  width: 100%;
+  min-width: 0;
+  padding-bottom: 22px;
+  border-bottom: 2px solid rgba(212, 175, 55, 0.5);
+  scroll-snap-align: start;
+}
+
+.dimensions-room-section:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.dimensions-step-container .premium-design-control-panel,
+.dimensions-step-container .dimension-input-card,
+.dimensions-step-container .area-card {
+  background: rgba(255, 250, 220, 0.72) !important;
+}
+
+.dimensions-step-container .size-button {
+  background: rgba(255, 249, 211, 0.82) !important;
+  border-color: #ecd66f !important;
+}
+
+.dimensions-step-container .size-button.selected {
+  border-color: #d82323 !important;
+  background: #fff6c9 !important;
+}
+
+.dimension-text-option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.dimension-text-option {
+  width: 100%;
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 2px solid #ecd66f;
+  border-radius: 8px;
+  background: rgba(255, 249, 211, 0.88);
+  color: var(--color-charcoal-dark);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.dimension-text-option span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.dimension-text-option strong {
+  flex: 0 0 auto;
+  color: #8b6c00;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.dimension-text-option:hover:not(:disabled) {
+  border-color: var(--color-gold-dark);
+  background: #fff4b8;
+}
+
+.dimension-text-option.selected {
+  border-color: #d82323;
+  background: #fff6c9;
+  box-shadow: 0 0 0 2px rgba(216, 35, 35, 0.1);
+}
+
+.dimension-text-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.room-selection-container .counter-value {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* Keep the category image and its shared room panel aligned as one pair. */
+.dimensions-step-container .premium-design-focus {
+  --dimensions-panel-height: clamp(560px, 72vh, 720px);
+  grid-template-columns: minmax(320px, 38.2fr) minmax(0, 61.8fr);
+  column-gap: clamp(28px, 3vw, 48px);
+}
+
+.dimensions-step-container .premium-design-image-card,
+.dimensions-step-container .dimensions-category-room-scroll {
+  height: var(--dimensions-panel-height);
+  min-height: var(--dimensions-panel-height);
+  max-height: var(--dimensions-panel-height);
+}
+
+@media (max-width: 600px) {
+  .dimensions-category-progress {
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+  }
+
+  .dimensions-category-tab {
+    min-width: 132px;
+  }
+
+  .dimensions-category-room-scroll {
+    gap: 12px;
+    padding: 14px 12px 16px 14px;
+  }
+
+  .dimension-text-option-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dimension-text-option {
+    min-height: 58px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px 11px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .dimensions-step-container .premium-design-focus {
+    --dimensions-panel-height: clamp(360px, 68vh, 560px);
+    row-gap: 24px;
+  }
+
+  .dimensions-step-container .premium-design-image-card {
+    aspect-ratio: auto;
+  }
+}
+
+/* Review step: framed image with an independently scrolling quotation. */
+.review-container {
+  --review-panel-height: clamp(640px, 78vh, 820px);
+  grid-template-columns: minmax(320px, 0.78fr) minmax(0, 1.22fr);
+  gap: clamp(28px, 3vw, 48px);
+  align-items: stretch;
+}
+
+.review-container .review-image-card {
+  height: var(--review-panel-height);
+  border: 4px solid var(--color-gold) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.24) !important;
+}
+
+.review-container .review-image-card img {
+  height: 100% !important;
+}
+
+.review-container .review-quote-column {
+  height: var(--review-panel-height);
+  min-height: 0;
+  padding: 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.85) transparent;
+  background: transparent !important;
+  border: 4px solid var(--color-gold) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.review-container .review-quote-column::-webkit-scrollbar {
+  width: 8px;
+}
+
+.review-container .review-quote-column::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.85);
+}
+
+.review-container .review-summary-section,
+.review-container .review-selected-rooms,
+.review-container .quote-review-panel {
+  padding: 18px !important;
+  background: rgba(255, 250, 220, 0.76) !important;
+  border: 2px solid var(--color-gold) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.review-container .review-summary-card {
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 1100px) {
+  .review-container {
+    --review-panel-height: clamp(440px, 68vh, 620px);
+  }
+}
+
+@media (max-width: 768px) {
+  .review-container .review-quote-column {
+    height: min(72vh, 680px);
+    padding: 14px;
+  }
+
+  .review-container .review-summary-section,
+  .review-container .review-selected-rooms,
+  .review-container .quote-review-panel {
+    padding: 14px !important;
+  }
+}
+
+/* Match the Dimensions progress message to the Add-ons helper note. */
+.dimensions-step-container .quote-progress-note {
+  margin: 0 0 30px;
+  padding: 15px;
+  border: 2px dashed rgba(212, 175, 55, 0.56);
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.34);
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .dimensions-step-container .quote-progress-note {
+    margin-bottom: 22px;
+    padding: 13px;
+  }
+}
+
+/* Keep Room Selection aligned with the Add-ons visual language. */
+.room-selection-container .room-selection-header h2 {
+  color: var(--color-gold-light) !important;
+}
+
+.room-selection-container .room-selection-header p {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.room-selection-container .selected-summary {
+  margin: 24px 0 30px;
+  padding: 15px;
+  border: 2px dashed rgba(212, 175, 55, 0.56) !important;
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.34) !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.room-selection-container .selected-summary strong {
+  color: var(--color-gold-light) !important;
+}
+
+@media (max-width: 768px) {
+  .room-selection-container .room-selection-header h2 {
+    color: #3b2c13 !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  }
+
+  .room-selection-container .room-selection-header p {
+    color: #4b4032 !important;
+    font-weight: 600;
+  }
+
+  .room-selection-container .selected-summary {
+    margin: 20px 0 22px;
+    padding: 13px;
+  }
+}
+
+/* Mobile-first quotation layout. */
+@media (max-width: 768px) {
+  .estimator-page .review-container {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .estimator-page .review-container,
+  .estimator-page .review-container * {
+    box-sizing: border-box;
+  }
+
+  .estimator-page .review-quote-column {
+    width: 100%;
+    max-width: 100%;
+    height: min(74svh, 680px);
+    min-height: 500px;
+    gap: 12px !important;
+    padding: 12px;
+    border-width: 3px !important;
+    border-radius: 12px !important;
+  }
+
+  .review-quote-header {
+    padding: 4px 2px 2px;
+    text-align: center;
+  }
+
+  .review-quote-header h2 {
+    margin-bottom: 6px !important;
+    font-size: 1.55rem !important;
+    line-height: 1.15;
+  }
+
+  .review-quote-header p {
+    margin-bottom: 4px !important;
+    font-size: 0.88rem !important;
+    line-height: 1.45;
+  }
+
+  .review-container .review-summary-section,
+  .review-container .review-selected-rooms,
+  .review-container .quote-review-panel {
+    width: 100%;
+    min-width: 0;
+    padding: 12px !important;
+    border-radius: 10px !important;
+    background: rgba(255, 250, 220, 0.9) !important;
+  }
+
+  .review-selected-rooms > div {
+    gap: 6px !important;
+  }
+
+  .review-selected-rooms > div > div {
+    max-width: 100%;
+    padding: 7px 10px !important;
+    overflow-wrap: anywhere;
+    font-size: 0.82rem !important;
+  }
+
+  .quote-total-row {
+    margin-bottom: 16px !important;
+  }
+
+  .quote-total-row > span {
+    font-size: 1.15rem !important;
+  }
+
+  .quote-total-amount {
+    min-width: 0;
+    font-size: clamp(1.8rem, 9vw, 2.35rem) !important;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+  }
+
+  .quote-cost-breakdown {
+    padding-top: 14px !important;
+  }
+
+  .quote-line-item {
+    margin-bottom: 14px !important;
+    padding-bottom: 14px !important;
+  }
+
+  .quote-room-cost-row,
+  .quote-addon-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start !important;
+    gap: 8px !important;
+    padding-left: 0 !important;
+  }
+
+  .quote-room-cost-row p,
+  .quote-addon-row label,
+  .quote-option-cost-row > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .quote-addon-row > p {
+    min-width: 0 !important;
+    white-space: nowrap;
+  }
+
+  .quote-option-cost-row {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start !important;
+    gap: 7px !important;
+    padding-left: 0 !important;
+  }
+
+  .quote-option-cost-row > p:last-child {
+    max-width: 92px;
+    overflow-wrap: anywhere;
+    white-space: normal !important;
+    text-align: right;
+  }
+
+  .quote-acceptance-section {
+    margin-top: 16px !important;
+    padding-top: 14px !important;
+  }
+
+  .quote-acceptance-section label {
+    width: 100%;
+    align-items: flex-start !important;
+  }
+
+  .quote-acceptance-section label > span {
+    min-width: 0;
+    font-size: 0.86rem !important;
+    overflow-wrap: anywhere;
+  }
+
+  .quote-terms-link {
+    min-height: 34px;
+    white-space: normal;
+  }
+
+  .quote-terms-notes {
+    padding: 10px 11px;
+  }
+
+  .quote-terms-notes li {
+    font-size: 0.78rem;
+  }
+
+  .review-quote-column > .estimator-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 0 0 !important;
+  }
+
+  .review-quote-column > .estimator-actions > div,
+  .review-quote-column > .estimator-actions button {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .estimator-page .review-quote-column {
+    height: 76svh;
+    min-height: 480px;
+    padding: 9px;
+  }
+
+  .review-container .review-summary-section,
+  .review-container .review-selected-rooms,
+  .review-container .quote-review-panel {
+    padding: 10px !important;
+  }
+
+  .quote-total-amount {
+    font-size: clamp(1.65rem, 9vw, 2rem) !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .dimension-text-option-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Final estimator polish overrides for dimensions, lead details, and review controls. */
+.dimensions-step-container .dimension-input-card {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.dimensions-category-tab {
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: inherit;
+}
+
+.dimensions-category-tab:focus-visible {
+  outline: 3px solid rgba(212, 175, 55, 0.45);
+  outline-offset: 3px;
+}
+
+.dimensions-step-container .dimension-text-option-grid {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 220px));
+  justify-content: center;
+}
+
+.dimensions-step-container .dimension-text-option,
+.dimensions-step-container .size-button {
+  justify-content: center;
+  text-align: center;
+}
+
+.dimensions-step-container .size-button {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: min(190px, 100%);
+}
+
+.dimensions-step-container .size-button-group {
+  justify-content: center;
+}
+
+.estimator-page .previous-category-btn {
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light)) !important;
+  border-color: var(--color-gold) !important;
+  color: var(--color-charcoal-dark) !important;
+  box-shadow: var(--shadow-gold) !important;
+}
+
+.estimator-page .lead-capture-container {
+  gap: clamp(18px, 2.5vw, 32px);
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.estimator-page .lead-visual-side,
+.estimator-page .lead-form-side {
+  border: 4px solid var(--color-gold) !important;
+  border-radius: 32px !important;
+  overflow: hidden;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22), var(--shadow-gold) !important;
+}
+
+.estimator-page .lead-form-side {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+.estimator-page .review-container .review-quote-column {
+  border: 4px solid var(--color-gold) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18), var(--shadow-gold) !important;
+}
+
+.estimator-page .review-container .review-image-card {
+  border: 4px solid var(--color-gold) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22), var(--shadow-gold) !important;
+}
+
+.estimator-page .review-container .review-summary-section,
+.estimator-page .review-container .review-selected-rooms,
+.estimator-page .review-container .quote-review-panel {
+  border: 3px solid var(--color-gold) !important;
+  border-radius: 18px !important;
+}
+
+.estimator-page .review-container .review-summary-section,
+.estimator-page .review-container .review-selected-rooms,
+.estimator-page .review-container .quote-review-panel,
+.estimator-page .review-container .review-summary-card {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.quote-toggle-control {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border: 2px solid #c62828;
+  border-radius: 50%;
+  background: rgba(198, 40, 40, 0.08);
+  color: #c62828 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.quote-toggle-control.selected {
+  background: var(--color-gold) !important;
+  border-color: var(--color-gold) !important;
+  color: #ffffff !important;
+  font-weight: 900;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16);
+}
+
+.quote-toggle-control svg,
+.quote-toggle-control.selected svg {
+  color: currentColor !important;
+  stroke-width: 3;
+}
+
+.quote-toggle-control:focus-visible {
+  outline: 3px solid rgba(212, 175, 55, 0.35);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .dimensions-step-container .dimension-text-option-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dimensions-step-container .size-button {
+    width: 100%;
+  }
+
+  .estimator-page .lead-capture-container {
+    gap: 16px;
+  }
+
+  .estimator-page .lead-visual-side,
+  .estimator-page .lead-form-side {
+    border-width: 3px !important;
+    border-radius: 22px !important;
+  }
+}
+
+/* Unified estimator card system: gold outer cards, silver-line inner cards, no blur wash. */
+.estimator-page {
+  --estimator-outer-bg: rgba(0, 0, 0, 0.10);
+  --estimator-inner-bg: rgba(255, 255, 255, 0.055);
+  --estimator-silver-line: rgba(235, 235, 230, 0.58);
+  --estimator-soft-line: rgba(212, 175, 55, 0.24);
+}
+
+.estimator-page .estimator-wrapper,
+.estimator-page .budget-selection-container,
+.estimator-page .premium-design-control-panel,
+.estimator-page .premium-room-control-panel,
+.estimator-page .dimensions-category-room-scroll,
+.estimator-page .addons-list,
+.estimator-page .lead-form-side,
+.estimator-page .review-quote-column {
+  background: var(--estimator-outer-bg) !important;
+  border: 4px solid var(--color-gold) !important;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18), var(--shadow-gold) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.estimator-page .lead-visual-side,
+.estimator-page .review-image-card {
+  background-color: var(--estimator-outer-bg) !important;
+  border: 4px solid var(--color-gold) !important;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18), var(--shadow-gold) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.estimator-page .review-quote-column {
+  background: transparent !important;
+}
+
+.estimator-page .budget-card,
+.estimator-page .dimension-input-card,
+.estimator-page .room-dimensions-panel,
+.estimator-page .dimension-text-option,
+.estimator-page .size-button,
+.estimator-page .addon-list-row,
+.estimator-page .selected-summary,
+.estimator-page .review-summary-section,
+.estimator-page .review-selected-rooms,
+.estimator-page .quote-review-panel,
+.estimator-page .review-summary-card,
+.estimator-page .lead-input {
+  background: var(--estimator-inner-bg) !important;
+  border: 1px solid var(--estimator-silver-line) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.estimator-page .room-card {
+  border: 4px solid var(--color-gold) !important;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18), var(--shadow-gold) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.estimator-page .room-card.selected {
+  border-color: #d82323 !important;
+}
+
+.estimator-page .review-summary-section,
+.estimator-page .review-selected-rooms,
+.estimator-page .quote-review-panel {
+  border-color: var(--estimator-silver-line) !important;
+}
+
+.estimator-page .quote-line-item,
+.estimator-page .quote-cost-breakdown,
+.estimator-page .quote-acceptance-section,
+.estimator-page .quote-option-cost-row,
+.estimator-page .quote-addon-row {
+  border-color: var(--estimator-soft-line) !important;
+}
+
+.estimator-page .quote-option-cost-row button,
+.estimator-page .quote-toggle-control {
+  background: var(--color-gold) !important;
+  border: 2px solid var(--color-gold) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16) !important;
+}
+
+.estimator-page .quote-option-cost-row button span,
+.estimator-page .quote-option-cost-row button svg,
+.estimator-page .quote-toggle-control svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  font-weight: 900 !important;
+  stroke-width: 3 !important;
+}
+
+.estimator-page .dimension-input-card,
+.estimator-page .dimension-input-card p,
+.estimator-page .dimension-input-card label,
+.estimator-page .dimension-input-card span,
+.estimator-page .dimension-input-card strong,
+.estimator-page .premium-design-section,
+.estimator-page .premium-design-section p,
+.estimator-page .premium-design-section label,
+.estimator-page .premium-design-section span,
+.estimator-page .premium-design-section strong,
+.estimator-page .dimensions-category-room-scroll,
+.estimator-page .dimensions-category-room-scroll p,
+.estimator-page .dimensions-category-room-scroll label,
+.estimator-page .dimensions-category-room-scroll span,
+.estimator-page .dimensions-category-room-scroll strong,
+.estimator-page .lead-form-side,
+.estimator-page .lead-form-side p,
+.estimator-page .lead-form-side label {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.estimator-page .room-selection-header h2,
+.estimator-page .budget-selection-header h2,
+.estimator-page .dimensions-step-header h2,
+.estimator-page .addons-header h2,
+.estimator-page .review-quote-header h2,
+.estimator-page .lead-form-side h2,
+.estimator-page .dimension-input-card h3,
+.estimator-page .premium-design-section h4,
+.estimator-page .review-container h4 {
+  color: var(--color-gold-light) !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+.estimator-page .room-selection-header p,
+.estimator-page .budget-selection-header p,
+.estimator-page .dimensions-step-header p,
+.estimator-page .addons-header p,
+.estimator-page .review-quote-header p,
+.estimator-page .lead-form-side > div:first-child p,
+.estimator-page .dimension-input-card p,
+.estimator-page .quote-progress-note,
+.estimator-page .review-container p,
+.estimator-page .review-container label,
+.estimator-page .review-container span,
+.estimator-page .review-container strong,
+.estimator-page .lead-label {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.estimator-page .lead-input {
+  color: #ffffff !important;
+  border-color: var(--estimator-silver-line) !important;
+}
+
+.estimator-page .lead-input::placeholder {
+  color: rgba(255, 255, 255, 0.58) !important;
+}
+
+.estimator-page .dimension-text-option span,
+.estimator-page .dimension-text-option strong,
+.estimator-page .size-button span,
+.estimator-page .size-button strong {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.estimator-page .dimension-text-option.selected,
+.estimator-page .size-button.selected {
+  background: rgba(255, 246, 201, 0.92) !important;
+  border-color: #d82323 !important;
+}
+
+.estimator-page .dimension-text-option.selected span,
+.estimator-page .dimension-text-option.selected strong,
+.estimator-page .size-button.selected span,
+.estimator-page .size-button.selected strong {
+  color: var(--color-charcoal-dark) !important;
+}
+
+.estimator-page .dimensions-category-tab {
+  background: rgba(255, 246, 201, 0.92) !important;
+  border-color: var(--color-gold) !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.estimator-page .dimensions-category-tab span,
+.estimator-page .dimensions-category-tab strong {
+  color: var(--color-charcoal-dark) !important;
+}
+
+.estimator-page .dimensions-category-tab.selected {
+  border-color: #d82323 !important;
+}
+
+.estimator-page .dimensions-room-section > h3,
+.estimator-page .dimensions-room-section [id^="room-title-"] {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55) !important;
+}
+
+.estimator-page .dimension-input-card:has(> .dimension-lock-note) {
+  gap: 14px;
+  padding-block: 22px !important;
+}
+
+.estimator-page .dimension-input-card:has(> .dimension-lock-note) .dimension-lock-note {
+  margin: 0 !important;
+}
+
+.estimator-page .dimension-input-card:has(> .dimension-lock-note) .dimension-layout-inline {
+  margin-top: 0 !important;
+  padding-top: 14px !important;
+}
+
+.estimator-page .review-container .review-summary-card {
+  background: transparent !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Quote review card: match the room-configuration dark photo card without touching the image card. */
+.estimator-page .review-container .quotation-review-card {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(18px, 2.1vw, 28px) !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-image:
+    linear-gradient(90deg, rgba(18, 10, 4, 0.84), rgba(26, 15, 6, 0.68)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.32)),
+    var(--quotation-review-bg) !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  border: 4px solid var(--color-gold) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.3), var(--shadow-gold) !important;
+  color: #ffffff !important;
+  scrollbar-color: rgba(212, 175, 55, 0.9) transparent;
+}
+
+.estimator-page .review-container .quotation-review-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 18px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.16), transparent 34%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.08));
+}
+
+.estimator-page .review-container .quotation-review-card::-webkit-scrollbar {
+  width: 8px;
+}
+
+.estimator-page .review-container .quotation-review-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.estimator-page .review-container .quotation-review-card::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.9);
+}
+
+.estimator-page .quotation-review-card .review-quote-header {
+  padding: 0 0 2px !important;
+  text-align: left !important;
+}
+
+.estimator-page .quotation-review-kicker {
+  display: block;
+  margin: 0 0 12px;
+  color: #ffffff !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.estimator-page .quotation-review-card .review-quote-header h2 {
+  margin: 0 0 10px !important;
+  color: #ffffff !important;
+  font-size: clamp(2rem, 3.2vw, 3rem) !important;
+  line-height: 1.05 !important;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.55) !important;
+}
+
+.estimator-page .quotation-review-card .review-quote-header p {
+  margin: 0 0 8px !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 700 !important;
+}
+
+.estimator-page .quotation-review-card .review-summary-section,
+.estimator-page .quotation-review-card .review-selected-rooms,
+.estimator-page .quotation-review-card .quote-review-panel,
+.estimator-page .quotation-review-card > div[style*="#eef4f9"],
+.estimator-page .quotation-review-card > div[style*="#fff0f0"],
+.estimator-page .quotation-review-card > div[style*="#eefaf0"] {
+  padding: clamp(16px, 1.6vw, 22px) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(235, 235, 230, 0.72) !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
+}
+
+.estimator-page .quotation-review-card .review-summary-card {
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.estimator-page .quotation-review-card .review-summary-card p:first-child,
+.estimator-page .quotation-review-card .quote-review-panel > p:first-child,
+.estimator-page .quotation-review-card .quote-cost-breakdown > p:first-child,
+.estimator-page .quotation-review-card .review-selected-rooms > h4,
+.estimator-page .quotation-review-card .quote-line-item > p:first-child,
+.estimator-page .quotation-review-card .quote-line-item [style*="Package Components"],
+.estimator-page .quotation-review-card .quote-line-item [style*="Package Materials"],
+.estimator-page .quotation-review-card .quote-line-item [style*="Items"] {
+  color: var(--color-gold-light) !important;
+  font-weight: 900 !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45) !important;
+}
+
+.estimator-page .quotation-review-card .review-summary-card p:last-child,
+.estimator-page .quotation-review-card .quote-total-row span,
+.estimator-page .quotation-review-card .quote-total-amount,
+.estimator-page .quotation-review-card .quote-room-cost-row p,
+.estimator-page .quotation-review-card .quote-addon-row p,
+.estimator-page .quotation-review-card .quote-addon-row label,
+.estimator-page .quotation-review-card .quote-option-cost-row p,
+.estimator-page .quotation-review-card .quote-option-cost-row span,
+.estimator-page .quotation-review-card .quote-acceptance-section span,
+.estimator-page .quotation-review-card .quote-terms-notes,
+.estimator-page .quotation-review-card .quote-terms-notes li {
+  color: rgba(255, 255, 255, 0.94) !important;
+  font-weight: 800 !important;
+}
+
+.estimator-page .quotation-review-card .quote-total-amount {
+  font-size: clamp(2.4rem, 5vw, 3.8rem) !important;
+  letter-spacing: 0;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.5);
+}
+
+.estimator-page .quotation-review-card .quote-cost-breakdown,
+.estimator-page .quotation-review-card .quote-line-item,
+.estimator-page .quotation-review-card .quote-acceptance-section,
+.estimator-page .quotation-review-card .quote-option-cost-row,
+.estimator-page .quotation-review-card .quote-addon-row {
+  border-color: rgba(212, 175, 55, 0.36) !important;
+}
+
+.estimator-page .quotation-review-card .review-selected-rooms > div > div {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(235, 235, 230, 0.68) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.estimator-page .quotation-review-card .review-selected-rooms > div > div strong {
+  color: var(--color-gold-light) !important;
+}
+
+.estimator-page .quotation-review-card .dimension-text-option.selected,
+.estimator-page .quotation-review-card .size-button.selected {
+  background: rgba(255, 246, 201, 0.96) !important;
+  border-color: #d82323 !important;
+  color: var(--color-charcoal-dark) !important;
+}
+
+.estimator-page .quotation-review-card .quote-option-cost-row button[aria-pressed="true"],
+.estimator-page .quotation-review-card .quote-toggle-control.selected,
+.estimator-page .quotation-review-card .quote-toggle-control[aria-checked="true"] {
+  background: var(--color-gold) !important;
+  border-color: var(--color-gold) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18) !important;
+}
+
+.estimator-page .quotation-review-card .quote-option-cost-row button[aria-pressed="false"],
+.estimator-page .quotation-review-card .quote-toggle-control:not(.selected) {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(235, 235, 230, 0.72) !important;
+  color: rgba(255, 255, 255, 0.86) !important;
+  box-shadow: none !important;
+}
+
+.estimator-page .quotation-review-card .quote-option-cost-row button span,
+.estimator-page .quotation-review-card .quote-option-cost-row button svg,
+.estimator-page .quotation-review-card .quote-toggle-control span,
+.estimator-page .quotation-review-card .quote-toggle-control svg {
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+.estimator-page .quotation-review-card .quote-terms-link,
+.estimator-page .quotation-review-card .quote-terms-link strong {
+  color: var(--color-gold-light) !important;
+}
+
+.estimator-page .quotation-review-card .quote-terms-notes {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(235, 235, 230, 0.58) !important;
+  border-radius: 10px;
+}
+
+.estimator-page .quotation-review-card .estimator-actions {
+  padding-top: 4px !important;
+}
+
+.estimator-page .quotation-review-card .estimator-actions button {
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22) !important;
+}
+
+@media (max-width: 768px) {
+  .estimator-page .review-container .quotation-review-card {
+    min-height: 500px;
+    height: min(76svh, 680px);
+    padding: 14px !important;
+    border-width: 3px !important;
+    border-radius: 18px !important;
+    background-position: center top !important;
+  }
+
+  .estimator-page .quotation-review-card .review-quote-header {
+    text-align: left !important;
+  }
+
+  .estimator-page .quotation-review-card .review-quote-header h2 {
+    font-size: clamp(1.75rem, 8vw, 2.25rem) !important;
+  }
+
+  .estimator-page .quotation-review-card .review-summary-section,
+  .estimator-page .quotation-review-card .review-selected-rooms,
+  .estimator-page .quotation-review-card .quote-review-panel,
+  .estimator-page .quotation-review-card > div[style*="#eef4f9"],
+  .estimator-page .quotation-review-card > div[style*="#fff0f0"],
+  .estimator-page .quotation-review-card > div[style*="#eefaf0"] {
+    padding: 12px !important;
+    border-radius: 11px !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-total-amount {
+    font-size: clamp(1.9rem, 10vw, 2.45rem) !important;
+  }
+}
+
+.estimator-page .review-container .quotation-review-card .quote-review-panel,
+.estimator-page .review-container .quotation-review-card .review-summary-section,
+.estimator-page .review-container .quotation-review-card .review-selected-rooms {
+  background: rgba(255, 255, 255, 0.08) none !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  background-image: none !important;
+  border-color: rgba(235, 235, 230, 0.72) !important;
+  border-width: 1px !important;
+}
+
+.estimator-page .review-container .quotation-review-card .quote-review-panel > *,
+.estimator-page .review-container .quotation-review-card .review-summary-section > *,
+.estimator-page .review-container .quotation-review-card .review-selected-rooms > * {
+  position: relative;
+}
+
+/* Dimensions page polish: centered room header, layout-first size cards, and compact review rows. */
+.dimensions-step-container .dimensions-room-section > .premium-panel-label,
+.dimensions-step-container .dimensions-room-section > h3 {
+  display: block;
+  text-align: center;
+}
+
+.dimensions-step-container .dimensions-room-section > .premium-panel-label {
+  margin-inline: auto;
+}
+
+.dimensions-step-container .dimensions-room-section > h3 {
+  margin: 0 auto 18px !important;
+  max-width: min(680px, 100%);
+  color: #ffffff !important;
+  font-size: clamp(2rem, 3.6vw, 3rem) !important;
+  line-height: 1.08 !important;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.58) !important;
+}
+
+.dimensions-step-container .dimension-input-card > h3,
+.dimensions-step-container .dimension-input-card > h4,
+.dimensions-step-container .premium-design-section > h4 {
+  text-align: center;
+}
+
+.dimensions-step-container .size-buttons-container {
+  align-items: center;
+  text-align: center;
+}
+
+.dimensions-step-container .size-buttons-container > label {
+  color: rgba(255, 255, 255, 0.92) !important;
+  font-weight: 800 !important;
+}
+
+.dimensions-step-container .size-button-group {
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 220px)) !important;
+  justify-content: center !important;
+  justify-items: stretch;
+}
+
+.dimensions-step-container .size-button {
+  min-height: 72px;
+  display: inline-flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.dimensions-step-container .size-buttons-container.is-locked .size-button {
+  opacity: 0.48;
+  cursor: not-allowed;
+  filter: grayscale(0.25);
+  transform: none !important;
+}
+
+.dimensions-step-container .size-buttons-container.is-locked .dimension-lock-note {
+  width: min(520px, 100%);
+  margin: 0 auto 8px !important;
+}
+
+.estimator-page .quote-option-cost-row {
+  display: grid !important;
+  grid-template-columns: 30px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding-left: 0 !important;
+}
+
+.estimator-page .quote-option-cost-row button {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  min-height: 26px !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12) !important;
+}
+
+.estimator-page .quote-option-cost-row button span,
+.estimator-page .quote-option-cost-row button svg {
+  font-size: 0.82rem !important;
+}
+
+.estimator-page .quote-option-cost-row > div {
+  min-width: 0;
+}
+
+.estimator-page .quote-option-cost-row > div p {
+  max-width: 100%;
+  font-size: 0.82rem !important;
+  line-height: 1.35 !important;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.estimator-page .quote-option-cost-row > p:last-child {
+  max-width: 110px;
+  font-size: 0.82rem !important;
+  line-height: 1.25 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.estimator-page .quote-line-item [style*="Package Components"],
+.estimator-page .quote-line-item [style*="Package Materials"],
+.estimator-page .quote-line-item [style*="Items"] {
+  font-size: 0.82rem !important;
+  line-height: 1.25 !important;
+}
+
+@media (max-width: 768px) {
+  .dimensions-step-container .dimensions-room-section > h3 {
+    font-size: clamp(1.8rem, 9vw, 2.35rem) !important;
+    margin-bottom: 14px !important;
+  }
+
+  .dimensions-step-container .dimension-text-option-grid,
+  .dimensions-step-container .size-button-group {
+    grid-template-columns: 1fr !important;
+    justify-items: stretch;
+  }
+
+  .dimensions-step-container .size-button {
+    min-height: 62px;
+  }
+
+  .estimator-page .quote-option-cost-row {
+    grid-template-columns: 28px minmax(0, 1fr) minmax(64px, auto) !important;
+    gap: 8px !important;
+  }
+
+  .estimator-page .quote-option-cost-row button {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+  }
+
+  .estimator-page .extra-addons-step .addon-list-row {
+    background: rgba(18, 11, 5, 0.74) !important;
+    border-color: rgba(235, 235, 230, 0.7) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 12px 30px rgba(0, 0, 0, 0.22) !important;
+  }
+
+  .estimator-page .extra-addons-step .addon-list-row.selected {
+    background: rgba(255, 246, 201, 0.94) !important;
+    border-color: #d82323 !important;
+  }
+}
+
+/* Mobile quote material toggles: keep controls compact so labels remain readable. */
+@media (max-width: 768px) {
+  .estimator-page .quotation-review-card .quote-option-cost-row {
+    grid-template-columns: 22px minmax(0, 1fr) minmax(54px, auto) !important;
+    align-items: start !important;
+    gap: 7px !important;
+    margin-bottom: 0.55rem !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-option-cost-row button {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    margin-top: 2px !important;
+    border-width: 1.5px !important;
+    box-shadow: none !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-option-cost-row button span,
+  .estimator-page .quotation-review-card .quote-option-cost-row button svg {
+    width: 10px !important;
+    height: 10px !important;
+    font-size: 0.62rem !important;
+    stroke-width: 3 !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-option-cost-row > div p {
+    font-size: 0.74rem !important;
+    line-height: 1.28 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  .estimator-page .quotation-review-card .quote-option-cost-row > p:last-child {
+    max-width: 62px;
+    font-size: 0.72rem !important;
+    line-height: 1.2 !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .estimator-page .quotation-review-card .quote-option-cost-row {
+    grid-template-columns: 20px minmax(0, 1fr) minmax(54px, auto) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-option-cost-row > p:last-child {
+    grid-column: auto;
+    max-width: 58px;
+    text-align: right;
+    color: var(--color-gold-light) !important;
+  }
+}
+
+/* Keep Premium Add-ons visually aligned with package material rows. */
+@media (max-width: 768px) {
+  .estimator-page .quotation-review-card .quote-addon-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(58px, auto) !important;
+    align-items: start !important;
+    gap: 8px !important;
+    padding-left: 0 !important;
+    margin-bottom: 0.65rem !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-addon-row label {
+    display: grid !important;
+    grid-template-columns: 20px minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 7px !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-addon-row .quote-toggle-control {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    margin-top: 2px !important;
+    border-width: 1.5px !important;
+    box-shadow: none !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-addon-row label span {
+    min-width: 0;
+    font-size: 0.82rem !important;
+    line-height: 1.28 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  .estimator-page .quotation-review-card .quote-addon-row > p {
+    min-width: 0 !important;
+    max-width: 62px;
+    font-size: 0.78rem !important;
+    line-height: 1.2 !important;
+    text-align: right !important;
+    color: var(--color-gold-light) !important;
+    white-space: normal !important;
+  }
+}
+
+/* Quotation review ON/OFF switches. */
+.estimator-page .quotation-review-card .quote-option-cost-row {
+  display: grid !important;
+  grid-template-columns: 58px minmax(0, 1fr) minmax(86px, auto) !important;
+  align-items: center !important;
+  column-gap: 1rem !important;
+  padding-left: 0 !important;
+}
+
+.estimator-page .quotation-review-card .quote-addon-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(86px, auto) !important;
+  align-items: center !important;
+  column-gap: 1rem !important;
+  padding-left: 0 !important;
+}
+
+.estimator-page .quotation-review-card .quote-addon-row label {
+  display: grid !important;
+  grid-template-columns: 58px minmax(0, 1fr) !important;
+  align-items: center !important;
+  column-gap: 1rem !important;
+  min-width: 0 !important;
+}
+
+.estimator-page .quotation-review-card .quote-option-cost-row > div,
+.estimator-page .quotation-review-card .quote-addon-row label > span {
+  min-width: 0 !important;
+}
+
+.estimator-page .quotation-review-card .quote-option-cost-row > div p,
+.estimator-page .quotation-review-card .quote-addon-row label > span {
+  overflow-wrap: anywhere;
+  white-space: normal !important;
+}
+
+.estimator-page .quotation-review-card .quote-switch-control {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex: 0 0 52px !important;
+  width: 52px !important;
+  min-width: 52px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #d82323 !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 18px rgba(216, 35, 35, 0.24) !important;
+  cursor: pointer !important;
+  transition:
+    background-color 0.22s ease,
+    box-shadow 0.22s ease,
+    transform 0.22s ease !important;
+}
+
+.estimator-page .quotation-review-card .quote-switch-control:hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+}
+
+.estimator-page .quotation-review-card .quote-switch-control.selected,
+.estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"] {
+  justify-content: flex-start !important;
+  background: #20d79a !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 18px rgba(32, 215, 154, 0.26) !important;
+}
+
+.estimator-page .quotation-review-card .quote-switch-control:not(.selected),
+.estimator-page .quotation-review-card .quote-switch-control[aria-checked="false"] {
+  background: #d82323 !important;
+  color: #ffffff !important;
+}
+
+.estimator-page .quotation-review-card .quote-switch-control:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.86 !important;
+}
+
+.estimator-page .quotation-review-card .quote-switch-text {
+  display: none !important;
+}
+
+.estimator-page .quotation-review-card .quote-switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: inline-grid !important;
+  place-items: center;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #d82323 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  transform: translateX(0);
+  transition:
+    color 0.22s ease,
+    transform 0.22s ease !important;
+}
+
+.estimator-page .quotation-review-card .quote-switch-control.selected .quote-switch-knob,
+.estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"] .quote-switch-knob {
+  color: #20a977 !important;
+  transform: translateX(24px);
+}
+
+.estimator-page .quotation-review-card .quote-switch-knob svg {
+  width: 12px !important;
+  height: 12px !important;
+  color: currentColor !important;
+  stroke: currentColor !important;
+  stroke-width: 3 !important;
+}
+
+@media (max-width: 768px) {
+  .estimator-page .quotation-review-card .quote-option-cost-row {
+    grid-template-columns: 50px minmax(0, 1fr) minmax(54px, auto) !important;
+    column-gap: 0.65rem !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-addon-row label {
+    grid-template-columns: 50px minmax(0, 1fr) !important;
+    column-gap: 0.65rem !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control,
+  .estimator-page .quotation-review-card .quote-addon-row .quote-toggle-control,
+  .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control {
+    flex-basis: 46px !important;
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    padding-inline: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-knob {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control.selected .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"] .quote-switch-knob {
+    transform: translateX(20px);
+  }
+}
+
+/* Mobile estimator controls: keep step buttons and quote toggles inside the card. */
+@media (max-width: 768px) {
+  .estimator-page .estimator-progress {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px !important;
+    justify-content: stretch !important;
+    overflow-x: visible !important;
+    padding: 0 0 14px !important;
+    width: 100%;
+  }
+
+  .estimator-page .estimator-progress .progress-step {
+    min-width: 0 !important;
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 6px !important;
+    border-radius: 999px !important;
+    font-size: clamp(0.62rem, 2.7vw, 0.78rem) !important;
+    line-height: 1.15 !important;
+    white-space: normal !important;
+  }
+
+  .estimator-page .estimator-progress .progress-line {
+    display: none !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-option-cost-row {
+    grid-template-columns: 42px minmax(0, 1fr) minmax(56px, auto) !important;
+    column-gap: 0.5rem !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-addon-row {
+    grid-template-columns: minmax(0, 1fr) minmax(56px, auto) !important;
+    column-gap: 0.5rem !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-addon-row label {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    column-gap: 0.5rem !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control,
+  .estimator-page .quotation-review-card .quote-addon-row .quote-toggle-control,
+  .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control {
+    flex: 0 0 40px !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-knob {
+    top: 3px;
+    left: 3px;
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control.selected .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"] .quote-switch-knob {
+    transform: translateX(16px);
+  }
+}
+
+@media (max-width: 380px) {
+  .estimator-page .estimator-progress {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Final mobile quotation switch sizing. */
+@media (max-width: 768px) {
+  .estimator-page .quotation-review-card .quote-option-cost-row,
+  .estimator-page .quotation-review-card .quote-addon-row {
+    align-items: center !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-option-cost-row {
+    grid-template-columns: 54px minmax(0, 1fr) minmax(58px, auto) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-addon-row label {
+    grid-template-columns: 54px minmax(0, 1fr) !important;
+    align-items: center !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control,
+  .estimator-page .quotation-review-card .quote-addon-row .quote-toggle-control,
+  .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    box-sizing: border-box !important;
+    flex: 0 0 48px !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    overflow: hidden !important;
+    background: #d82323 !important;
+    color: #d82323 !important;
+    box-shadow: 0 7px 16px rgba(0, 0, 0, 0.18) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control.selected,
+  .estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"],
+  .estimator-page .quotation-review-card .quote-switch-control[data-selected="true"],
+  .estimator-page .quotation-review-card .quote-toggle-control.selected,
+  .estimator-page .quotation-review-card .quote-toggle-control[aria-checked="true"],
+  .estimator-page .quotation-review-card .quote-toggle-control[data-selected="true"],
+  .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control.selected,
+  .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control[aria-checked="true"],
+  .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control[data-selected="true"],
+  .estimator-page .quotation-review-card .quote-addon-row button.quote-toggle-control.selected,
+  .estimator-page .quotation-review-card .quote-addon-row button.quote-toggle-control[aria-checked="true"],
+  .estimator-page .quotation-review-card .quote-addon-row button.quote-toggle-control[data-selected="true"] {
+    background: #20d79a !important;
+    background-color: #20d79a !important;
+    border-color: transparent !important;
+    color: #149a6d !important;
+    box-shadow: 0 7px 16px rgba(32, 215, 154, 0.24) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-knob {
+    position: absolute !important;
+    top: 2px !important;
+    left: 2px !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    color: currentColor !important;
+    transform: translateX(0) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control.selected .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"] .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-switch-control[data-selected="true"] .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-toggle-control.selected .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-toggle-control[aria-checked="true"] .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-toggle-control[data-selected="true"] .quote-switch-knob {
+    transform: translateX(18px) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-knob svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
 }

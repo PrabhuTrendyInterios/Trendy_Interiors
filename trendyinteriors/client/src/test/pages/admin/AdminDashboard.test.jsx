@@ -1,38 +1,82 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
-jest.mock('../../../pages/admin/components/AdminNavigation', () => ({ activeTab }) => <div>Nav {activeTab}</div>);
-jest.mock('../../../pages/admin/components/FormCard', () => ({ title, children }) => <section><h2>{title}</h2>{children}</section>);
+jest.mock('../../../context/AuthContext', () => ({
+  useAuth: () => ({
+    user: { name: 'Admin User', role: 'admin' },
+    logout: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../pages/admin/components/FormCard', () => ({ title, children }) => (
+  <section><h2>{title}</h2>{children}</section>
+));
 jest.mock('../../../pages/admin/components/DragDropUpload', () => () => <div>DragDropUpload Mock</div>);
 jest.mock('../../../pages/admin/components/MultiImageUpload', () => () => <div>MultiImageUpload Mock</div>);
-jest.mock('../../../pages/admin/components/Toast', () => ({ message }) => <div>{message}</div>);
-jest.mock('../../../pages/admin/components/DeleteConfirmationModal', () => () => null);
+jest.mock('../../../pages/admin/components/Toast', () => ({ message, onClose }) =>
+  message ? <div onClick={onClose}>{message}</div> : null
+);
 
-const AdminDashboard = require('../../../pages/admin/AdminDashboard').default;
+const CmsLayout = require('../../../pages/admin/CmsLayout').default;
+const ProjectsPage = require('../../../pages/admin/pages/ProjectsPage').default;
+const DashboardHome = require('../../../pages/admin/pages/DashboardHome').default;
 
-describe('client/pages/admin/AdminDashboard', () => {
+describe('client/pages/admin CMS', () => {
   beforeEach(() => {
     global.fetch = jest.fn((url) => {
-      if (url.includes('/api/projects')) return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
-      if (url.includes('/api/testimonials')) return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
-      if (url.includes('/api/contacts')) return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
-      if (url.includes('/api/team-members')) return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
-      if (url.includes('/api/services')) return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
-      if (url.includes('/api/designs')) return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [] }) });
-      return Promise.reject(new Error('unexpected'));
+      if (url.includes('/api/cms/projects')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, count: 1, data: [{ _id: '1', title: 'Test Project', description: 'Desc', category: 'residential', image: 'img.jpg' }] }),
+        });
+      }
+      if (url.includes('/api/cms/team-members')) {
+        return Promise.resolve({ ok: true, json: async () => ({ success: true, count: 0, data: [] }) });
+      }
+      if (url.includes('/api/cms/rooms')) {
+        return Promise.resolve({ ok: true, json: async () => ({ success: true, count: 0, data: [] }) });
+      }
+      if (url.includes('/api/cms/global-addons')) {
+        return Promise.resolve({ ok: true, json: async () => ({ success: true, count: 0, data: [] }) });
+      }
+      return Promise.reject(new Error(`unexpected url: ${url}`));
     });
     localStorage.setItem('token', 'token-1');
   });
 
-  test('loads dashboard and shows projects form', async () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('CMS layout renders dashboard with sidebar navigation', async () => {
     render(
-      <MemoryRouter>
-        <AdminDashboard />
+      <MemoryRouter initialEntries={['/admin']}>
+        <Routes>
+          <Route path="/admin" element={<CmsLayout />}>
+            <Route index element={<DashboardHome />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Overview of your content')).toBeInTheDocument();
+    expect(screen.getByText('Content Manager')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Quick Actions')).toBeInTheDocument());
+  });
+
+  test('projects page loads CMS project form', async () => {
+    render(
+      <MemoryRouter initialEntries={['/admin/projects']}>
+        <Routes>
+          <Route path="/admin" element={<CmsLayout />}>
+            <Route path="projects" element={<ProjectsPage />} />
+          </Route>
+        </Routes>
       </MemoryRouter>
     );
 
     await waitFor(() => expect(screen.getByText(/publish new project/i)).toBeInTheDocument());
-    expect(screen.getByText(/nav projects/i)).toBeInTheDocument();
+    expect(screen.getByText('Test Project')).toBeInTheDocument();
   });
 });

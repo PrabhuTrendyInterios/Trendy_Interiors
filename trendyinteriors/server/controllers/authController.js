@@ -105,7 +105,7 @@ exports.login = async (req, res, next) => {
         if (user.role === 'admin') {
             try {
                 await sendAdminEmail({
-                    to: 'trendyadmin123@gmail.com',
+                    to: process.env.ADMIN_EMAIL,
                     subject: '🔐 Admin Login Alert - TrendyInterios',
                     html: generateAdminLoginAlertHTML({ name: user.name, email: user.email })
                 });
@@ -210,7 +210,7 @@ exports.changePassword = async (req, res, next) => {
         if (user.role === 'admin') {
             try {
                 await sendAdminEmail({
-                    to: 'trendyadmin123@gmail.com',
+                    to: process.env.ADMIN_EMAIL,
                     subject: '✅ Admin Password Changed Successfully - TrendyInterios',
                     html: generatePasswordChangeAlertHTML({ name: user.name, email: user.email })
                 });
@@ -262,7 +262,7 @@ exports.forgotPassword = async (req, res, next) => {
         // Send OTP email to admin email
         try {
             await sendAdminEmail({
-                to: 'trendyadmin123@gmail.com',
+                to: process.env.ADMIN_EMAIL,
                 subject: '🔑 Password Reset OTP - TrendyInterios',
                 html: generatePasswordResetOTPHTML({ otp })
             });
@@ -379,7 +379,7 @@ exports.resetPassword = async (req, res, next) => {
         if (user.role === 'admin') {
             try {
                 await sendAdminEmail({
-                    to: 'trendyadmin123@gmail.com',
+                    to: process.env.ADMIN_EMAIL,
                     subject: '✅ Admin Password Reset Confirmation - TrendyInterios',
                     html: generatePasswordChangeAlertHTML({ name: user.name, email: user.email })
                 });
@@ -419,7 +419,7 @@ exports.sendChangePasswordOTP = async (req, res, next) => {
         // Send OTP email to admin email
         try {
             await sendAdminEmail({
-                to: 'trendyadmin123@gmail.com',
+                to: process.env.ADMIN_EMAIL,
                 subject: '🔑 Change Password OTP - TrendyInterios',
                 html: generateChangePasswordOTPHTML({ otp })
             });
@@ -497,7 +497,7 @@ exports.changePasswordWithOTP = async (req, res, next) => {
         // Send password change alert to admin email
         try {
             await sendAdminEmail({
-                to: 'trendyadmin123@gmail.com',
+                to: process.env.ADMIN_EMAIL,
                 subject: '✅ Admin Password Changed Successfully - TrendyInterios',
                 html: generatePasswordChangeAlertHTML({ name: user.name, email: user.email })
             });

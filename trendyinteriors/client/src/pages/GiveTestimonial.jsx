@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { FaQuoteLeft, FaShieldAlt, FaStar } from 'react-icons/fa';
 import ContactForm from '../components/ContactForm';
 import './GiveTestimonial.css';
@@ -17,11 +16,6 @@ const GiveTestimonial = () => {
         <div className="hero-content">
           <h1>Give Testimonial</h1>
           <p className="hero-subtitle">Your words inspire us and help others trust our work</p>
-          <div className="breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="separator">/</span>
-            <span className="current">Give Testimonial</span>
-          </div>
         </div>
       </section>
 

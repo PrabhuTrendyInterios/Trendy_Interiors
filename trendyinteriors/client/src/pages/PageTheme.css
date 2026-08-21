@@ -1,0 +1,458 @@
+/* Shared Home-style surface for all non-home public pages. */
+
+.about-page,
+.projects-page,
+.testimonials-page,
+.reach-us-page,
+.buy-online-page,
+.give-testimonial-page,
+.estimator-page {
+  position: relative;
+  min-height: 100vh;
+  color: #ffffff;
+  background: transparent;
+  overflow-x: hidden;
+}
+
+.about-page,
+.projects-page,
+.testimonials-page,
+.reach-us-page {
+  background: transparent !important;
+}
+
+.about-page > *,
+.projects-page > *,
+.testimonials-page > *,
+.reach-us-page > *,
+.buy-online-page > *,
+.give-testimonial-page > *,
+.estimator-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.scroll-video-image,
+.scroll-video-media {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: opacity;
+}
+
+.buy-online-page::before,
+.give-testimonial-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background:
+    linear-gradient(135deg, rgba(8, 12, 20, 0.34), rgba(8, 12, 20, 0.16)),
+    url('../../public/images/hero-sectionn.png') center center / cover no-repeat;
+  z-index: 0;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+@media (max-width: 768px) {
+  .scroll-video-image,
+  .scroll-video-media {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    left: 0 !important;
+    display: block !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100lvh !important;
+    min-height: 100svh !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    opacity: 1;
+    z-index: 0;
+    pointer-events: none;
+    transform: translate3d(0, 0, 0) !important;
+    backface-visibility: hidden;
+    will-change: opacity;
+  }
+
+  .buy-online-page::before,
+  .give-testimonial-page::before {
+    top: 0;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100lvh;
+    min-height: 100svh;
+    background-size: cover;
+    background-position: center center;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+
+  .about-page,
+  .projects-page,
+  .testimonials-page,
+  .reach-us-page,
+  .buy-online-page,
+  .give-testimonial-page,
+  .estimator-page {
+    position: relative;
+    isolation: isolate;
+    overflow-x: hidden;
+    background: transparent !important;
+  }
+
+  .about-page > *,
+  .projects-page > *,
+  .testimonials-page > *,
+  .reach-us-page > *,
+  .buy-online-page > *,
+  .give-testimonial-page > *,
+  .estimator-page > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.about-hero,
+.projects-hero,
+.testimonials-hero,
+.reach-hero,
+.shop-hero,
+.testimonial-hero,
+.estimator-header-bg {
+  height: auto;
+  min-height: 0;
+  padding: 8rem 0 2rem;
+  background-image: none;
+  border: 0;
+  box-shadow: none;
+}
+
+.shop-hero,
+.testimonial-hero,
+.estimator-header-bg {
+  background-image: none;
+}
+
+.hero-overlay {
+  background: transparent;
+}
+
+.hero-content h1,
+.estimator-page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(3rem, 5vw, 5rem);
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  text-shadow: none;
+}
+
+.hero-subtitle,
+.estimator-page-subtitle,
+.breadcrumbs a,
+.section-desc,
+.section-intro-text,
+.map-header p,
+.cta-content p,
+.cta-text p,
+.cta-block h2,
+.form-intro p,
+.info-intro,
+.empty-projects,
+.loading-state,
+.no-testimonials,
+.shop-loading {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.breadcrumbs .current,
+.section-label,
+.text-gold,
+.map-header h2,
+.product-category-label,
+.price-tag,
+.trust-number,
+.stat-number,
+.client-info h4,
+.team-info p,
+.cta-text h3,
+.form-intro h2,
+.info-card h2 {
+  color: #d4af37;
+}
+
+.about-main-section,
+.vision-mission-section,
+.quote-banner,
+.stats-section,
+.team-section,
+.services-section,
+.projects-content,
+.projects-cta,
+.testimonials-content,
+.testimonial-cta,
+.reach-us-content,
+.reach-us-map,
+.shop-content,
+.shop-cta,
+.give-testimonial-content {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.about-hero,
+.projects-hero,
+.testimonials-hero,
+.reach-hero,
+.shop-hero,
+.testimonial-hero {
+  margin-bottom: 0;
+}
+
+.about-page .about-hero,
+.projects-page .projects-hero,
+.testimonials-page .testimonials-hero,
+.reach-us-page .reach-hero,
+.buy-online-page .shop-hero,
+.give-testimonial-page .testimonial-hero {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.about-page .hero-overlay,
+.projects-page .hero-overlay,
+.testimonials-page .hero-overlay,
+.reach-us-page .hero-overlay,
+.buy-online-page .hero-overlay,
+.give-testimonial-page .hero-overlay {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.04)) !important;
+}
+
+.about-hero + section,
+.projects-hero + section,
+.testimonials-hero + section,
+.reach-hero + section,
+.shop-hero + section,
+.testimonial-hero + section {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.trust-indicators {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.testimonials-content {
+  padding-top: 0;
+}
+
+.estimator-header-bg {
+  margin-bottom: 0;
+}
+
+.estimator-header-bg + .container {
+  margin-top: 0;
+}
+
+.about-text-content h2,
+.section-header-center h2,
+.cta-content h2,
+.form-header h3,
+.team-info h3,
+.overlay-content h3,
+.product-info-body h3,
+.client-info h4,
+.vm-card h3,
+.info-card h2,
+.form-intro h2 {
+  color: #ffffff;
+  text-shadow: none;
+}
+
+.lead-text,
+.body-text,
+.highlight-item,
+.vm-card p,
+.stat-label,
+.meta-item,
+.testimonial-quote,
+.client-info span,
+.prod-desc,
+.badge-item,
+.form-header p,
+.details p,
+.details a,
+.trust-label {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.about-image-wrapper,
+.vm-card,
+.service-card-premium,
+.stat-card-premium,
+.team-card-premium,
+.project-card-premium,
+.testimonial-card-premium,
+.trust-indicators,
+.form-card,
+.info-card,
+.product-card-premium,
+.testimonial-card-container,
+.shop-trust-badges,
+.cta-box,
+.cta-block,
+.estimator-wrapper,
+.selected-summary,
+.category-pills {
+  background: rgba(255, 255, 255, 0.08);
+  border: 4px solid var(--color-gold);
+  border-radius: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.vm-card:hover,
+.service-card-premium:hover,
+.stat-card-premium:hover,
+.team-card-premium:hover,
+.project-card-premium:hover,
+.testimonial-card-premium:hover,
+.product-card-premium:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2);
+}
+
+.project-meta-bar,
+.team-info,
+.product-info-body {
+  background: rgba(0, 0, 0, 0.28);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.project-card-premium:hover .project-meta-bar {
+  background: rgba(0, 0, 0, 0.36);
+}
+
+.filter-btn,
+.pill-btn,
+.btn-gold-outline,
+.btn-cta-gold,
+.btn-gold,
+.enquire-full-btn {
+  border-radius: 999px;
+}
+
+.filter-btn,
+.pill-btn,
+.btn-gold-outline {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.filter-btn.active,
+.pill-btn.active,
+.btn-cta-gold,
+.btn-gold,
+.enquire-full-btn,
+.cart-icon-btn:hover,
+.action-btn:hover,
+.btn-gold-outline:hover,
+.testimonial-cta .btn-gold-outline:hover {
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light));
+  color: var(--color-charcoal-dark);
+  border-color: transparent;
+  box-shadow: var(--shadow-gold);
+}
+
+.action-btn,
+.cart-icon-btn {
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--color-charcoal-dark);
+}
+
+.icon-box,
+.quote-icon-container,
+.service-icon-wrapper {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  color: #d4af37;
+}
+
+.experience-badge {
+  background: rgba(0, 0, 0, 0.72);
+  border-color: rgba(212, 175, 55, 0.45);
+  border-radius: 18px;
+}
+
+.map-container,
+.project-image-wrapper,
+.product-image-wrapper,
+.team-image {
+  background: rgba(0, 0, 0, 0.28);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.estimator-page {
+  padding-bottom: var(--spacing-xl);
+}
+
+.estimator-header-bg {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 0;
+  padding: 8rem 0 2rem;
+}
+
+.estimator-wrapper {
+  color: var(--color-charcoal-dark);
+}
+
+@media (max-width: 768px) {
+  .about-hero,
+  .projects-hero,
+  .testimonials-hero,
+  .reach-hero,
+  .shop-hero,
+  .testimonial-hero,
+  .estimator-header-bg {
+    min-height: 0;
+    padding: 6rem 0 1.5rem;
+  }
+
+  .about-page,
+  .projects-page,
+  .testimonials-page,
+  .reach-us-page,
+  .buy-online-page,
+  .give-testimonial-page,
+  .estimator-page {
+    background: transparent !important;
+  }
+}

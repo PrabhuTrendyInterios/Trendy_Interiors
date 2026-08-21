@@ -6,17 +6,11 @@ const connectDB = require('./config/db');
 // Load env vars
 dotenv.config();
 
-// Connect to DB (when running this file directly)
-// NOTE: This script used to call process.exit() which caused the main
-// server process to terminate when the file was imported. To avoid
-// unintended exits, this module now exports the seeding function and
-// only runs automatically when executed directly (node seedAdmin.js).
-connectDB();
-
-const seedAdmin = async () => {
+const seedAdmin = async ({ closeConnection = true } = {}) => {
     try {
-        // wait for connection
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        if (closeConnection) {
+            await connectDB();
+        }
 
         const adminEmail = 'trendyadmin123@gmail.com';
 
@@ -61,7 +55,10 @@ const seedAdmin = async () => {
 
 // If script is run directly, execute seeding and exit.
 if (require.main === module) {
-    seedAdmin().then(() => process.exit(0)).catch(() => process.exit(1));
+    connectDB()
+      .then(() => seedAdmin())
+      .then(() => process.exit(0))
+      .catch(() => process.exit(1));
 }
 
 module.exports = seedAdmin;

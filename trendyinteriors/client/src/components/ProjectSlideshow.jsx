@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
+import { getProjectCover, getProjectGallery } from '../utils/publicApi';
 import './ProjectSlideshow.css';
 
 const ProjectSlideshow = ({ isOpen, project, onClose }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
 
-  // Get images array or use single image
-  const images = Array.isArray(project?.images) && project.images.length > 0
-    ? project.images
-    : project?.image ? [project.image] : [];
+  const cover = getProjectCover(project);
+  const gallery = getProjectGallery(project);
+  const images = gallery.length > 0 ? gallery : cover ? [cover] : [];
 
   const goToNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % images.length);

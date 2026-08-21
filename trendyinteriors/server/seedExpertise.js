@@ -42,30 +42,76 @@ const expertiseData = [
   }
 ];
 
-const seedExpertise = async () => {
+const connectDB = async () => {
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+    return;
+  }
+
+  const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+  const localUri = process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/trendydev';
+  const fallbackToLocal = process.env.MONGODB_FALLBACK_LOCAL === 'true';
+
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('Connected to MongoDB');
-
-    // Clear existing expertise
-    await Expertise.deleteMany({});
-    console.log('Cleared existing expertise data');
-
-    // Insert new expertise data
-    const inserted = await Expertise.insertMany(expertiseData);
-    console.log(`✅ Successfully seeded ${inserted.length} expertise items!`);
-
-    // Display inserted data
-    inserted.forEach((item) => {
-      console.log(`   - ${item.title} (Order: ${item.order})`);
+    if (!uri) {
+      throw new Error('No MongoDB URI configured. Set MONGO_URI or MONGODB_URI in your environment.');
+    }
+    const conn = await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
-
-    await mongoose.connection.close();
-    console.log('✅ Seeding completed successfully!');
+    console.log(`MongoDB connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error('❌ Error seeding expertise:', error);
-    process.exit(1);
+    console.error('MongoDB connection error:', error);
+    if (fallbackToLocal) {
+      console.log('Attempting fallback to local MongoDB at', localUri);
+      const conn = await mongoose.connect(localUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log(`Fallback MongoDB connected: ${conn.connection.host}`);
+    } else {
+      throw error;
+    }
   }
 };
 
-seedExpertise();
+const seedExpertise = async ({ closeConnection = true } = {}) => {
+  try {
+    await connectDB();
+    console.log('Connected to MongoDB');
+
+    for (const item of expertiseData) {
+      await Expertise.findOneAndUpdate(
+        { title: item.title },
+        item,
+        {
+          upsert: true,
+          new: true,
+          runValidators: true,
+          setDefaultsOnInsert: true,
+        }
+      );
+    }
+
+    const count = await Expertise.countDocuments();
+    console.log(`✅ Successfully seeded ${count} expertise items!`);
+
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
+  } catch (error) {
+    console.error('❌ Error seeding expertise:', error);
+    if (closeConnection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+    }
+    throw error;
+  }
+};
+
+if (require.main === module) {
+  seedExpertise()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
+}
+
+module.exports = seedExpertise;

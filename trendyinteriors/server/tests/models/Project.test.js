@@ -1,13 +1,13 @@
 const Project = require('../../models/Project');
 
 describe('server/models/Project', () => {
-  test('requires title, description, image, category', () => {
+  test('requires title, description, coverImageUrl, category', () => {
     const doc = new Project({});
     const err = doc.validateSync();
 
     expect(err.errors.title).toBeDefined();
     expect(err.errors.description).toBeDefined();
-    expect(err.errors.image).toBeDefined();
+    expect(err.errors.coverImageUrl).toBeDefined();
     expect(err.errors.category).toBeDefined();
   });
 
@@ -15,7 +15,7 @@ describe('server/models/Project', () => {
     const doc = new Project({
       title: 'Villa',
       description: 'Modern villa interior',
-      image: 'https://example.com/img.jpg',
+      coverImageUrl: 'https://example.com/img.jpg',
       category: 'LUXURY',
     });
 

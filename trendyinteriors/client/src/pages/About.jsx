@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
-  FaTrophy, FaSmile, FaStopwatch, FaCheckCircle, FaQuoteLeft,
-  FaLinkedin, FaInstagram, FaPhone, FaEye, FaBullseye
+  FaTrophy, FaSmile, FaStopwatch, FaCheckCircle, FaQuoteLeft, FaHandshake, FaGem,
+  FaLinkedin, FaInstagram, FaPhone, FaEye, FaBullseye, FaYoutube
 } from 'react-icons/fa';
 import DesignCarousel from '../components/DesignCarousel';
+import ScrollVideoBackground from '../components/ScrollVideoBackground';
+import { publicGet, normalizeMemberForDisplay, getMemberImage, getMemberContact } from '../utils/publicApi';
 import './About.css';
 
 const About = () => {
@@ -19,10 +20,11 @@ const About = () => {
 
   const fetchTeamMembers = async () => {
     try {
-      const response = await fetch('https://trendyinteriors-1.onrender.com/api/team-members');
-      const data = await response.json();
-      if (data.success) {
-        setTeamMembers(data.data);
+      const data = await publicGet('/api/team-members');
+      if (data.success && Array.isArray(data.data)) {
+        setTeamMembers(data.data.map(normalizeMemberForDisplay));
+      } else {
+        setTeamMembers([]);
       }
     } catch (error) {
       console.error('Error fetching team members:', error);
@@ -32,8 +34,7 @@ const About = () => {
 
   const fetchDesigns = async () => {
     try {
-      const response = await fetch('https://trendyinteriors-1.onrender.com/api/designs');
-      const data = await response.json();
+      const data = await publicGet('/api/designs');
       if (data.success) {
         setDesigns(data.data);
       }
@@ -52,17 +53,14 @@ const About = () => {
 
   return (
     <div className="about-page">
+      <ScrollVideoBackground imageSrc="/images/kitchen-image.png" videoSrc="/video/kitchen-video.mp4" />
+
       {/* Hero Section */}
       <section className="about-hero">
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1>About Us</h1>
           <div className="hero-divider"></div>
-          <div className="breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="separator">/</span>
-            <span className="current">About</span>
-          </div>
         </div>
       </section>
 
@@ -76,35 +74,53 @@ const About = () => {
               <p className="lead-text">
                 Trendy Interiors is one of the premier design firms in Erode, known for our exquisite craftsmanship and attention to detail.
               </p>
-              <p className="body-text">
-                With a passion for creating spaces that are both functional and beautiful, we have established ourselves as leaders in residential and commercial interior design. Our journey begins with understanding your vision and translating it into a reality that exceeds expectations. From modern minimalist homes to luxurious office suites, we handle every project with the same level of dedication and artistic flair.
-              </p>
-
               <div className="key-highlights">
                 <div className="highlight-item">
-                  <span className="highlight-check">✓</span>
-                  <span>10+ Years of Design Excellence</span>
+                  <span className="highlight-check"><FaCheckCircle aria-hidden="true" /></span>
+                  <span>Personal designs shaped around your daily lifestyle</span>
                 </div>
                 <div className="highlight-item">
-                  <span className="highlight-check">✓</span>
-                  <span>Certified Professional Team</span>
+                  <span className="highlight-check"><FaTrophy aria-hidden="true" /></span>
+                  <span>Premium finish with practical space planning</span>
                 </div>
                 <div className="highlight-item">
-                  <span className="highlight-check">✓</span>
-                  <span>End-to-End Project Management</span>
+                  <span className="highlight-check"><FaHandshake aria-hidden="true" /></span>
+                  <span>Clear coordination from concept to handover</span>
+                </div>
+                <div className="highlight-item">
+                  <span className="highlight-check"><FaGem aria-hidden="true" /></span>
+                  <span>Luxury details selected with care and restraint</span>
                 </div>
               </div>
             </div>
 
             <div className="about-image-wrapper">
-              <img
-                src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=800&auto=format&fit=crop"
-                alt="Trendy Interiors Office"
-                className="about-feature-img"
-              />
-              <div className="experience-badge">
-                <span className="years">10+</span>
-                <span className="text">Years of<br />Experience</span>
+              <div className="about-youtube-card">
+                <div className="about-youtube-heading">
+                  <FaYoutube aria-hidden="true" />
+                  <span>About Us</span>
+                </div>
+                <iframe
+                  src="https://www.youtube.com/embed/waC8JKrk43Y?autoplay=1&mute=1&loop=1&playlist=waC8JKrk43Y&controls=0&disablekb=1&playsinline=1&modestbranding=1"
+                  title="About Trendy Interios"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+                <div className="about-client-review-link">
+                  <div>
+                    <strong>Client Review</strong>
+                    <span>See what our clients say about their interiors.</span>
+                  </div>
+                  <a
+                    href="https://youtu.be/z96yDS1d8CM?si=Hd_7ImBKyZ3NCOuQ"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Watch Here
+                    <FaYoutube aria-hidden="true" />
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -172,10 +188,14 @@ const About = () => {
 
           <div className="team-grid-premium">
             {teamMembers.length > 0 ? (
-              teamMembers.map((member) => (
+              teamMembers.map((member) => {
+                const contact = getMemberContact(member);
+                const contactHref = contact.includes('@') ? `mailto:${contact}` : `tel:${contact}`;
+
+                return (
                 <div key={member._id} className="team-card-premium">
                   <div className="team-image">
-                    <img src={member.image} alt={member.name} />
+                    <img src={getMemberImage(member)} alt={member.name} />
                     <div className="team-social-overlay">
                       {member.linkedin && member.linkedin !== '#' && (
                         <a href={member.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn"><FaLinkedin /></a>
@@ -183,8 +203,8 @@ const About = () => {
                       {member.instagram && member.instagram !== '#' && (
                         <a href={member.instagram} target="_blank" rel="noopener noreferrer" title="Instagram"><FaInstagram /></a>
                       )}
-                      {member.mobilePhone && (
-                        <a href={`tel:${member.mobilePhone}`} title="Call"><FaPhone /></a>
+                      {contact && (
+                        <a href={contactHref} title="Contact"><FaPhone /></a>
                       )}
                     </div>
                   </div>
@@ -193,7 +213,8 @@ const About = () => {
                     <p>{member.role}</p>
                   </div>
                 </div>
-              ))
+              );
+              })
             ) : (
               <div className="empty-state"><p>No team members found</p></div>
             )}

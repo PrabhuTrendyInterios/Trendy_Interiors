@@ -8,12 +8,12 @@ describe('client/components/ProjectSlideshow', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  test('renders project and image navigation', () => {
+  test('renders project and image navigation with galleryImages', () => {
     const onClose = jest.fn();
     render(
       <ProjectSlideshow
         isOpen={true}
-        project={{ title: 'Villa', description: 'Erode', images: ['a.jpg', 'b.jpg'] }}
+        project={{ title: 'Villa', description: 'Erode', coverImageUrl: 'cover.jpg', galleryImages: ['a.jpg', 'b.jpg'] }}
         onClose={onClose}
       />
     );

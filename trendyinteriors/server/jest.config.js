@@ -14,4 +14,8 @@ module.exports = {
     'utils/**/*.js',
     '!**/seed*.js',
   ],
+  coverageReporters: ['text', 'text-summary', 'html', 'lcov'],
+  collectCoverage: true,
+  coverageDirectory: 'coverage',
+  verbose: true,
 };

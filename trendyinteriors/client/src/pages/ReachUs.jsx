@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
   FaMapMarkerAlt,
   FaEnvelope,
@@ -7,9 +6,11 @@ import {
   FaWhatsapp,
   FaClock,
   FaYoutube,
-  FaStore
+  FaInstagram,
+  FaFacebook
 } from 'react-icons/fa';
 import ContactForm from '../components/ContactForm';
+import ScrollVideoBackground from '../components/ScrollVideoBackground';
 import './ReachUs.css';
 
 const ReachUs = () => {
@@ -19,6 +20,7 @@ const ReachUs = () => {
 
   return (
     <div className="reach-us-page">
+      <ScrollVideoBackground imageSrc="/images/bedroom-image.png" videoSrc="/video/bedroom-video.mp4" />
 
       {/* Hero */}
       <section className="reach-hero">
@@ -28,11 +30,6 @@ const ReachUs = () => {
           <p className="hero-subtitle">
             Let's start the conversation about your dream space
           </p>
-          <div className="breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="separator">/</span>
-            <span className="current">Contact</span>
-          </div>
         </div>
       </section>
 
@@ -122,16 +119,7 @@ const ReachUs = () => {
                   <h4>Follow Us</h4>
                   <div className="social-icons">
                     <a
-                      href="https://wa.me/919965299777"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="social-link whatsapp"
-                      title="WhatsApp"
-                    >
-                      <FaWhatsapp />
-                    </a>
-                    <a
-                      href="https://www.youtube.com/@prabul7047"
+                      href="https://www.youtube.com/@Trendy_InterioS/featured"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="social-link youtube"
@@ -140,13 +128,22 @@ const ReachUs = () => {
                       <FaYoutube />
                     </a>
                     <a
-                      href="http://indiamart.com/trendy-interios/"
+                      href="https://www.instagram.com/trendyinterioserode/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="social-link indiamart"
-                      title="IndiaMART"
+                      className="social-link instagram"
+                      title="Instagram"
                     >
-                      <FaStore />
+                      <FaInstagram />
+                    </a>
+                    <a
+                      href="https://www.facebook.com/profile.php?id=100090290169549"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="social-link facebook"
+                      title="Facebook"
+                    >
+                      <FaFacebook />
                     </a>
                   </div>
                 </div>

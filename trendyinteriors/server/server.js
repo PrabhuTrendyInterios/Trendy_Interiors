@@ -1,4 +1,4 @@
-require('dotenv').config({ path: __dirname + '/.env' });
+require('dotenv').config({ path: __dirname + '/.env', override: true });
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -14,6 +14,8 @@ const categoryRoutes = require('./routes/categories');
 const designRoutes = require('./routes/designs');
 const estimatorRoutes = require('./routes/estimators');
 const chatbotRoutes = require('./routes/chatbot');
+const settingsRoutes = require('./routes/settings');
+const cmsRoutes = require('./routes/cms');
 const errorHandler = require('./middleware/errorHandler');
 
 const http = require('http');
@@ -21,22 +23,13 @@ const { Server } = require('socket.io');
 
 const app = express();
 
-// Connect to MongoDB with explicit cleanup
-connectDB().then(async () => {
-  try {
-    const mongoose = require('mongoose');
-    const collection = mongoose.connection.collection('users');
-    const indexExists = await collection.indexExists('username_1');
-    if (indexExists) {
-      console.log('*** SERVER STARTUP FIX: Dropping legacy "username_1" index ***');
-      await collection.dropIndex('username_1');
-      console.log('*** Index dropped successfully. Registration should work now. ***');
-    }
-  } catch (err) {
-    // Ignore if index doesn't exist
-    // console.log('Index check clean');
-  }
-});
+const startServer = async () => {
+  await connectDB();
+
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+};
 
 // Middleware
 app.use(cors());
@@ -54,7 +47,9 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/designs', designRoutes);
 app.use('/api/estimators', estimatorRoutes);
+app.use('/api/settings', settingsRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/cms', cmsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -92,8 +87,9 @@ server.setsockopt = function(level, optname, value) {
   }
 };
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+startServer().catch((error) => {
+  console.error('Server startup failed:', error);
+  process.exit(1);
 });
 
 // Handle port already in use error
