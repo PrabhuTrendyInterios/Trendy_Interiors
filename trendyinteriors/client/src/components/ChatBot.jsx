@@ -7,6 +7,8 @@ import './ChatBot.css';
 
 const DEFAULT_SPEECH_MESSAGE = 'Hi I am TiJo, Interior AI Assistant';
 
+const SPEECH_BUBBLE_MAX_APPEARANCES = 1;
+
 const PAGE_SPEECH_MESSAGES = {
   '/abouts': 'TiJo here, explore our story and design approach',
   '/projects': 'TiJo here, browse our completed interior projects',
@@ -49,8 +51,24 @@ const ChatBot = ({ estimatorStep = null }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [contactPhone, setContactPhone] = useState('+91 99652 99777');
+  const [speechAppearanceCount, setSpeechAppearanceCount] = useState(0);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Reset the speech-bubble appearance count whenever the page (route, or
+  // estimator step) changes, so each page gets its own single appearance.
+  const speechPageKey = `${location.pathname}::${estimatorStep ?? ''}`;
+  useEffect(() => {
+    setSpeechAppearanceCount(0);
+  }, [speechPageKey]);
+
+  const speechBubbleLimitReached = speechAppearanceCount >= SPEECH_BUBBLE_MAX_APPEARANCES;
+
+  // animationiteration never fires for a single-iteration (non-infinite) animation,
+  // so the completed play is detected via animationend instead.
+  const handleSpeechAnimationEnd = () => {
+    setSpeechAppearanceCount((prev) => prev + 1);
+  };
 
   const quickReplies = [
     'Schedule consultation',
@@ -206,16 +224,20 @@ const ChatBot = ({ estimatorStep = null }) => {
 
   return (
     <>
-      {/* Chatbot Toggle Button */}
-      <button
-        className="chatbot-toggle"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Open chatbot"
-        title="Chat with us"
-      >
-        <img src="/assets/trendy-bot/trendy-bot-present.webp" alt="TiJo bot" />
-        <span className="chatbot-toggle-speech">{speechMessage}</span>
-      </button>
+      {/* Chatbot Toggle Button (hidden while the chat window is open so it can't cover the Send button) */}
+      {!isOpen && (
+        <button
+          className="chatbot-toggle"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Open chatbot"
+          title="Chat with us"
+        >
+          <img src="/assets/trendy-bot/trendy-bot-present.webp" alt="TiJo bot" />
+          {!speechBubbleLimitReached && (
+            <span className="chatbot-toggle-speech" onAnimationEnd={handleSpeechAnimationEnd}>{speechMessage}</span>
+          )}
+        </button>
+      )}
 
       {/* Chatbot Window */}
       {isOpen && (

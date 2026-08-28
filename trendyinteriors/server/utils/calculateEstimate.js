@@ -61,47 +61,54 @@ const getPackageComponentsTotal = (packageComponents = [], selectedComponentIds 
   }, 0);
 };
 
-const getPackageComponentsForDimension = (roomDoc, sizeCategory = '') => {
+const findMatchedDimension = (roomDoc, sizeCategory = '') => {
   if (!roomDoc?.dimensions || !Array.isArray(roomDoc.dimensions)) {
-    console.warn('[getPackageComponentsForDimension] Room has no dimensions array');
-    return [];
+    return null;
   }
-  
+
   // Enhanced matching: _id, id, name (case-insensitive)
-  const matchedDimension = roomDoc.dimensions.find((dim) => {
+  return roomDoc.dimensions.find((dim) => {
     const dimIdString = dim._id?.toString();
     const dimIdField = dim.id;
     const dimNameNormalized = dim.name?.toLowerCase().trim();
     const sizeCategoryNormalized = sizeCategory?.toLowerCase().trim();
-    
-    const isMatch = 
-      dimIdString === sizeCategory || 
-      dimIdField === sizeCategory || 
-      dim.name === sizeCategory || 
+
+    const isMatch =
+      dimIdString === sizeCategory ||
+      dimIdField === sizeCategory ||
+      dim.name === sizeCategory ||
       dimNameNormalized === sizeCategoryNormalized;
-    
+
     return isMatch;
-  });
+  }) || null;
+};
+
+const getPackageComponentsForDimension = (roomDoc, sizeCategory = '') => {
+  const matchedDimension = findMatchedDimension(roomDoc, sizeCategory);
 
   if (!matchedDimension) {
-    console.warn(`[getPackageComponentsForDimension] No dimension matched for sizeCategory: "${sizeCategory}" in room: "${roomDoc.name}"`);
+    console.warn(`[getPackageComponentsForDimension] No dimension matched for sizeCategory: "${sizeCategory}" in room: "${roomDoc?.name}"`);
     return [];
   }
-  
+
   const packageComponents = matchedDimension?.packageComponents || [];
   console.log(`[getPackageComponentsForDimension] Found ${packageComponents.length} components for room "${roomDoc.name}" size "${sizeCategory}"`);
-  
+
   return packageComponents;
 };
 
-const formatPackageComponents = (packageComponents = []) => {
-  return packageComponents.map((component) => ({
-    id: component._id?.toString() || component.id || '',
-    name: component.name || '',
-    description: component.description || '',
-    price: Number(component.price) || 0,
-    mandatory: Boolean(component.mandatory),
-  }));
+const formatPackageComponents = (packageComponents = [], selectedComponentIds = []) => {
+  return packageComponents.map((component) => {
+    const id = component._id?.toString() || component.id || '';
+    return {
+      id,
+      name: component.name || '',
+      description: component.description || '',
+      price: Number(component.price) || 0,
+      mandatory: Boolean(component.mandatory),
+      isSelected: selectedComponentIds.includes(id),
+    };
+  });
 };
 
 const resolveGlobalAddon = (globalAddons = [], addonId) =>
@@ -195,6 +202,8 @@ const calculateEstimate = ({
     const packageComponentsArray = usesLayoutScopedMaterials
       ? []
       : getPackageComponentsForDimension(roomDoc, sizeCategory);
+    const matchedDimensionForSize = findMatchedDimension(roomDoc, sizeCategory);
+    const sizeLabel = matchedDimensionForSize?.name || matchedDimensionForSize?.label || '';
     const selectedIds = (selectedPackageComponents[room.id] || []);
     const packageComponentsTotal = roundMoney(getPackageComponentsTotal(packageComponentsArray, selectedIds));
 
@@ -244,13 +253,14 @@ const calculateEstimate = ({
       width,
       height,
       areaSqFt,
+      sizeLabel,
       ratePerSqFt,
       baseCost,
       layout: selectedDesignIdea.layout || '',
       layoutCost,
       addons: selectedDesignIdea.addons || [],
       addonsCost,
-      packageComponents: formatPackageComponents(packageComponentsArray),
+      packageComponents: formatPackageComponents(packageComponentsArray, selectedIds),
       packageComponentsTotal,
       layoutMaterials: formatLayoutMaterials(layoutMaterialsArray),
       layoutMaterialsCost,

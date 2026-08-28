@@ -1,8 +1,8 @@
 .penguin-popup {
   position: fixed;
   top: 50%;
-  left: auto;
-  right: clamp(20px, 3vw, 48px);
+  left: clamp(320px, calc(8vw + 680px), 860px);
+  right: auto;
   bottom: auto;
   width: clamp(430px, 37vw, 560px);
   height: clamp(250px, 24vw, 330px);

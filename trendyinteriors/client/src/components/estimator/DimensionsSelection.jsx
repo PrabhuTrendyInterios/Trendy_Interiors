@@ -68,6 +68,7 @@ const DimensionsSelection = ({
 }) => {
   const [customOpenByRoom, setCustomOpenByRoom] = useState({});
   const roomPanelRef = useRef(null);
+  const categorySectionRef = useRef(null);
 
   const roomEntries = useMemo(() => {
     const selected = selectedRooms || {};
@@ -163,9 +164,11 @@ const DimensionsSelection = ({
     if (categoryRooms[0]) {
       onSelectRoom(categoryRooms[0].id);
       window.requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
         if (roomPanelRef.current) {
           roomPanelRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        if (categorySectionRef.current) {
+          categorySectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       });
     }
@@ -382,7 +385,11 @@ const DimensionsSelection = ({
         <p>Swipe through every room in this category, configure each one, then continue to the next category.</p>
       </div>
 
-      <div className="dimensions-category-progress" aria-label="Room category progress">
+      <div
+        className="dimensions-category-progress"
+        aria-label="Room category progress"
+        ref={categorySectionRef}
+      >
         {roomTypeEntries.map((roomType, index) => {
           const categoryRooms = roomEntries.filter((room) => room.roomName === roomType);
           const completedCount = categoryRooms.filter(roomIsComplete).length;

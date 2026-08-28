@@ -418,10 +418,6 @@
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-.estimator-page {
-  padding-bottom: var(--spacing-xl);
-}
-
 .estimator-header-bg {
   display: flex;
   align-items: center;

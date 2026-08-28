@@ -37,6 +37,10 @@ const roomDimensionSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    sizeCategory: {
+      type: String,
+      default: '',
+    },
     selectedDesignIdea: {
       type: selectedDesignIdeaSchema,
       required: false,
@@ -86,6 +90,11 @@ const roomLineItemSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+    },
+    sizeLabel: {
+      type: String,
+      trim: true,
+      default: "",
     },
     ratePerSqFt: {
       type: Number,
@@ -137,6 +146,7 @@ const roomLineItemSchema = new mongoose.Schema(
           description: String,
           price: Number,
           mandatory: Boolean,
+          isSelected: Boolean,
         },
       ],
       default: [],

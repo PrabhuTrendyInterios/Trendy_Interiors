@@ -1,6 +1,5 @@
 /* Luxury Estimator Styling */
 .estimator-page {
-  padding-bottom: var(--spacing-lg);
   min-height: 100vh;
   background:
     linear-gradient(135deg, rgba(14, 14, 14, 0.72), rgba(14, 14, 14, 0.45)),

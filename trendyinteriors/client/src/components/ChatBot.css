@@ -63,7 +63,7 @@
   letter-spacing: 0;
   opacity: 0;
   transform: translate3d(8px, 8px, 0) scale(0.96);
-  animation: tijoSpeechPop 5.8s ease-in-out infinite;
+  animation: tijoSpeechPop 4.6s ease-in-out 1 forwards;
   pointer-events: none;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
 }
@@ -88,17 +88,15 @@
 }
 
 @keyframes tijoSpeechPop {
-  0%,
-  14% {
+  0% {
     opacity: 0;
     transform: translate3d(10px, 8px, 0) scale(0.96);
   }
-  22%,
-  78% {
+  10%,
+  90% {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
   }
-  88%,
   100% {
     opacity: 0;
     transform: translate3d(8px, 4px, 0) scale(0.98);

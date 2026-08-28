@@ -349,6 +349,11 @@
   align-items: center;
 }
 
+.footer-credit-wrap {
+  text-align: center;
+  flex: 1 1 auto;
+}
+
 .brand-name {
   color: #d4af37;
   font-weight: 500;
@@ -365,6 +370,7 @@
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 1px;
+  flex-shrink: 0;
 }
 
 .back-to-top:hover {

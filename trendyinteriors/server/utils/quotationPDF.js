@@ -113,22 +113,15 @@ function drawRoomHeader(doc, roomTitle, sizeCategory, dimension, totalCost, isBe
     cx += vw + SEP;
   };
 
-  drawMeta('Size: ',    sizeCategory, GOLD);
+  if (sizeCategory) {
+    drawMeta('Size: ', sizeCategory, GOLD);
+  }
   drawMeta('Dim: ',     dimension,    WHITE);
   if (layoutLabel) {
     drawMeta('Layout: ', layoutLabel, GOLD);
   }
 
-  // ── RIGHT zone: Total Cost ────────────────────────────────────────────────
-  const costLabel = isBedroom ? 'TOTAL BEDROOM COST' : 'TOTAL COST';
-  doc.fillColor(GOLD).font('Helvetica-Bold').fontSize(9);
-  doc.text(`${costLabel}: ${fmt(totalCost)}`, MARGIN, textY, {
-    width: CONTENT_W - 12,
-    align: 'right',
-    lineBreak: false,
-  });
-
-  doc.y = y + BAR_H + 8;
+  doc.y = y + BAR_H + 8;
 }
 
 function drawInfoTable(doc, rows, colWidths = [CONTENT_W * 0.4, CONTENT_W * 0.6]) {
@@ -182,6 +175,7 @@ const rowHeight = Math.max(getRowHeight(doc, row, colWidths), 22);
 if (doc.y + rowHeight > pageBottom) {
 doc.addPage();
 drawHeader(doc.y);
+doc.lineWidth(0.4).strokeColor(BORDER);
 }
 const currentY = doc.y;
 const isZebra = ri % 2 === 0;
@@ -445,26 +439,19 @@ const isBedroom = type.toLowerCase().includes("bedroom");
 let len = item.length;
 let wid = item.width;
 let hei = item.height;
-if (!len || !wid) {
 let dim = {};
 if (dimensions && typeof dimensions.get === 'function') {
 dim = dimensions.get(item.roomId) || {};
 } else if (dimensions) {
 dim = dimensions[item.roomId] || {};
 }
+if (!len || !wid) {
 len = len || dim.length;
 wid = wid || dim.width;
 hei = hei || dim.height;
 }
-let rawSize = item.sizeCategory || (dimensions && dimensions[item.roomId] && dimensions[item.roomId].sizeCategory) || "";
-if (!rawSize) {
-const area = item.areaSqFt || (len * wid) || 0;
-if (area > 180) rawSize = "LARGE";
-else if (area > 120) rawSize = "MEDIUM";
-else if (area > 0) rawSize = "SMALL";
-else rawSize = "MEDIUM";
-}
-let sizeCategory = rawSize.toUpperCase();
+const rawSize = item.sizeLabel || "";
+let sizeCategory = rawSize ? rawSize.toUpperCase() : "";
 if (sizeCategory === "LOW") sizeCategory = "SMALL";
 if (sizeCategory === "MID") sizeCategory = "MEDIUM";
 const dimension = (len && wid) ? `${len}' × ${wid}'` : "10' × 12'";
@@ -539,10 +526,25 @@ drawDataTable(
 doc,
 ["Item Name", "Size", "Qty", "Item Cost"],
 gaRows,
-[CONTENT_W * 0.45, CONTENT_W * 0.20, CONTENT_W * 0.10, CONTENT_W * 0.25],
+[CONTENT_W * 0.38, CONTENT_W * 0.30, CONTENT_W * 0.08, CONTENT_W * 0.24],
 ["EXTRA ADD-ONS TOTAL", "", "", fmt(gaTotal)]
 );
 doc.y += 15;
+}
+// SECTION 6: TOTAL AMOUNT
+checkSpace(doc, 44);
+{
+const totalY = doc.y;
+const TOTAL_H = 34;
+doc.rect(MARGIN, totalY, CONTENT_W, TOTAL_H).fill(NAVY);
+doc.rect(MARGIN, totalY, 4, TOTAL_H).fill(GOLD);
+doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(11);
+doc.text("TOTAL AMOUNT", MARGIN + 14, totalY + 12, { lineBreak: false });
+doc.fillColor(GOLD).font("Helvetica-Bold").fontSize(13);
+doc.text(fmt(quotation.costs.grand_total), MARGIN, totalY + 10, { width: CONTENT_W - 14, align: "right", lineBreak: false });
+doc.fillColor(MID_TEXT).font("Helvetica-Oblique").fontSize(8);
+doc.text("(Exclusive of GST)", MARGIN, totalY + TOTAL_H + 4, { width: CONTENT_W - 14, align: "right", lineBreak: false });
+doc.y = totalY + TOTAL_H + 18;
 }
 // SECTION 7: WE ASSURE
 renderBlock(doc, 220, () => {

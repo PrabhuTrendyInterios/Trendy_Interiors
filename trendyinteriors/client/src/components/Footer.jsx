@@ -117,7 +117,7 @@ const Footer = ({ estimatorStep = null }) => {
         <div className="footer-bottom-container">
           <p>&copy; {new Date().getFullYear()} <span className="brand-name">TrendyInterios</span>. All Rights Reserved.</p>
 
-      <center>
+      <div className="footer-credit-wrap">
         <span className="footer-credit premium">
           Designed & Engineered by{" "}
           <a
@@ -129,7 +129,7 @@ const Footer = ({ estimatorStep = null }) => {
             Tekriq Technologies
           </a>
         </span>
-      </center>
+      </div>
 
           <button
             className="back-to-top"
