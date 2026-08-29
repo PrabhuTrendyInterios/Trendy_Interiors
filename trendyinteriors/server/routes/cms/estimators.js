@@ -33,4 +33,21 @@ router.get('/:id', protect, authorize('admin'), async (req, res) => {
   }
 });
 
+// @route   DELETE /api/cms/estimators/:id
+// @desc    Delete an estimator
+// @access  Private/Admin
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+  try {
+    const estimator = await Estimator.findByIdAndDelete(req.params.id);
+
+    if (!estimator) {
+      return res.status(404).json({ success: false, message: 'Estimator not found' });
+    }
+
+    return res.status(200).json({ success: true, data: {} });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;

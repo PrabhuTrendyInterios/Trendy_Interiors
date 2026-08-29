@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FaSearch, FaFileDownload, FaEye, FaCalculator } from 'react-icons/fa';
+import { FaSearch, FaFileDownload, FaEye, FaCalculator, FaTrash } from 'react-icons/fa';
 import { useCms } from '../context/CmsContext';
-import { cmsGet } from '../utils/cmsApi';
+import { cmsGet, cmsDelete } from '../utils/cmsApi';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import './EstimatesPage.css';
 
 const EstimatesPage = () => {
@@ -10,6 +11,12 @@ const EstimatesPage = () => {
   const [estimates, setEstimates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    itemId: '',
+    itemName: '',
+    isLoading: false,
+  });
 
   // Search and filter state
   const [searchName, setSearchName] = useState('');
@@ -111,6 +118,28 @@ const EstimatesPage = () => {
       showToast(error.message, 'error');
     } finally {
       setDownloadingId(null);
+    }
+  };
+
+  const handleDeleteClick = (estimate) => {
+    setDeleteModal({
+      isOpen: true,
+      itemId: estimate._id,
+      itemName: estimate.customerInfo?.name || 'this estimate',
+      isLoading: false,
+    });
+  };
+
+  const confirmDelete = async () => {
+    setDeleteModal((prev) => ({ ...prev, isLoading: true }));
+    try {
+      await cmsDelete(`/estimators/${deleteModal.itemId}`);
+      showToast('Estimate deleted successfully!', 'success');
+      setEstimates((prev) => prev.filter((est) => est._id !== deleteModal.itemId));
+      setDeleteModal({ isOpen: false, itemId: '', itemName: '', isLoading: false });
+    } catch (error) {
+      showToast(error.message, 'error');
+      setDeleteModal((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
@@ -279,12 +308,30 @@ const EstimatesPage = () => {
                   >
                     <FaFileDownload /> {downloadingId === estimate._id ? 'Downloading...' : 'PDF'}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteClick(estimate)}
+                    className="btn-action btn-delete"
+                    title="Delete estimate"
+                  >
+                    <FaTrash /> Delete
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title="Delete Estimate?"
+        message="Are you sure you want to delete the estimate for"
+        itemName={deleteModal.itemName}
+        isLoading={deleteModal.isLoading}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteModal({ isOpen: false, itemId: '', itemName: '', isLoading: false })}
+      />
     </div>
   );
 };

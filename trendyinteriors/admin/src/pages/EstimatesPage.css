@@ -357,6 +357,17 @@
   border-color: rgba(46, 204, 113, 0.5);
 }
 
+.btn-delete {
+  border-color: rgba(231, 76, 60, 0.25);
+  background: rgba(231, 76, 60, 0.08);
+  color: #e74c3c;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background: rgba(231, 76, 60, 0.15);
+  border-color: rgba(231, 76, 60, 0.5);
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .estimates-toolbar {

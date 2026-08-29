@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaBuilding,
+  FaChevronLeft,
+  FaChevronRight,
   FaCheckCircle,
   FaClipboardCheck,
   FaDraftingCompass,
@@ -10,10 +12,12 @@ import {
   FaHandshake,
   FaKey,
   FaPalette,
+  FaPlay,
   FaStar,
   FaTools,
   FaTrophy,
   FaTruck,
+  FaYoutube,
 } from 'react-icons/fa';
 import PremiumSectionHeader from '../components/PremiumSectionHeader';
 import { useAuth } from '../context/AuthContext';
@@ -161,6 +165,27 @@ const Home = () => {
     { step: 'Quality Check', icon: <FaCheckCircle />, description: 'Rigorous quality control at every stage' },
     { step: 'Site Handover', icon: <FaKey />, description: 'Final walkthrough and project completion' },
   ];
+
+  const channelVideos = [
+    { id: 'TJFKoSXVSlk', title: 'Meet Tijo 🤖 | The Newest Member of Trendy Interios' },
+    { id: 'HcxtLwy1fNs', title: 'Modern Luxury Dream Home Interior Designed & Executed by Trendy InterioS' },
+    { id: 'z96yDS1d8CM', title: 'Namma work pathu client sonna first words 😱' },
+    { id: 'rVQ7NgtFtac', title: 'Complete Turnkey Interior Kitchen Design | Modern Home Interior' },
+    { id: 'mqouZX4MBSo', title: 'TV Units That Define Your Living Space' },
+    { id: 'CB0euNyHI3c', title: 'Where Comfort Meets Class 💫' },
+    { id: '5ImJuRDXIEs', title: 'Design that Elevates Every Step' },
+    { id: 'aiWHlztQzEw', title: 'This is how we leveled up a home in Erode!' },
+  ];
+  const videoTrackRef = useRef(null);
+  const [activeVideoId, setActiveVideoId] = useState(null);
+
+  const scrollVideoTrack = (direction) => {
+    const track = videoTrackRef.current;
+    if (!track) return;
+    const card = track.querySelector('.youtube-card');
+    const scrollAmount = card ? card.offsetWidth + 24 : 320;
+    track.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+  };
 
   const getServiceIcon = (service, index) => {
     const title = `${service?.title || ''}`.toLowerCase();
@@ -435,6 +460,84 @@ const Home = () => {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* YouTube Channel Section */}
+      <section className="youtube-section">
+        <div className="container">
+          <PremiumSectionHeader
+            sectionName="ON YOUTUBE"
+            title="Watch Us In Action"
+            subtitle="Real projects, real transformations - straight from our YouTube channel"
+          />
+
+          <div className="youtube-carousel-wrapper">
+            <button
+              type="button"
+              className="youtube-carousel-arrow youtube-carousel-arrow-left"
+              onClick={() => scrollVideoTrack(-1)}
+              aria-label="Scroll to previous videos"
+            >
+              <FaChevronLeft aria-hidden="true" />
+            </button>
+
+            <div className="youtube-carousel-track" ref={videoTrackRef}>
+              {channelVideos.map((video) => (
+                <div key={video.id} className="youtube-card">
+                  <div className="youtube-card-frame">
+                    {activeVideoId === video.id ? (
+                      <iframe
+                        src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0`}
+                        title={video.title}
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        className="youtube-thumb-button"
+                        onClick={() => setActiveVideoId(video.id)}
+                        aria-label={`Play video: ${video.title}`}
+                      >
+                        <img
+                          src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
+                          alt={video.title}
+                          loading="lazy"
+                        />
+                        <span className="youtube-play-overlay">
+                          <FaPlay aria-hidden="true" />
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                  <h4 className="youtube-card-title">{video.title}</h4>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="youtube-carousel-arrow youtube-carousel-arrow-right"
+              onClick={() => scrollVideoTrack(1)}
+              aria-label="Scroll to next videos"
+            >
+              <FaChevronRight aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="youtube-subscribe-cta">
+            <a
+              href="https://www.youtube.com/@Trendy_InterioS"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary youtube-subscribe-btn"
+            >
+              <FaYoutube aria-hidden="true" />
+              Subscribe on YouTube
+            </a>
           </div>
         </div>
       </section>

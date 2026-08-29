@@ -109,8 +109,14 @@ const EstimateDetailsPage = () => {
   };
 
   const rooms = normalizeEntries(estimate.rooms);
-  const dimensions = normalizeEntries(estimate.roomDimensionsByRoom);
-  const addons = Array.isArray(estimate.extraAddons) ? estimate.extraAddons : [];
+  const lineItems = Array.isArray(estimate.quoteSummary?.lineItems) ? estimate.quoteSummary.lineItems : [];
+  const roomLineItems = lineItems.filter(
+    (item) => item.roomId !== 'global-addons' && item.roomId !== 'extra-addons'
+  );
+  const globalAddonsItem = lineItems.find(
+    (item) => item.roomId === 'global-addons' || item.roomId === 'extra-addons'
+  );
+  const addons = globalAddonsItem?.addonDetails || [];
 
   return (
     <div className="estimate-details-page">
@@ -230,21 +236,21 @@ const EstimateDetailsPage = () => {
         {/* Right column: Details & Breakdown */}
         <div className="details-column">
           {/* Room Dimensions */}
-          {dimensions.length > 0 && (
+          {roomLineItems.length > 0 && (
             <div className="details-section">
               <h2 className="section-title">Room Dimensions</h2>
               <div className="dimensions-list">
-                {dimensions.map(([roomId, dims]) => (
-                  <div key={roomId} className="dimension-item">
-                    <h4>{roomId}</h4>
-                    {Array.isArray(dims) && dims.length > 0 ? (
+                {roomLineItems.map((item) => (
+                  <div key={item.roomId} className="dimension-item">
+                    <h4>{item.label || item.roomName}</h4>
+                    {item.length > 0 && item.width > 0 ? (
                       <ul>
-                        {dims.map((dim, idx) => (
-                          <li key={idx}>
-                            {dim.name}: {dim.length}ft × {dim.width}ft
-                            {dim.layout && <span className="dim-layout"> ({dim.layout})</span>}
-                          </li>
-                        ))}
+                        <li>
+                          {item.length}ft × {item.width}ft
+                          {item.height > 0 && ` × ${item.height}ft`}
+                          {' '}({item.areaSqFt} sq.ft)
+                          {item.layout && <span className="dim-layout"> ({item.layout})</span>}
+                        </li>
                       </ul>
                     ) : (
                       <p className="no-data">No dimensions specified</p>
@@ -261,13 +267,13 @@ const EstimateDetailsPage = () => {
               <h2 className="section-title">Extra Addons</h2>
               <div className="addons-list">
                 {addons.map((addon, idx) => (
-                  <div key={idx} className="addon-item">
+                  <div key={addon.id || idx} className="addon-item">
                     <div className="addon-info">
                       <span className="addon-name">{addon.name || 'Addon'}</span>
-                      <span className="addon-qty">Qty: {addon.quantity || 1}</span>
+                      <span className="addon-qty">Qty: {addon.count || 1}</span>
                     </div>
                     <span className="addon-price">
-                      {formatCurrency((addon.price || 0) * (addon.quantity || 1))}
+                      {formatCurrency(addon.totalPrice ?? (addon.price || 0) * (addon.count || 1))}
                     </span>
                   </div>
                 ))}
@@ -280,36 +286,6 @@ const EstimateDetailsPage = () => {
             <div className="details-section cost-section">
               <h2 className="section-title">Cost Breakdown</h2>
               <div className="cost-breakdown">
-                <div className="cost-row">
-                  <span className="cost-label">Base Cost (Rooms)</span>
-                  <span className="cost-value">
-                    {formatCurrency(estimate.quoteSummary.totalBasePrice || 0)}
-                  </span>
-                </div>
-
-                <div className="cost-row">
-                  <span className="cost-label">Addons</span>
-                  <span className="cost-value">
-                    {formatCurrency(estimate.quoteSummary.totalAddonsPrice || 0)}
-                  </span>
-                </div>
-
-                <div className="cost-row">
-                  <span className="cost-label">Discount</span>
-                  <span className="cost-value discount">
-                    {estimate.quoteSummary.discountPercentage || 0}%
-                  </span>
-                </div>
-
-                <div className="cost-row">
-                  <span className="cost-label">Discount Amount</span>
-                  <span className="cost-value discount">
-                    -{formatCurrency(estimate.quoteSummary.discountAmount || 0)}
-                  </span>
-                </div>
-
-                <div className="cost-divider" />
-
                 <div className="cost-row total">
                   <span className="cost-label">Total Estimated Amount</span>
                   <span className="cost-value total">
