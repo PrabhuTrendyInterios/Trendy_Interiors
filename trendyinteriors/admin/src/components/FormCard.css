@@ -68,3 +68,27 @@
         gap: 0.65rem;
     }
 }
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+    text-align: left;
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.12);
+    font-size: 0.9rem;
+}
+
+.admin-table th {
+    color: var(--color-gold);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+}
+
+.admin-table tbody tr:hover {
+    background: rgba(212, 175, 55, 0.05);
+}

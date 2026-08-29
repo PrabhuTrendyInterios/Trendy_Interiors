@@ -556,7 +556,7 @@ doc.text("We assure our customers that all materials and workmanship will be del
 doc.fillColor(DARK_TEXT).font("Helvetica").fontSize(9);
 const points = [
 "1 year free service and lifetime service support.",
-"10 years replacement warranty on plywood, laminate, and hinges.",
+"10 years replacement warranty on raw materials like plywood & lamination.",
 "Materials can be upgraded or modified as per your choice.",
 "The final quotation will be submitted after our detailed discussion and approval."
 ];

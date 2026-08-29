@@ -11,6 +11,8 @@ import TeamMembersPage from './pages/TeamMembersPage';
 import RoomsPage from './pages/RoomsPage';
 import GlobalAddonsPage from './pages/GlobalAddonsPage';
 import SettingsPage from './pages/SettingsPage';
+import AdminUsersPage from './pages/AdminUsersPage';
+import ActivityPage from './pages/ActivityPage';
 import EstimatesPage from './pages/EstimatesPage';
 import EstimateDetailsPage from './pages/EstimateDetailsPage';
 import MeetingRequestsPage from './pages/MeetingRequestsPage';
@@ -45,6 +47,8 @@ const Layout = () => {
             <Route path="meetings/:id" element={<MeetingRequestDetailsPage />} />
             <Route path="testimonials" element={<TestimonialsPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="admin-users" element={<AdminUsersPage />} />
+            <Route path="activity" element={<ActivityPage />} />
           </Route>
         </Route>
       </Routes>

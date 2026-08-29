@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 
-import { FaSave, FaUndo } from 'react-icons/fa';
+import { FaSave, FaUndo, FaLock } from 'react-icons/fa';
 
 import FormCard from '../components/FormCard';
+import ChangePasswordModal from '../components/ChangePasswordModal';
 
 import { useCms } from '../context/CmsContext';
 
@@ -37,6 +38,8 @@ const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
 
   const [submitLoading, setSubmitLoading] = useState(false);
+
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
 
 
@@ -330,9 +333,31 @@ const SettingsPage = () => {
 
           </FormCard>
 
+          <FormCard title="Account Security" icon={<FaLock />}>
+            <div className="form-subsection">
+              <h4 className="subsection-title">Password</h4>
+              <p style={{ margin: '0 0 1rem', color: 'var(--color-gray)', fontSize: '0.9rem' }}>
+                Change your admin account password. You'll need to verify with an OTP sent to the registered admin email.
+              </p>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setShowChangePassword(true)}
+              >
+                <FaLock /> Change Password
+              </button>
+            </div>
+          </FormCard>
+
         </div>
 
       </div>
+
+      <ChangePasswordModal
+        isOpen={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+        onSuccess={() => showToast('Password changed successfully!', 'success')}
+      />
 
     </div>
 

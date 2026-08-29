@@ -152,7 +152,15 @@
 
 .request-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.request-actions .select-control {
+  flex: 1;
+  min-width: 130px;
 }
 
 .status-badge {
@@ -189,10 +197,58 @@
   border: 1px solid rgba(231, 76, 60, 0.25);
 }
 
-.btn-view {
+.btn-action {
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 160px;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 8px;
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--color-gold);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-action:hover:not(:disabled) {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.5);
+}
+
+.btn-action:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-view {
+  border-color: rgba(52, 152, 219, 0.25);
+  background: rgba(52, 152, 219, 0.08);
+  color: #3498db;
+}
+
+.btn-view:hover:not(:disabled) {
+  background: rgba(52, 152, 219, 0.15);
+  border-color: rgba(52, 152, 219, 0.5);
+}
+
+.btn-delete {
+  border-color: rgba(231, 76, 60, 0.25);
+  background: rgba(231, 76, 60, 0.08);
+  color: #e74c3c;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background: rgba(231, 76, 60, 0.15);
+  border-color: rgba(231, 76, 60, 0.5);
 }
 
 .empty-state {
@@ -252,7 +308,13 @@
     gap: 0.35rem;
   }
 
-  .request-actions .btn-view {
+  .request-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .request-actions .select-control,
+  .request-actions .btn-action {
     width: 100%;
     min-width: 0;
   }

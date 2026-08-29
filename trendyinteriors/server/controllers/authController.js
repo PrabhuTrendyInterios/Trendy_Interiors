@@ -101,6 +101,9 @@ exports.login = async (req, res, next) => {
             return res.status(401).json({ success: false, error: 'Invalid credentials' });
         }
 
+        // Make the authenticated user available to the activity logger
+        req.user = user;
+
         // Send login alert to admin email if user is admin
         if (user.role === 'admin') {
             try {
@@ -374,6 +377,9 @@ exports.resetPassword = async (req, res, next) => {
         user.password = password;
         user.passwordResetToken = undefined;
         await user.save();
+
+        // Make the authenticated user available to the activity logger
+        req.user = user;
 
         // Send password reset confirmation email to admin
         if (user.role === 'admin') {

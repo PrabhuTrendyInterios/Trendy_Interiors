@@ -4,8 +4,11 @@ const { protect } = require('../middleware/authMiddleware');
 const sendEmail = require('../utils/mail');
 const { sendAdminEmail } = require('../utils/mail');
 const { generateContactEmailHTML } = require('../utils/emailTemplates');
+const { trackActivity } = require('../middleware/activityLogger');
 
 const router = express.Router();
+
+router.use(trackActivity);
 
 router.post('/register', register);
 router.post('/login', login);

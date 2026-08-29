@@ -4,7 +4,7 @@ import { API_CONFIG } from '../utils/apiConfig';
 import './Auth.css';
 
 const ForgotPassword = () => {
-    const ADMIN_EMAIL = 'trendyadmin123@gmail.com';
+    const [email, setEmail] = useState('');
     const [step, setStep] = useState(2); // Start at step 2: OTP verification (step 1 is skipped)
     const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
     const [newPassword, setNewPassword] = useState('');
@@ -22,13 +22,19 @@ const ForgotPassword = () => {
         e.preventDefault();
         setError('');
         setMessage('');
+
+        if (!email.trim()) {
+            setError('Please enter your admin email address');
+            return;
+        }
+
         setLoading(true);
 
         try {
             const response = await fetch(API_CONFIG.AUTH.FORGOT_PASSWORD, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: ADMIN_EMAIL })
+                body: JSON.stringify({ email: email.trim() })
             });
 
             const data = await response.json();
@@ -65,7 +71,7 @@ const ForgotPassword = () => {
             const response = await fetch(API_CONFIG.AUTH.VERIFY_RESET_OTP, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: ADMIN_EMAIL, otp })
+                body: JSON.stringify({ email: email.trim(), otp })
             });
 
             const data = await response.json();
@@ -157,8 +163,8 @@ const ForgotPassword = () => {
             <div className="auth-card">
                 <div className="auth-header">
                     <h2 className="auth-title">Reset Admin Password</h2>
-                    {!otpSent && <p className="auth-subtitle">Send OTP to your admin email</p>}
-                    {otpSent && step === 2 && <p className="auth-subtitle">Enter OTP sent to admin email</p>}
+                    {!otpSent && <p className="auth-subtitle">Enter your admin email to receive an OTP</p>}
+                    {otpSent && step === 2 && <p className="auth-subtitle">Enter OTP sent to the registered admin inbox</p>}
                     {step === 3 && <p className="auth-subtitle">Create a new password</p>}
                 </div>
 
@@ -168,10 +174,17 @@ const ForgotPassword = () => {
                 {/* Step 1: Send OTP Request */}
                 {!otpSent && (
                     <form className="auth-form" onSubmit={handleSendOTP}>
-                        <div style={{padding: '16px', backgroundColor: 'rgba(212, 175, 55, 0.1)', borderRadius: '8px', marginBottom: '20px', border: '1px solid rgba(212, 175, 55, 0.3)'}}>
-                            <p style={{margin: 0, color: '#ffb84d', fontSize: '14px', lineHeight: '1.6'}}>
-                                An OTP will be sent to <strong>{ADMIN_EMAIL}</strong>
-                            </p>
+                        <div className="form-group">
+                            <label htmlFor="forgot-email">Admin Email</label>
+                            <input
+                                type="email"
+                                id="forgot-email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                placeholder="Enter your admin account email"
+                                autoFocus
+                            />
                         </div>
 
                         <button type="submit" className="auth-btn" disabled={loading}>

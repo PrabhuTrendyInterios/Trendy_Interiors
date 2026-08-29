@@ -13,6 +13,8 @@ import {
   FaCalculator,
   FaCalendarAlt,
   FaComments,
+  FaUserShield,
+  FaHistory,
 } from 'react-icons/fa';
 import './CmsSidebar.css';
 
@@ -85,6 +87,24 @@ const CmsSidebar = ({ collapsed, mobileOpen, onToggle, onMobileClose }) => {
 
         <div className="cms-nav-group">
           <span className={`cms-nav-label ${collapsed ? 'desktop-collapsed' : ''}`}>System</span>
+          <NavLink
+            to="/admin-users"
+            className={({ isActive }) => `cms-nav-link ${isActive ? 'active' : ''}`}
+            title="Admin Users"
+            onClick={onMobileClose}
+          >
+            <FaUserShield className="cms-nav-icon" />
+            <span className={`cms-nav-text ${collapsed ? 'desktop-collapsed' : ''}`}>Admin Users</span>
+          </NavLink>
+          <NavLink
+            to="/activity"
+            className={({ isActive }) => `cms-nav-link ${isActive ? 'active' : ''}`}
+            title="Activity"
+            onClick={onMobileClose}
+          >
+            <FaHistory className="cms-nav-icon" />
+            <span className={`cms-nav-text ${collapsed ? 'desktop-collapsed' : ''}`}>Activity</span>
+          </NavLink>
           <NavLink
             to="/settings"
             className={({ isActive }) => `cms-nav-link ${isActive ? 'active' : ''}`}

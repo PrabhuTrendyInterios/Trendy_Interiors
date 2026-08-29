@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { FaSearch, FaCalendarAlt, FaChevronRight } from 'react-icons/fa';
+import { FaSearch, FaCalendarAlt, FaTrash, FaSave } from 'react-icons/fa';
 import { useCms } from '../context/CmsContext';
-import { cmsGet } from '../utils/cmsApi';
+import { cmsGet, cmsPut, cmsDelete } from '../utils/cmsApi';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import './MeetingRequestsPage.css';
 
 const statusOptions = ['all', 'Pending', 'Confirmed', 'Completed', 'Cancelled'];
+const editableStatusOptions = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
 
 const MeetingRequestsPage = () => {
   const { showToast } = useCms();
@@ -16,6 +17,9 @@ const MeetingRequestsPage = () => {
   const [searchPhone, setSearchPhone] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
+  const [pendingStatus, setPendingStatus] = useState({});
+  const [savingId, setSavingId] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, itemId: '', itemName: '', isLoading: false });
 
   const fetchMeetingRequests = useCallback(async () => {
     try {
@@ -87,6 +91,50 @@ const MeetingRequestsPage = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  const handleStatusChange = (id, status) => {
+    setPendingStatus((prev) => ({ ...prev, [id]: status }));
+  };
+
+  const handleStatusSave = async (request) => {
+    const newStatus = pendingStatus[request._id];
+    if (!newStatus || newStatus === request.status) return;
+
+    setSavingId(request._id);
+    try {
+      await cmsPut(`/meeting-requests/${request._id}/status`, { status: newStatus });
+      showToast('Meeting status updated successfully!', 'success');
+      setMeetingRequests((prev) =>
+        prev.map((r) => (r._id === request._id ? { ...r, status: newStatus } : r))
+      );
+      setPendingStatus((prev) => {
+        const next = { ...prev };
+        delete next[request._id];
+        return next;
+      });
+    } catch (error) {
+      showToast(error.message, 'error');
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const handleDeleteClick = (request) => {
+    setDeleteModal({ isOpen: true, itemId: request._id, itemName: request.name || 'this meeting request', isLoading: false });
+  };
+
+  const confirmDelete = async () => {
+    setDeleteModal((prev) => ({ ...prev, isLoading: true }));
+    try {
+      await cmsDelete(`/meeting-requests/${deleteModal.itemId}`);
+      showToast('Meeting request deleted successfully!', 'success');
+      setMeetingRequests((prev) => prev.filter((r) => r._id !== deleteModal.itemId));
+      setDeleteModal({ isOpen: false, itemId: '', itemName: '', isLoading: false });
+    } catch (error) {
+      showToast(error.message, 'error');
+      setDeleteModal((prev) => ({ ...prev, isLoading: false }));
+    }
   };
 
   return (
@@ -213,15 +261,54 @@ const MeetingRequestsPage = () => {
                 </div>
 
                 <div className="request-actions">
-                  <Link to={`/admin/meetings/${request._id}`} className="btn-action btn-view">
-                    <FaChevronRight /> View Details
-                  </Link>
+                  <select
+                    className="form-input select-control"
+                    value={pendingStatus[request._id] ?? request.status}
+                    onChange={(e) => handleStatusChange(request._id, e.target.value)}
+                  >
+                    {editableStatusOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="btn-action btn-view"
+                    onClick={() => handleStatusSave(request)}
+                    disabled={
+                      savingId === request._id ||
+                      !pendingStatus[request._id] ||
+                      pendingStatus[request._id] === request.status
+                    }
+                    title="Save status"
+                  >
+                    <FaSave /> {savingId === request._id ? 'Saving...' : 'Update'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-action btn-delete"
+                    onClick={() => handleDeleteClick(request)}
+                    title="Delete meeting request"
+                  >
+                    <FaTrash /> Delete
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title="Delete Meeting Request?"
+        message="Are you sure you want to delete the meeting request from"
+        itemName={deleteModal.itemName}
+        isLoading={deleteModal.isLoading}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteModal({ isOpen: false, itemId: '', itemName: '', isLoading: false })}
+      />
     </div>
   );
 };
