@@ -53,6 +53,14 @@ const MEETING_FIELDS = [
   { key: 'propertyLocation', label: 'Property Location / Site Address' },
 ];
 
+// Some Groq models (e.g. reasoning/"thinking" variants like qwen3) prepend a
+// <think>...</think> chain-of-thought block before the real answer. That block
+// can consume the whole max_tokens budget, or leak into JSON parsing/replies.
+const stripThinkTags = (text = '') => {
+  if (!text) return '';
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*$/gi, '').trim();
+};
+
 const safeJsonParse = (value, fallback) => {
   try {
     if (typeof value === 'string') {
@@ -80,12 +88,21 @@ const extractAreaFromText = (text = '') => {
   return null;
 };
 
+// Reasoning-capable models accept a `reasoning_effort` param, but the valid
+// values differ per model family, so only send it for families we've verified.
+const getReasoningEffort = (model = '') => {
+  if (model.startsWith('openai/gpt-oss')) return 'low';
+  return undefined;
+};
+
 const callGroq = async ({ messages, model, maxTokens, temperature }) => {
   try {
     if (!process.env.GROQ_API_KEY) {
       console.error('❌ GROQ_API_KEY is not configured in environment variables');
       throw new Error('GROQ_API_KEY not configured');
     }
+
+    const reasoningEffort = getReasoningEffort(model);
 
     const response = await axios.post(
       'https://api.groq.com/openai/v1/chat/completions',
@@ -94,6 +111,7 @@ const callGroq = async ({ messages, model, maxTokens, temperature }) => {
         messages,
         temperature,
         max_tokens: maxTokens,
+        ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
       },
       {
         headers: {
@@ -122,10 +140,12 @@ const callGroq = async ({ messages, model, maxTokens, temperature }) => {
 const parseAnalysisJson = (rawContent) => {
   if (!rawContent) return null;
 
-  const direct = safeJsonParse(rawContent, null);
+  const cleaned = stripThinkTags(rawContent);
+
+  const direct = safeJsonParse(cleaned, null);
   if (direct) return direct;
 
-  const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;
 
   return safeJsonParse(jsonMatch[0], null);
@@ -336,7 +356,7 @@ ${userMessage}`;
   const content = await callGroq({
     messages: [{ role: 'user', content: prompt }],
     model: chatbotConfig.model,
-    maxTokens: 300,
+    maxTokens: 2000,
     temperature: 0.1,
   });
 
@@ -603,17 +623,19 @@ exports.sendMessage = async (req, res) => {
         ...messages
       ],
       model: chatbotConfig.model,
-      maxTokens: chatbotConfig.maxTokens,
+      maxTokens: Math.max(chatbotConfig.maxTokens || 256, 1800),
       temperature: chatbotConfig.temperature,
     });
 
-    if (!aiResponse) {
+    const cleanedResponse = stripThinkTags(aiResponse);
+
+    if (!cleanedResponse) {
       return res.status(500).json({ error: 'No response from AI' });
     }
 
     res.status(200).json({
       success: true,
-      message: aiResponse,
+      message: cleanedResponse,
       timestamp: new Date()
     });
 
