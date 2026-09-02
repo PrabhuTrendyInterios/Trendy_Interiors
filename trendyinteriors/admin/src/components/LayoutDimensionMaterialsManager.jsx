@@ -62,7 +62,9 @@ const LayoutDimensionMaterialsManager = ({
   onEnsureDimensionId,
   dimensionless = false,
 }) => {
-  const [expandedDimIndex, setExpandedDimIndex] = useState(null);
+  const [expandedIndices, setExpandedIndices] = useState(
+    () => new Set(dimensions.map((_, index) => index))
+  );
 
   const syncedConfigurations = syncConfigurations(dimensions, configurations);
   const dimensionlessConfiguration = syncDimensionlessConfiguration(configurations);
@@ -78,7 +80,15 @@ const LayoutDimensionMaterialsManager = ({
   };
 
   const toggleExpandedDimension = (index) => {
-    setExpandedDimIndex(expandedDimIndex === index ? null : index);
+    setExpandedIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
   };
 
   const resolveDimensionId = (dimensionIndex) => {
@@ -166,7 +176,7 @@ const LayoutDimensionMaterialsManager = ({
                     onClick={() => toggleExpandedDimension(dimIndex)}
                     title="Toggle expansion"
                   >
-                    {expandedDimIndex === dimIndex ? <FaChevronDown /> : <FaChevronRight />}
+                    {expandedIndices.has(dimIndex) ? <FaChevronDown /> : <FaChevronRight />}
                   </button>
                   <div className="dimension-item-info">
                     <h5>{dimension.name || `Dimension ${dimIndex + 1}`}</h5>
@@ -181,7 +191,7 @@ const LayoutDimensionMaterialsManager = ({
                   </div>
                 </div>
 
-                {expandedDimIndex === dimIndex && (
+                {expandedIndices.has(dimIndex) && (
                   <div className="dimension-expanded-content">
                     <div className="nested-manager-wrapper">
                       <RoomNestedManager

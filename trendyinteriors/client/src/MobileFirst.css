@@ -812,24 +812,24 @@
     position: relative !important;
     display: inline-flex !important;
     align-items: center !important;
-    justify-content: flex-start !important;
+    justify-content: center !important;
     box-sizing: border-box !important;
-    flex: 0 0 48px !important;
-    width: 48px !important;
-    min-width: 48px !important;
-    max-width: 48px !important;
-    height: 30px !important;
-    min-height: 30px !important;
-    max-height: 30px !important;
+    flex: 0 0 22px !important;
+    width: 22px !important;
+    min-width: 22px !important;
+    max-width: 22px !important;
+    height: 22px !important;
+    min-height: 22px !important;
+    max-height: 22px !important;
     margin: 0 !important;
     padding: 0 !important;
-    border: 0 !important;
-    border-radius: 999px !important;
-    overflow: hidden !important;
-    background: #d82323 !important;
-    background-color: #d82323 !important;
-    color: #d82323 !important;
-    box-shadow: 0 7px 16px rgba(0, 0, 0, 0.18) !important;
+    border: 2px solid #c62828 !important;
+    border-radius: 50% !important;
+    overflow: visible !important;
+    background: rgba(198, 40, 40, 0.08) !important;
+    background-color: rgba(198, 40, 40, 0.08) !important;
+    color: #c62828 !important;
+    box-shadow: none !important;
   }
 
   .estimator-page .quotation-review-card .quote-switch-control.selected,
@@ -844,25 +844,23 @@
   .estimator-page .quotation-review-card .quote-addon-row button.quote-toggle-control.selected,
   .estimator-page .quotation-review-card .quote-addon-row button.quote-toggle-control[aria-checked="true"],
   .estimator-page .quotation-review-card .quote-addon-row button.quote-toggle-control[data-selected="true"] {
-    background: #20d79a !important;
-    background-color: #20d79a !important;
-    border-color: transparent !important;
-    color: #149a6d !important;
-    box-shadow: 0 7px 16px rgba(32, 215, 154, 0.24) !important;
+    background: var(--color-gold) !important;
+    background-color: var(--color-gold) !important;
+    border-color: var(--color-gold) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16) !important;
   }
 
   .estimator-page .quotation-review-card .quote-switch-knob {
-    position: absolute !important;
-    top: 2px !important;
-    left: 2px !important;
+    position: static !important;
     display: grid !important;
     place-items: center !important;
-    width: 26px !important;
-    height: 26px !important;
+    width: 100% !important;
+    height: 100% !important;
     border-radius: 50% !important;
-    background: #ffffff !important;
+    background: transparent !important;
     color: currentColor !important;
-    transform: translateX(0) !important;
+    transform: none !important;
   }
 
   .estimator-page .quotation-review-card .quote-switch-control.selected .quote-switch-knob,
@@ -871,11 +869,11 @@
   .estimator-page .quotation-review-card .quote-toggle-control.selected .quote-switch-knob,
   .estimator-page .quotation-review-card .quote-toggle-control[aria-checked="true"] .quote-switch-knob,
   .estimator-page .quotation-review-card .quote-toggle-control[data-selected="true"] .quote-switch-knob {
-    transform: translateX(18px) !important;
+    transform: none !important;
   }
 
   .estimator-page .quotation-review-card .quote-switch-knob svg {
-    width: 16px !important;
-    height: 16px !important;
+    width: 12px !important;
+    height: 12px !important;
   }
 }

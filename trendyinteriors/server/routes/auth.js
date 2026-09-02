@@ -57,7 +57,7 @@ router.post('/test-email', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to send test email: ' + err.message,
-      troubleshooting: 'Check if SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS environment variables are correctly set. Check server logs for detailed error info.'
+      troubleshooting: 'Check that SENDGRID_API_KEY and EMAIL_FROM are correctly set, and that EMAIL_FROM is a verified Sender Identity in SendGrid (https://app.sendgrid.com/settings/sender_auth). Check server logs for detailed error info.'
     });
   }
 });

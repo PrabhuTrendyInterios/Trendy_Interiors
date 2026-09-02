@@ -4,6 +4,7 @@ import RoomNestedManager from './RoomNestedManager';
 
 const PACKAGE_COMPONENT_FIELDS = [
   { key: 'name', label: 'Name', required: true, fullWidth: true },
+  { key: 'size', label: 'Size / Specification', placeholder: 'e.g. 6ft x 2ft, 18mm BWP' },
   { key: 'description', label: 'Description', type: 'textarea', fullWidth: true, rows: 2 },
   { key: 'price', label: 'Price (₹)', type: 'number', min: 0 },
   { key: 'mandatory', label: 'Mandatory', type: 'checkbox', fullWidth: false },
@@ -70,12 +71,13 @@ const DimensionPackageManager = ({ dimensions, onChange }) => {
                     <RoomNestedManager
                       title="Package Components"
                       items={dimension.packageComponents || []}
-                      emptyItem={{ name: '', description: '', price: '', mandatory: false, displayOrder: 0 }}
+                      emptyItem={{ name: '', size: '', description: '', price: '', mandatory: false, displayOrder: 0 }}
                       fields={PACKAGE_COMPONENT_FIELDS}
                       onChange={(components) => handlePackageComponentsChange(dimIndex, components)}
                       renderSummary={(item) => (
                         <>
                           <h6>{item.name}</h6>
+                          {item.size && <p>Size: {item.size}</p>}
                           <p>₹{Number(item.price || 0).toLocaleString('en-IN')}</p>
                           {item.description && <p className="component-desc">{item.description}</p>}
                           <p className="component-meta">

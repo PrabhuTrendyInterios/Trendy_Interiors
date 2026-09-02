@@ -6,7 +6,7 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 const { generateQuotationPDF, generateQuotationPDFBuffer } = require("../utils/quotationPDF");
 const { sendEmailWithAttachment } = require("../utils/mail");
 const { generateQuotationDeliveryHTML } = require("../utils/emailTemplates");
-const { calculateEstimate, findRoomCatalogEntry } = require("../utils/calculateEstimate");
+const { calculateEstimate, findRoomCatalogEntry, refreshLineItemSizes } = require("../utils/calculateEstimate");
 const { findLayoutByName, resolveLayoutMaterials } = require("../utils/layoutMaterials");
 
 const router = express.Router();
@@ -435,6 +435,17 @@ router.get("/:id/pdf/download", async (req, res) => {
 
     // Convert Mongoose document to plain object
     const plainEstimator = estimator.toObject ? estimator.toObject() : estimator;
+
+    // Refresh material/component sizes from the current room catalog so a
+    // re-downloaded PDF always reflects whatever size is set in the admin
+    // panel today, even for quotes saved before that size was configured.
+    if (plainEstimator.quoteSummary?.lineItems?.length) {
+      const { roomsCatalog } = await loadEstimatorData();
+      plainEstimator.quoteSummary.lineItems = refreshLineItemSizes(
+        plainEstimator.quoteSummary.lineItems,
+        roomsCatalog
+      );
+    }
 
     // Generate PDF and send response
     await generateQuotationPDF(plainEstimator, res, (err) => {

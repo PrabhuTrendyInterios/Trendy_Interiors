@@ -6,6 +6,7 @@ import { useCms } from '../context/CmsContext';
 import { useAuth } from '../context/AuthContext';
 import { cmsGet, cmsPost, cmsDelete } from '../utils/cmsApi';
 import { validatePassword, getPasswordStrengthMessage } from '../utils/passwordValidation';
+import './AdminUsersPage.css';
 
 const emptyForm = { name: '', email: '', password: '', confirmPassword: '' };
 
@@ -192,20 +193,20 @@ const AdminUsersPage = () => {
                 <p>Loading admin users...</p>
               </div>
             ) : (
-              <div className="rooms-list">
+              <div className="admin-users-list">
                 {admins.map((admin) => (
-                  <div key={admin._id} className="room-item" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
+                  <div key={admin._id} className="admin-user-card">
+                    <div className="admin-user-card-info">
                       <span className="room-name">{admin.name}</span>
                       {admin._id === user?._id && (
                         <span style={{ marginLeft: '8px', fontSize: '0.75rem', color: 'var(--color-gold)' }}>(You)</span>
                       )}
-                      <div style={{ color: 'var(--color-gray)', fontSize: '0.85rem' }}>{admin.email}</div>
+                      <div style={{ color: 'var(--color-gray)', fontSize: '0.85rem', wordBreak: 'break-all' }}>{admin.email}</div>
                       <div style={{ color: 'var(--color-gray)', fontSize: '0.75rem' }}>Added {formatDate(admin.createdAt)}</div>
                     </div>
                     <button
                       type="button"
-                      className="btn-action-delete"
+                      className="admin-user-remove-btn"
                       onClick={() => handleDeleteClick(admin)}
                       disabled={admin._id === user?._id || admins.length <= 1}
                       title={admin._id === user?._id ? 'You cannot remove your own account' : 'Remove admin'}

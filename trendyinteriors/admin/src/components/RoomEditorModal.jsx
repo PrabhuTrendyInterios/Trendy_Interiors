@@ -73,12 +73,6 @@ const LAYOUT_FIELDS = [
   { key: 'imageUrl', label: 'Image URL', fullWidth: true, placeholder: 'https://...' },
   { key: 'description', label: 'Description', type: 'textarea', fullWidth: true, rows: 2 },
   { key: 'fixedPrice', label: 'Fixed Price (₹)', type: 'number', min: 0 },
-  {
-    key: 'hasLayoutMaterials',
-    label: 'Enable Layout-Specific Materials',
-    type: 'checkbox',
-    fullWidth: true,
-  },
 ];
 
 const ADDON_FIELDS = [
@@ -105,6 +99,7 @@ export const normalizeRoomFromApi = (room = {}) => ({
     packageComponents: (d.packageComponents || []).map((pc) => ({
       ...pc,
       name: pc.name || '',
+      size: pc.size || '',
       description: pc.description || '',
       price: pc.price ?? 0,
       mandatory: pc.mandatory ?? false,
@@ -366,17 +361,6 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
               fields={LAYOUT_FIELDS}
               onChange={(layouts) => setForm({ ...form, layouts })}
               reorderable
-              renderFormExtras={(draft, setDraft) =>
-                draft.hasLayoutMaterials ? (
-                  <LayoutDimensionMaterialsManager
-                    dimensions={form.dimensions}
-                    configurations={draft.configurations || []}
-                    onChange={(configurations) => setDraft({ ...draft, configurations })}
-                    onEnsureDimensionId={ensureDimensionId}
-                    dimensionless={!form.requiresDimensions}
-                  />
-                ) : null
-              }
               renderSummary={(item) => (
                 <>
                   <h5>{item.name}</h5>
@@ -384,6 +368,74 @@ const RoomEditorModal = ({ isOpen, room, isSaving, onClose, onSave }) => {
                 </>
               )}
             />
+          </section>
+
+          <section className="room-editor-section">
+            <div className="room-nested-header">
+              <h4 className="subsection-title">Layout Materials &amp; Sizes</h4>
+            </div>
+            {form.layouts.length === 0 ? (
+              <p className="room-nested-empty">
+                Add a layout above first, then enable and edit its materials here.
+              </p>
+            ) : (
+              <div className="cms-nested-list">
+                {form.layouts.map((layout, layoutIndex) => {
+                  const handleLayoutConfigurationsChange = (configurations) => {
+                    const layouts = [...form.layouts];
+                    layouts[layoutIndex] = { ...layout, configurations };
+                    setForm({ ...form, layouts });
+                  };
+
+                  const toggleLayoutMaterials = () => {
+                    const layouts = [...form.layouts];
+                    layouts[layoutIndex] = {
+                      ...layout,
+                      hasLayoutMaterials: !layout.hasLayoutMaterials,
+                    };
+                    setForm({ ...form, layouts });
+                  };
+
+                  return (
+                    <div key={layout._id || layoutIndex} className="dimension-item-container">
+                      <div className="dimension-item">
+                        <div className="dimension-item-info">
+                          <h5>{layout.name || `Layout ${layoutIndex + 1}`}</h5>
+                        </div>
+                        <div className="checkbox-row">
+                          <button
+                            type="button"
+                            className={`form-toggle ${layout.hasLayoutMaterials ? 'checked' : ''}`}
+                            onClick={toggleLayoutMaterials}
+                            aria-pressed={layout.hasLayoutMaterials}
+                            title={
+                              layout.hasLayoutMaterials
+                                ? 'Disable materials for this layout'
+                                : 'Enable materials for this layout'
+                            }
+                          >
+                            {layout.hasLayoutMaterials && <span aria-hidden="true">✓</span>}
+                          </button>
+                          <span>Enable materials for this layout</span>
+                        </div>
+                      </div>
+
+                      {layout.hasLayoutMaterials && (
+                        <div className="dimension-expanded-content">
+                          <LayoutDimensionMaterialsManager
+                            dimensions={form.dimensions}
+                            configurations={layout.configurations || []}
+                            onChange={handleLayoutConfigurationsChange}
+                            onEnsureDimensionId={ensureDimensionId}
+                            dimensionless={!form.requiresDimensions}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           <section className="room-editor-section">

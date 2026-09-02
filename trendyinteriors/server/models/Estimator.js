@@ -143,6 +143,7 @@ const roomLineItemSchema = new mongoose.Schema(
         {
           id: String,
           name: String,
+          size: String,
           description: String,
           price: Number,
           mandatory: Boolean,
@@ -161,6 +162,7 @@ const roomLineItemSchema = new mongoose.Schema(
         {
           id: String,
           name: String,
+          size: String,
           price: Number,
           mandatory: Boolean,
         },

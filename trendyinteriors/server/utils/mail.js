@@ -1,20 +1,10 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
-// Create SMTP transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: Number(process.env.SMTP_PORT) === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
-// Validate SMTP configuration
-if (!process.env.SMTP_HOST) {
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+} else {
   console.warn(
-    '[EMAIL] ⚠️ WARNING: SMTP configuration not found. Email sending will fail.'
+    '[EMAIL] ⚠️ WARNING: SENDGRID_API_KEY not configured. Email sending will fail.'
   );
 }
 
@@ -65,8 +55,9 @@ const sendEmailWithAttachment = async function ({
     attachments: [
       {
         filename: attachment.filename,
-        content: attachment.content,
-        contentType: attachment.type || 'application/pdf',
+        content: attachment.content.toString('base64'),
+        type: attachment.type || 'application/pdf',
+        disposition: 'attachment',
       },
     ],
   };
@@ -79,7 +70,7 @@ const sendEmailWithAttachment = async function ({
       subject
     );
 
-    const result = await transporter.sendMail(msg);
+    const result = await sgMail.send(msg);
 
     console.log(
       '[EMAIL] ✅ Email with attachment sent successfully to:',
@@ -90,14 +81,13 @@ const sendEmailWithAttachment = async function ({
 
     return result;
   } catch (err) {
-    const errorMessage = err.message || 'Unknown error';
-    const errorCode = err.code || 'N/A';
+    const errorMessage = err.response?.body?.errors
+      ? JSON.stringify(err.response.body.errors)
+      : err.message || 'Unknown error';
 
     console.error(
       '[EMAIL] ❌ Email sending failed to',
       to,
-      '| Error Code:',
-      errorCode,
       '| Message:',
       errorMessage
     );
@@ -156,20 +146,19 @@ const sendAdminEmail = async function ({
       subject
     );
 
-    const result = await transporter.sendMail(msg);
+    const result = await sgMail.send(msg);
 
     console.log('[EMAIL] ✅ Email sent successfully to:', to);
 
     return result;
   } catch (err) {
-    const errorMessage = err.message || 'Unknown error';
-    const errorCode = err.code || 'N/A';
+    const errorMessage = err.response?.body?.errors
+      ? JSON.stringify(err.response.body.errors)
+      : err.message || 'Unknown error';
 
     console.error(
       '[EMAIL] ❌ Email sending failed to',
       to,
-      '| Error Code:',
-      errorCode,
       '| Message:',
       errorMessage
     );
@@ -222,20 +211,19 @@ const sendUserEmail = async function ({
       subject
     );
 
-    const result = await transporter.sendMail(msg);
+    const result = await sgMail.send(msg);
 
     console.log('[EMAIL] ✅ Email sent successfully to:', email);
 
     return result;
   } catch (err) {
-    const errorMessage = err.message || 'Unknown error';
-    const errorCode = err.code || 'N/A';
+    const errorMessage = err.response?.body?.errors
+      ? JSON.stringify(err.response.body.errors)
+      : err.message || 'Unknown error';
 
     console.error(
       '[EMAIL] ❌ Email sending failed to',
       email,
-      '| Error Code:',
-      errorCode,
       '| Message:',
       errorMessage
     );

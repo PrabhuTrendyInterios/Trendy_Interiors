@@ -480,14 +480,14 @@ if (layoutCost > 0 && item.layout) {
 // 2. Layout materials (e.g. Base Unit, Tandem Drawer Box, Wall Unit for Kitchen)
 if (item.layoutMaterials && item.layoutMaterials.length > 0) {
 item.layoutMaterials.forEach(mat => {
-allItems.push({ name: mat.name, size: sizeString, price: mat.price || 0 });
+allItems.push({ name: mat.name, size: mat.size || sizeString, price: mat.price || 0 });
 });
 }
 // Package components (e.g. Wardrobe, Storage Unit for Bedroom)
 // Include if isSelected OR mandatory (mandatory items are always included)
 const selectedComponents = (item.packageComponents || []).filter(c => c.isSelected || c.mandatory);
 selectedComponents.forEach(comp => {
-allItems.push({ name: comp.name, size: sizeString, price: comp.price || 0 });
+allItems.push({ name: comp.name, size: comp.size || sizeString, price: comp.price || 0 });
 });
 // Add-on details
 if (item.addonDetails && item.addonDetails.length > 0) {

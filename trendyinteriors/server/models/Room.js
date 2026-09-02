@@ -14,6 +14,12 @@ const packageComponentSchema = new mongoose.Schema(
       maxlength: 500,
       default: '',
     },
+    size: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+      default: '',
+    },
     price: {
       type: Number,
       required: [true, 'Please provide a price'],

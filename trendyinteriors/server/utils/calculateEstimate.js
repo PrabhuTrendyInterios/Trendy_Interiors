@@ -103,6 +103,7 @@ const formatPackageComponents = (packageComponents = [], selectedComponentIds = 
     return {
       id,
       name: component.name || '',
+      size: component.size || '',
       description: component.description || '',
       price: Number(component.price) || 0,
       mandatory: Boolean(component.mandatory),
@@ -319,6 +320,58 @@ const calculateEstimate = ({
   };
 };
 
+/**
+ * Refreshes the `size` shown for each material/package component on a
+ * previously-saved quote's line items using the *current* room catalog, so a
+ * PDF re-downloaded for an old quote always reflects whatever size an admin
+ * has set in the admin panel — without touching the originally quoted
+ * prices/selections.
+ */
+const refreshLineItemSizes = (lineItems = [], roomsCatalog = []) => {
+  return (Array.isArray(lineItems) ? lineItems : []).map((item) => {
+    if (item.roomId === 'global-addons' || item.roomId === 'extra-addons') {
+      return item;
+    }
+
+    const roomDoc = findRoomCatalogEntry(roomsCatalog, item.roomName);
+    if (!roomDoc) {
+      return item;
+    }
+
+    const materialSizeById = {};
+    (roomDoc.layouts || []).forEach((layout) => {
+      (layout.configurations || []).forEach((config) => {
+        (config.materials || []).forEach((material) => {
+          const id = material._id?.toString() || material.id;
+          if (id) materialSizeById[id] = material.size || '';
+        });
+      });
+    });
+
+    const componentSizeById = {};
+    (roomDoc.dimensions || []).forEach((dimension) => {
+      (dimension.packageComponents || []).forEach((component) => {
+        const id = component._id?.toString() || component.id;
+        if (id) componentSizeById[id] = component.size || '';
+      });
+    });
+
+    return {
+      ...item,
+      layoutMaterials: (item.layoutMaterials || []).map((material) =>
+        material.id in materialSizeById
+          ? { ...material, size: materialSizeById[material.id] }
+          : material
+      ),
+      packageComponents: (item.packageComponents || []).map((component) =>
+        component.id in componentSizeById
+          ? { ...component, size: componentSizeById[component.id] }
+          : component
+      ),
+    };
+  });
+};
+
 module.exports = {
   calculateEstimate,
   calcArea,
@@ -328,4 +381,5 @@ module.exports = {
   getPackageComponentsTotal,
   getPackageComponentsForDimension,
   formatPackageComponents,
+  refreshLineItemSizes,
 };

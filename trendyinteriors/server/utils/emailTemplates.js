@@ -445,7 +445,8 @@ const generateTestimonialEmailHTML = (data) => {
 };
 
 const generateAdminLoginAlertHTML = (data) => {
-  const { name, email } = data;
+  const { name, email, role } = data;
+  const roleLabel = role === 'admin' ? 'Admin' : 'User';
   const formattedDate = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -490,16 +491,16 @@ const generateAdminLoginAlertHTML = (data) => {
         </div>
         <div class="content">
           <div class="section">
-            <div class="section-title">🔐 Admin Login Detected</div>
+            <div class="section-title">🔐 ${roleLabel} Login Detected</div>
             <div class="alert-message">
-              An admin has logged into the TrendyInterios dashboard. If this was not you, please change your password immediately.
+              A ${roleLabel.toLowerCase()} has logged into TrendyInterios. If this was not you, please change your password immediately.
             </div>
           </div>
           <div class="section">
             <div class="section-title">Login Details</div>
             <div class="info-box">
               <div class="info-row">
-                <div class="info-label">Admin Name</div>
+                <div class="info-label">${roleLabel} Name</div>
                 <div class="info-value">${name}</div>
               </div>
               <div class="info-row">

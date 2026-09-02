@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const { validatePassword } = require('../utils/passwordValidation');
 const sendEmail = require('../utils/mail');
 const { sendAdminEmail } = require('../utils/mail');
-const { generateAdminLoginAlertHTML, generatePasswordChangeAlertHTML, generatePasswordResetOTPHTML, generateChangePasswordOTPHTML } = require('../utils/emailTemplates');
+const { generatePasswordChangeAlertHTML, generatePasswordResetOTPHTML, generateChangePasswordOTPHTML } = require('../utils/emailTemplates');
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -104,20 +104,6 @@ exports.login = async (req, res, next) => {
         // Make the authenticated user available to the activity logger
         req.user = user;
 
-        // Send login alert to admin email if user is admin
-        if (user.role === 'admin') {
-            try {
-                await sendAdminEmail({
-                    to: process.env.ADMIN_EMAIL,
-                    subject: '🔐 Admin Login Alert - TrendyInterios',
-                    html: generateAdminLoginAlertHTML({ name: user.name, email: user.email })
-                });
-            } catch (emailErr) {
-                console.error('Failed to send admin login alert:', emailErr);
-                // Don't fail the login if email fails
-            }
-        }
-
         sendTokenResponse(user, 200, res);
     } catch (err) {
         next(err);
@@ -209,18 +195,16 @@ exports.changePassword = async (req, res, next) => {
         user.password = newPassword;
         await user.save();
 
-        // Send password change alert to admin email
-        if (user.role === 'admin') {
-            try {
-                await sendAdminEmail({
-                    to: process.env.ADMIN_EMAIL,
-                    subject: '✅ Admin Password Changed Successfully - TrendyInterios',
-                    html: generatePasswordChangeAlertHTML({ name: user.name, email: user.email })
-                });
-            } catch (emailErr) {
-                console.error('Failed to send password change alert:', emailErr);
-                // Don't fail the password change if email fails
-            }
+        // Send password change confirmation to the account's own email
+        try {
+            await sendAdminEmail({
+                to: user.email,
+                subject: '✅ Password Changed Successfully - TrendyInterios',
+                html: generatePasswordChangeAlertHTML({ name: user.name, email: user.email })
+            });
+        } catch (emailErr) {
+            console.error('Failed to send password change confirmation:', emailErr);
+            // Don't fail the password change if email fails
         }
 
         res.status(200).json({
@@ -232,7 +216,7 @@ exports.changePassword = async (req, res, next) => {
     }
 };
 
-// @desc    Forgot password - Send OTP to admin email
+// @desc    Forgot password - Send OTP to the account's registered email
 // @route   POST /api/auth/forgot-password
 // @access  Public
 exports.forgotPassword = async (req, res, next) => {
@@ -250,7 +234,7 @@ exports.forgotPassword = async (req, res, next) => {
             // Don't reveal if email exists or not for security
             return res.status(200).json({
                 success: true,
-                message: 'If an account with that email exists, an OTP has been sent to the registered admin email'
+                message: 'If an account with that email exists, an OTP has been sent to it'
             });
         }
 
@@ -262,17 +246,17 @@ exports.forgotPassword = async (req, res, next) => {
         user.resetOTPExpire = Date.now() + 10 * 60 * 1000;
         await user.save();
 
-        // Send OTP email to admin email
+        // Send OTP email to the account's own registered email
         try {
             await sendAdminEmail({
-                to: process.env.ADMIN_EMAIL,
+                to: user.email,
                 subject: '🔑 Password Reset OTP - TrendyInterios',
                 html: generatePasswordResetOTPHTML({ otp })
             });
 
             return res.status(200).json({
                 success: true,
-                message: 'OTP sent to the registered admin email. Please check your email.'
+                message: 'OTP sent to your registered email. Please check your inbox.'
             });
         } catch (err) {
             // Clear OTP on email error
@@ -381,17 +365,15 @@ exports.resetPassword = async (req, res, next) => {
         // Make the authenticated user available to the activity logger
         req.user = user;
 
-        // Send password reset confirmation email to admin
-        if (user.role === 'admin') {
-            try {
-                await sendAdminEmail({
-                    to: process.env.ADMIN_EMAIL,
-                    subject: '✅ Admin Password Reset Confirmation - TrendyInterios',
-                    html: generatePasswordChangeAlertHTML({ name: user.name, email: user.email })
-                });
-            } catch (emailErr) {
-                console.error('Failed to send password reset confirmation:', emailErr);
-            }
+        // Send password reset confirmation to the account's own email
+        try {
+            await sendAdminEmail({
+                to: user.email,
+                subject: '✅ Password Reset Confirmation - TrendyInterios',
+                html: generatePasswordChangeAlertHTML({ name: user.name, email: user.email })
+            });
+        } catch (emailErr) {
+            console.error('Failed to send password reset confirmation:', emailErr);
         }
 
         res.status(200).json({
@@ -422,17 +404,17 @@ exports.sendChangePasswordOTP = async (req, res, next) => {
         user.changePasswordOTPExpire = Date.now() + 10 * 60 * 1000;
         await user.save();
 
-        // Send OTP email to admin email
+        // Send OTP email to the account's own registered email
         try {
             await sendAdminEmail({
-                to: process.env.ADMIN_EMAIL,
+                to: user.email,
                 subject: '🔑 Change Password OTP - TrendyInterios',
                 html: generateChangePasswordOTPHTML({ otp })
             });
 
             return res.status(200).json({
                 success: true,
-                message: 'OTP sent to the registered admin email'
+                message: 'OTP sent to your registered email'
             });
         } catch (err) {
             // Clear OTP on email error
@@ -500,15 +482,15 @@ exports.changePasswordWithOTP = async (req, res, next) => {
         user.changePasswordOTPExpire = undefined;
         await user.save();
 
-        // Send password change alert to admin email
+        // Send password change confirmation to the account's own email
         try {
             await sendAdminEmail({
-                to: process.env.ADMIN_EMAIL,
-                subject: '✅ Admin Password Changed Successfully - TrendyInterios',
+                to: user.email,
+                subject: '✅ Password Changed Successfully - TrendyInterios',
                 html: generatePasswordChangeAlertHTML({ name: user.name, email: user.email })
             });
         } catch (emailErr) {
-            console.error('Failed to send password change alert:', emailErr);
+            console.error('Failed to send password change confirmation:', emailErr);
         }
 
         res.status(200).json({
