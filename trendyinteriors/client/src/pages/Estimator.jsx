@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { FaCheck, FaExclamationTriangle, FaLock, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaExclamationTriangle, FaLock } from 'react-icons/fa';
 import RoomSelection from '../components/estimator/RoomSelection';
 import DimensionsSelection from '../components/estimator/DimensionsSelection';
 import ExtraAddons from '../components/estimator/ExtraAddons';
@@ -36,44 +36,50 @@ const ESTIMATOR_DRAFT_KEY = 'trendyInteriorsEstimatorDraft';
 const ESTIMATOR_API_URL = `${API_BASE_URL}/api/estimators`;
 
 const QUOTATION_SWITCH_CRITICAL_CSS = `
-  .estimator-page .quotation-review-card .quote-option-cost-row {
-    grid-template-columns: 54px minmax(0, 1fr) minmax(58px, auto) !important;
+  .estimator-page .quotation-review-card .quote-option-cost-row,
+  .estimator-page .quotation-review-card .quote-addon-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
+    gap: 0.6rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
-  .estimator-page .quotation-review-card .quote-addon-row,
   .estimator-page .quotation-review-card .quote-addon-row label {
+    display: flex !important;
+    flex: 1 1 auto !important;
     align-items: center !important;
+    gap: 0.6rem !important;
+    min-width: 0 !important;
   }
 
-  .estimator-page .quotation-review-card .quote-addon-row label {
-    grid-template-columns: 54px minmax(0, 1fr) !important;
-  }
-
+  /* Square checkbox control (replaces the old sliding pill switch) */
   .estimator-page .quotation-review-card .quote-switch-control,
   .estimator-page .quotation-review-card .quote-toggle-control,
   .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control {
     position: relative !important;
     display: inline-flex !important;
     align-items: center !important;
-    justify-content: flex-start !important;
+    justify-content: center !important;
     box-sizing: border-box !important;
-    flex: 0 0 48px !important;
-    width: 48px !important;
-    min-width: 48px !important;
-    max-width: 48px !important;
-    height: 30px !important;
-    min-height: 30px !important;
-    max-height: 30px !important;
+    flex: 0 0 24px !important;
+    width: 24px !important;
+    min-width: 24px !important;
+    max-width: 24px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
     margin: 0 !important;
     padding: 0 !important;
-    border: 0 !important;
-    border-radius: 999px !important;
+    border: 2px solid rgba(148, 148, 148, 0.55) !important;
+    border-radius: 6px !important;
     overflow: hidden !important;
-    background: #d82323 !important;
-    background-color: #d82323 !important;
-    color: #d82323 !important;
-    box-shadow: 0 7px 16px rgba(0, 0, 0, 0.18) !important;
+    background: #ffffff !important;
+    color: transparent !important;
+    box-shadow: none !important;
+    transition: border-color 0.15s ease, background-color 0.15s ease !important;
   }
 
   .estimator-page .quotation-review-card .quote-switch-control.selected,
@@ -89,38 +95,88 @@ const QUOTATION_SWITCH_CRITICAL_CSS = `
   .estimator-page .quotation-review-card .quote-addon-row button.quote-toggle-control[aria-checked="true"],
   .estimator-page .quotation-review-card .quote-addon-row button.quote-toggle-control[data-selected="true"] {
     background: #20d79a !important;
-    background-color: #20d79a !important;
-    border-color: transparent !important;
-    color: #149a6d !important;
-    box-shadow: 0 7px 16px rgba(32, 215, 154, 0.24) !important;
+    border-color: #20d79a !important;
+    box-shadow: 0 2px 6px rgba(32, 215, 154, 0.35) !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control:disabled {
+    opacity: 0.6 !important;
+    cursor: default !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-text {
+    display: none !important;
   }
 
   .estimator-page .quotation-review-card .quote-switch-knob {
-    position: absolute !important;
-    top: 2px !important;
-    left: 2px !important;
+    position: static !important;
     display: grid !important;
     place-items: center !important;
-    width: 26px !important;
-    height: 26px !important;
-    border-radius: 50% !important;
-    background: #ffffff !important;
-    color: currentColor !important;
-    transform: translateX(0) !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 3px !important;
+    background: transparent !important;
+    color: #ffffff !important;
+    transform: none !important;
   }
 
-  .estimator-page .quotation-review-card .quote-switch-control.selected .quote-switch-knob,
-  .estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"] .quote-switch-knob,
-  .estimator-page .quotation-review-card .quote-switch-control[data-selected="true"] .quote-switch-knob,
-  .estimator-page .quotation-review-card .quote-toggle-control.selected .quote-switch-knob,
-  .estimator-page .quotation-review-card .quote-toggle-control[aria-checked="true"] .quote-switch-knob,
-  .estimator-page .quotation-review-card .quote-toggle-control[data-selected="true"] .quote-switch-knob {
-    transform: translateX(18px) !important;
+  .estimator-page .quotation-review-card .quote-switch-knob svg,
+  .estimator-page .quotation-review-card .quote-switch-knob svg path {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    width: 14px !important;
+    height: 14px !important;
   }
 
-  .estimator-page .quotation-review-card .quote-switch-knob svg {
-    width: 16px !important;
-    height: 16px !important;
+  .estimator-page .quotation-review-card .quote-option-cost-row > div,
+  .estimator-page .quotation-review-card .quote-addon-row label > span {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-option-cost-row > div p,
+  .estimator-page .quotation-review-card .quote-addon-row label > span {
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-option-cost-row > p:last-child,
+  .estimator-page .quotation-review-card .quote-addon-row > p {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    margin-left: auto !important;
+  }
+
+  @media (max-width: 768px) {
+    .estimator-page .quotation-review-card .quote-option-cost-row,
+    .estimator-page .quotation-review-card .quote-addon-row {
+      gap: 0.5rem !important;
+    }
+
+    .estimator-page .quotation-review-card .quote-switch-control,
+    .estimator-page .quotation-review-card .quote-toggle-control,
+    .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control {
+      flex: 0 0 20px !important;
+      width: 20px !important;
+      min-width: 20px !important;
+      max-width: 20px !important;
+      height: 20px !important;
+      min-height: 20px !important;
+      max-height: 20px !important;
+      border-width: 1.5px !important;
+      border-radius: 5px !important;
+    }
+
+    .estimator-page .quotation-review-card .quote-switch-knob svg {
+      width: 11px !important;
+      height: 11px !important;
+    }
+
+    .estimator-page .quotation-review-card .quote-option-cost-row > p:last-child,
+    .estimator-page .quotation-review-card .quote-addon-row > p {
+      font-size: 0.72rem !important;
+    }
   }
 `;
 
@@ -1166,7 +1222,7 @@ const Estimator = () => {
                                         >
                                           <span className="quote-switch-text">{isSelected ? 'ON' : 'OFF'}</span>
                                           <span className="quote-switch-knob" aria-hidden="true">
-                                            {isSelected ? <FaCheck aria-hidden="true" /> : <FaTimes aria-hidden="true" />}
+                                            {isSelected && <FaCheck aria-hidden="true" style={{ color: '#ffffff' }} />}
                                           </span>
                                         </button>
                                         <span style={{ fontSize: '1rem', lineHeight: 1.4 }}>
@@ -1232,7 +1288,7 @@ const Estimator = () => {
                                           >
                                             <span className="quote-switch-text">{isSelected ? 'ON' : 'OFF'}</span>
                                             <span className="quote-switch-knob" aria-hidden="true">
-                                              {isSelected ? <FaCheck aria-hidden="true" /> : <FaTimes aria-hidden="true" />}
+                                              {isSelected && <FaCheck aria-hidden="true" style={{ color: '#ffffff' }} />}
                                             </span>
                                           </button>
                                         )}
@@ -1312,7 +1368,7 @@ const Estimator = () => {
                                               >
                                                 <span className="quote-switch-text">{isSelected ? 'ON' : 'OFF'}</span>
                                                 <span className="quote-switch-knob" aria-hidden="true">
-                                                  {isSelected ? <FaCheck aria-hidden="true" /> : <FaTimes aria-hidden="true" />}
+                                                  {isSelected && <FaCheck aria-hidden="true" style={{ color: '#ffffff' }} />}
                                                 </span>
                                               </button>
                                               <div style={{ flex: 1, minWidth: 0 }}>

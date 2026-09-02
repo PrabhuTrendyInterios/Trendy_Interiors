@@ -2978,8 +2978,7 @@
   padding: 20px 18px 20px 20px;
   overflow-x: hidden;
   overflow-y: auto;
-  overscroll-behavior-block: auto;
-  scroll-snap-type: y proximity;
+  overscroll-behavior-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(212, 175, 55, 0.75) transparent;
 }
@@ -2989,7 +2988,6 @@
   min-width: 0;
   padding-bottom: 22px;
   border-bottom: 2px solid rgba(212, 175, 55, 0.5);
-  scroll-snap-align: start;
 }
 
 .dimensions-room-section:last-child {
