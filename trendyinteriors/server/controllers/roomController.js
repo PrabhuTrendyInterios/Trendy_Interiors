@@ -47,6 +47,7 @@ const normalizeDimension = (item = {}) => ({
     ? item.packageComponents.map((component) => ({
         ...(component._id ? { _id: component._id } : {}),
         name: String(component.name || '').trim(),
+        size: String(component.size || '').trim(),
         description: String(component.description || '').trim(),
         price: Number(component.price) || 0,
         mandatory: Boolean(component.mandatory),
