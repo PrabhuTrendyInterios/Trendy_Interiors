@@ -46,7 +46,7 @@ const About = () => {
 
   const stats = [
     { number: '10+', label: 'Design Awards', icon: <FaTrophy /> },
-    { number: '250+', label: 'Happy Clients', icon: <FaSmile /> },
+    { number: '600+', label: 'Happy Clients', icon: <FaSmile /> },
     { number: '400+', label: 'Hours of Craftsmanship', icon: <FaStopwatch /> },
     { number: '150+', label: 'Projects Completed', icon: <FaCheckCircle /> },
   ];

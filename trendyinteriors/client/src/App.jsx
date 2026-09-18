@@ -18,11 +18,12 @@ import './MobileFirst.css';
 
 const Layout = () => {
   const location = useLocation();
-  const showFooter = location.pathname !== '/estimator';
+  const isEstimator = location.pathname === '/estimator';
+  const showFooter = !isEstimator;
 
   return (
     <div className="app-wrapper">
-      <Header />
+      {!isEstimator && <Header />}
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />

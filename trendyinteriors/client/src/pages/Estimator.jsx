@@ -55,31 +55,32 @@ const QUOTATION_SWITCH_CRITICAL_CSS = `
     min-width: 0 !important;
   }
 
-  /* Square checkbox control (replaces the old sliding pill switch) */
+  /* Sliding pill toggle switch */
   .estimator-page .quotation-review-card .quote-switch-control,
   .estimator-page .quotation-review-card .quote-toggle-control,
   .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control {
     position: relative !important;
     display: inline-flex !important;
     align-items: center !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
     box-sizing: border-box !important;
-    flex: 0 0 24px !important;
-    width: 24px !important;
-    min-width: 24px !important;
-    max-width: 24px !important;
-    height: 24px !important;
-    min-height: 24px !important;
-    max-height: 24px !important;
+    flex: 0 0 46px !important;
+    width: 46px !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    max-height: 26px !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 3px !important;
     border: 2px solid rgba(148, 148, 148, 0.55) !important;
-    border-radius: 6px !important;
-    overflow: hidden !important;
-    background: #ffffff !important;
+    border-radius: 999px !important;
+    overflow: visible !important;
+    background: #d1d5db !important;
     color: transparent !important;
     box-shadow: none !important;
-    transition: border-color 0.15s ease, background-color 0.15s ease !important;
+    cursor: pointer !important;
+    transition: border-color 0.2s ease, background-color 0.2s ease !important;
   }
 
   .estimator-page .quotation-review-card .quote-switch-control.selected,
@@ -109,23 +110,30 @@ const QUOTATION_SWITCH_CRITICAL_CSS = `
   }
 
   .estimator-page .quotation-review-card .quote-switch-knob {
-    position: static !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 3px !important;
     display: grid !important;
     place-items: center !important;
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: 3px !important;
-    background: transparent !important;
-    color: #ffffff !important;
-    transform: none !important;
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    color: transparent !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    transform: translateY(-50%) translateX(0) !important;
+    transition: transform 0.2s ease !important;
+  }
+
+  .estimator-page .quotation-review-card .quote-switch-control.selected .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"] .quote-switch-knob,
+  .estimator-page .quotation-review-card .quote-switch-control[data-selected="true"] .quote-switch-knob {
+    transform: translateY(-50%) translateX(20px) !important;
   }
 
   .estimator-page .quotation-review-card .quote-switch-knob svg,
   .estimator-page .quotation-review-card .quote-switch-knob svg path {
-    color: #ffffff !important;
-    fill: #ffffff !important;
-    width: 14px !important;
-    height: 14px !important;
+    display: none !important;
   }
 
   .estimator-page .quotation-review-card .quote-option-cost-row > div,
@@ -157,25 +165,35 @@ const QUOTATION_SWITCH_CRITICAL_CSS = `
     .estimator-page .quotation-review-card .quote-switch-control,
     .estimator-page .quotation-review-card .quote-toggle-control,
     .estimator-page .quotation-review-card .quote-option-cost-row button.quote-switch-control {
-      flex: 0 0 20px !important;
-      width: 20px !important;
-      min-width: 20px !important;
-      max-width: 20px !important;
-      height: 20px !important;
-      min-height: 20px !important;
-      max-height: 20px !important;
+      flex: 0 0 42px !important;
+      width: 42px !important;
+      min-width: 42px !important;
+      max-width: 42px !important;
+      height: 24px !important;
+      min-height: 24px !important;
+      max-height: 24px !important;
       border-width: 1.5px !important;
-      border-radius: 5px !important;
     }
 
-    .estimator-page .quotation-review-card .quote-switch-knob svg {
-      width: 11px !important;
-      height: 11px !important;
+    .estimator-page .quotation-review-card .quote-switch-knob {
+      width: 16px !important;
+      height: 16px !important;
+    }
+
+    .estimator-page .quotation-review-card .quote-switch-control.selected .quote-switch-knob,
+    .estimator-page .quotation-review-card .quote-switch-control[aria-checked="true"] .quote-switch-knob,
+    .estimator-page .quotation-review-card .quote-switch-control[data-selected="true"] .quote-switch-knob {
+      transform: translateY(-50%) translateX(18px) !important;
     }
 
     .estimator-page .quotation-review-card .quote-option-cost-row > p:last-child,
     .estimator-page .quotation-review-card .quote-addon-row > p {
-      font-size: 0.72rem !important;
+      font-size: 0.8rem !important;
+    }
+
+    .estimator-page .quotation-review-card .quote-addon-row label > span,
+    .estimator-page .quotation-review-card .quote-option-cost-row > div p {
+      font-size: 0.95rem !important;
     }
   }
 `;

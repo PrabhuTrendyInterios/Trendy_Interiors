@@ -859,14 +859,28 @@
   text-shadow: none;
 }
 
-.testimonials-carousel {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: var(--spacing-md);
+.testimonials-carousel-wrap {
+  position: relative;
   margin: var(--spacing-lg) 0;
 }
 
+.testimonials-carousel {
+  display: flex;
+  gap: var(--spacing-md);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 4px 4px 12px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.testimonials-carousel::-webkit-scrollbar {
+  display: none;
+}
+
 .testimonial-card {
+  box-sizing: border-box;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
@@ -877,6 +891,47 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  flex: 0 0 340px;
+  width: 340px;
+  scroll-snap-align: start;
+}
+
+.testimonials-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #d4af37 0%, #c4a027 100%);
+  color: #1a1a1a;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4);
+  transition: all 0.3s ease;
+  z-index: 5;
+}
+
+.testimonials-carousel-arrow:hover {
+  transform: translateY(-50%) scale(1.08);
+}
+
+.testimonials-carousel-arrow.prev {
+  left: -22px;
+}
+
+.testimonials-carousel-arrow.next {
+  right: -22px;
+}
+
+@media (max-width: 900px) {
+  .testimonials-carousel-arrow {
+    display: none;
+  }
 }
 
 .testimonial-card:hover {
@@ -943,6 +998,17 @@
   object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.15);
   box-shadow: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #d4af37, #b8912b);
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .customer-details h4 {
@@ -1015,16 +1081,14 @@
 }
 
 @media (max-width: 768px) {
-  .testimonials-carousel {
-    grid-template-columns: 1fr;
+  .testimonial-card {
+    flex-basis: 86vw;
+    width: 86vw;
+    padding: var(--spacing-md);
   }
 
   .trust-badges {
     grid-template-columns: 1fr;
-  }
-
-  .testimonial-card {
-    padding: var(--spacing-md);
   }
 
   .quote-icon {

@@ -41,6 +41,14 @@ const Home = () => {
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [testimonials, setTestimonials] = useState([]);
   const [loadingTestimonials, setLoadingTestimonials] = useState(true);
+  const testimonialsTrackRef = useRef(null);
+  const scrollTestimonials = (direction) => {
+    const track = testimonialsTrackRef.current;
+    if (!track) return;
+    const card = track.querySelector('.testimonial-card');
+    const cardWidth = card ? card.offsetWidth + 24 : 340;
+    track.scrollBy({ left: direction * cardWidth, behavior: 'smooth' });
+  };
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
   const isScrolled = useScrollScrubbedVideo(videoRef);
@@ -378,43 +386,75 @@ const Home = () => {
           <PremiumSectionHeader
             sectionName="TESTIMONIALS"
             title="What Our Clients Say"
-            subtitle="Trusted by 200+ happy homeowners across India"
+            subtitle="Trusted by 600+ happy homeowners across India"
           />
 
-          <div className="testimonials-carousel">
-            {loadingTestimonials ? (
-              <p className="loading-text" style={{ textAlign: 'center', color: 'var(--color-gold)' }}>Loading testimonials...</p>
-            ) : testimonials.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.92)', fontSize: '16px' }}>
-                No testimonials yet. Submit your feedback to help us improve!
-              </p>
-            ) : (
-              testimonials.map((t, idx) => (
-                <div key={idx} className="testimonial-card">
-                  <div className="quote-icon">"</div>
-                  <div className="stars" aria-label={`${t.rating || 5} star rating`}>
-                    {Array.from({ length: t.rating || 5 }, (_, starIndex) => (
-                      <FaStar key={starIndex} aria-hidden="true" />
-                    ))}
-                  </div>
-                  <p className="testimonial-text">"{t.testimonialText}"</p>
-                  <div className="customer-info">
-                    <div className="customer-avatar">{t.name ? t.name.charAt(0).toUpperCase() : '?'}</div>
-                    <div className="customer-details">
-                      <h4>{t.name}</h4>
-                      <p>{t.postalAddress || 'India'}</p>
+          <div className="testimonials-carousel-wrap">
+            {!loadingTestimonials && testimonials.length > 1 && (
+              <button
+                type="button"
+                className="testimonials-carousel-arrow prev"
+                onClick={() => scrollTestimonials(-1)}
+                aria-label="Scroll testimonials left"
+              >
+                <FaChevronLeft />
+              </button>
+            )}
+
+            <div className="testimonials-carousel" ref={testimonialsTrackRef}>
+              {loadingTestimonials ? (
+                <p className="loading-text" style={{ textAlign: 'center', color: 'var(--color-gold)' }}>Loading testimonials...</p>
+              ) : testimonials.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.92)', fontSize: '16px' }}>
+                  No testimonials yet. Submit your feedback to help us improve!
+                </p>
+              ) : (
+                testimonials.slice(0, 9).map((t, idx) => (
+                  <div key={idx} className="testimonial-card">
+                    <div className="quote-icon">"</div>
+                    <div className="stars" aria-label={`${t.rating || 5} star rating`}>
+                      {Array.from({ length: t.rating || 5 }, (_, starIndex) => (
+                        <FaStar key={starIndex} aria-hidden="true" />
+                      ))}
+                    </div>
+                    <p className="testimonial-text">"{t.testimonialText}"</p>
+                    <div className="customer-info">
+                      <div className="customer-avatar">{t.name ? t.name.charAt(0).toUpperCase() : '?'}</div>
+                      <div className="customer-details">
+                        <h4>{t.name}</h4>
+                        <p>{t.postalAddress || 'India'}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))
+              )}
+            </div>
+
+            {!loadingTestimonials && testimonials.length > 1 && (
+              <button
+                type="button"
+                className="testimonials-carousel-arrow next"
+                onClick={() => scrollTestimonials(1)}
+                aria-label="Scroll testimonials right"
+              >
+                <FaChevronRight />
+              </button>
             )}
           </div>
+
+          {!loadingTestimonials && testimonials.length > 0 && (
+            <div style={{ textAlign: 'center', marginTop: 'var(--spacing-md)' }}>
+              <Link to="/testimonials" className="btn-secondary" style={{ textDecoration: 'none' }}>
+                View All Testimonials
+              </Link>
+            </div>
+          )}
 
           <div className="trust-badges">
             <div className="trust-badge">
               <div className="badge-icon"><FaTrophy aria-hidden="true" /></div>
               <div className="badge-text">
-                <h3>200+</h3>
+                <h3>600+</h3>
                 <p>Happy Clients</p>
               </div>
             </div>

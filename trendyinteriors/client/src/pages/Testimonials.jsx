@@ -86,7 +86,7 @@ const Testimonials = () => {
             </div>
             <div className="trust-divider"></div>
             <div className="trust-item">
-              <span className="trust-number">{stats.totalClients}+</span>
+              <span className="trust-number">600+</span>
               <span className="trust-label">Happy Clients</span>
             </div>
             <div className="trust-divider"></div>

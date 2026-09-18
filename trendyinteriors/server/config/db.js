@@ -1,5 +1,17 @@
 const mongoose = require('mongoose');
 
+mongoose.connection.on('disconnected', () => {
+  console.warn('MongoDB disconnected. Mongoose will attempt to reconnect automatically.');
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('MongoDB reconnected.');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err.message);
+});
+
 const connectDB = async () => {
   if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
     return;
