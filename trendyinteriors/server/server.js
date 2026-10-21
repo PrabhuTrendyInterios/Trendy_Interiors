@@ -16,6 +16,7 @@ const estimatorRoutes = require('./routes/estimators');
 const chatbotRoutes = require('./routes/chatbot');
 const settingsRoutes = require('./routes/settings');
 const cmsRoutes = require('./routes/cms');
+const uploadRoutes = require('./routes/upload');
 const errorHandler = require('./middleware/errorHandler');
 
 const http = require('http');
@@ -50,6 +51,7 @@ app.use('/api/estimators', estimatorRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/cms', cmsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

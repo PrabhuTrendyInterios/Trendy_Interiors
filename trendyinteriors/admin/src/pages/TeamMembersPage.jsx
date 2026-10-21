@@ -190,6 +190,7 @@ const TeamMembersPage = () => {
                   imageUrl={form.imageUrl}
                   onImageUrlChange={(url) => setForm({ ...form, imageUrl: url })}
                   label="Profile Photo"
+                  folder="team-members"
                 />
               </div>
               <div className="form-group">

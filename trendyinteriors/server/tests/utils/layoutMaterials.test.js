@@ -1,6 +1,9 @@
 const {
   resolveLayoutMaterials,
   validateRoomLayoutConfigurations,
+  findLayoutConfiguration,
+  getLayoutMaterialsTotal,
+  formatLayoutMaterials,
 } = require('../../utils/layoutMaterials');
 
 describe('server/utils/layoutMaterials', () => {
@@ -152,5 +155,89 @@ describe('server/utils/layoutMaterials', () => {
     );
 
     expect(errors).toEqual([]);
+  });
+
+  test('validateRoomLayoutConfigurations errors when config missing dimensionId', () => {
+    const errors = validateRoomLayoutConfigurations(
+      [{ _id: 'dim-low', name: 'Low' }],
+      [
+        {
+          name: 'Sliding',
+          hasLayoutMaterials: true,
+          configurations: [{ materials: [] }],
+        },
+      ]
+    );
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0]).toMatch(/missing dimensionId/i);
+  });
+
+  test('validateRoomLayoutConfigurations is a no-op for dimensionless rooms with configs', () => {
+    const errors = validateRoomLayoutConfigurations(
+      [],
+      [
+        {
+          name: 'Panel',
+          hasLayoutMaterials: true,
+          configurations: [{ dimensionId: 'dim-1', materials: [] }],
+        },
+      ]
+    );
+    expect(errors).toEqual([]);
+  });
+
+  test('resolveLayoutMaterials returns skipped when dimensionless room layout has no configurations', () => {
+    const room = {
+      name: 'Kitchen',
+      requiresDimensions: false,
+      dimensions: [],
+      layouts: [
+        {
+          name: 'Base Unit',
+          hasLayoutMaterials: true,
+          configurations: [],
+        },
+      ],
+    };
+    const result = resolveLayoutMaterials(room, 'Base Unit', '');
+    expect(result.skipped).toBe(true);
+    expect(result.validationError).toMatch(/No layout materials/i);
+  });
+
+  test('resolveLayoutMaterials returns skipped when dimension not found and no sizeCategory', () => {
+    const room = {
+      name: 'Bedroom',
+      dimensions: [{ _id: 'dim-low', name: 'Low' }],
+      layouts: [
+        {
+          name: 'Wardrobe',
+          hasLayoutMaterials: true,
+          configurations: [{ dimensionId: 'dim-low', materials: [] }],
+        },
+      ],
+    };
+    const result = resolveLayoutMaterials(room, 'Wardrobe', '');
+    expect(result.skipped).toBe(true);
+  });
+
+  test('findLayoutConfiguration returns null when config has no dimensionId', () => {
+    const layout = {
+      configurations: [{ materials: [{ _id: 'mat1', name: 'Lam' }] }],
+    };
+    const result = findLayoutConfiguration(layout, { _id: 'dim1' }, 'dim1');
+    expect(result).toBeNull();
+  });
+
+  test('findLayoutConfiguration returns null when configurations empty', () => {
+    const result = findLayoutConfiguration({ configurations: [] }, { _id: 'dim1' }, '');
+    expect(result).toBeNull();
+  });
+
+  test('getLayoutMaterialsTotal returns 0 for empty materials', () => {
+    expect(getLayoutMaterialsTotal([], {})).toBe(0);
+  });
+
+  test('formatLayoutMaterials handles empty array', () => {
+    expect(formatLayoutMaterials([])).toEqual([]);
   });
 });

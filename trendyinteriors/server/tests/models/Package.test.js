@@ -111,4 +111,31 @@ describe('server/models/Package', () => {
   test('exports LAYOUT_TYPES constant', () => {
     expect(LAYOUT_TYPES).toEqual(['L_SHAPE', 'U_SHAPE', 'STRAIGHT']);
   });
+
+  test('resolvePackageComponents returns [] when layoutType is missing', () => {
+    const pkg = { layouts: [{ type: 'L_SHAPE', sizes: [{ label: 'M', components: [{ name: 'X', price: 1000 }] }] }], components: [] };
+    expect(resolvePackageComponents(pkg, null, 'M')).toEqual([]);
+    expect(resolvePackageComponents(pkg, '', 'M')).toEqual([]);
+  });
+
+  test('resolvePackageComponents returns [] when sizeLabel is missing', () => {
+    const pkg = { layouts: [{ type: 'L_SHAPE', sizes: [{ label: 'M', components: [{ name: 'X', price: 1000 }] }] }], components: [] };
+    expect(resolvePackageComponents(pkg, 'L_SHAPE', null)).toEqual([]);
+    expect(resolvePackageComponents(pkg, 'L_SHAPE', '')).toEqual([]);
+  });
+
+  test('resolvePackageComponents returns [] when layout type not found', () => {
+    const pkg = { layouts: [{ type: 'STRAIGHT', sizes: [{ label: 'M', components: [{ name: 'X', price: 1000 }] }] }], components: [] };
+    expect(resolvePackageComponents(pkg, 'L_SHAPE', 'M')).toEqual([]);
+  });
+
+  test('resolvePackageComponents returns [] when matched layout has no sizes', () => {
+    const pkg = { layouts: [{ type: 'L_SHAPE', sizes: [] }], components: [] };
+    expect(resolvePackageComponents(pkg, 'L_SHAPE', 'M')).toEqual([]);
+  });
+
+  test('resolvePackageComponents returns [] when size label not found', () => {
+    const pkg = { layouts: [{ type: 'L_SHAPE', sizes: [{ label: 'S', components: [{ name: 'X', price: 1000 }] }] }], components: [] };
+    expect(resolvePackageComponents(pkg, 'L_SHAPE', 'XL')).toEqual([]);
+  });
 });

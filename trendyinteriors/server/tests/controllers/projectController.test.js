@@ -185,6 +185,115 @@ describe('server/controllers/projectController', () => {
     });
   });
 
+  test('getProject returns single project by id', async () => {
+    const project = { _id: 'p1', title: 'Villa', toObject: function() { return { _id: 'p1', title: 'Villa', coverImageUrl: 'u', galleryImages: [] }; } };
+    Project.findById.mockResolvedValue(project);
+
+    const req = { params: { id: 'p1' } };
+    const res = createMockRes();
+
+    await controller.getProject(req, res, jest.fn());
+
+    expect(Project.findById).toHaveBeenCalledWith('p1');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+  });
+
+  test('getProject returns 404 when not found', async () => {
+    Project.findById.mockResolvedValue(null);
+
+    const req = { params: { id: 'missing' } };
+    const res = createMockRes();
+
+    await controller.getProject(req, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false, error: 'Project not found' }));
+  });
+
+  test('getProject returns 500 on database error', async () => {
+    Project.findById.mockRejectedValue(new Error('DB error'));
+
+    const req = { params: { id: 'p1' } };
+    const res = createMockRes();
+
+    await controller.getProject(req, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('getProjects filters only active when no query params', async () => {
+    const sort = jest.fn().mockResolvedValue([]);
+    Project.find.mockReturnValue({ sort });
+
+    await controller.getProjects({ query: {} }, createMockRes(), jest.fn());
+
+    expect(Project.find).toHaveBeenCalledWith(
+      expect.objectContaining({ $or: expect.any(Array) })
+    );
+  });
+
+  test('getProjects includes all when includeInactive=true', async () => {
+    const sort = jest.fn().mockResolvedValue([]);
+    Project.find.mockReturnValue({ sort });
+
+    await controller.getProjects({ query: { includeInactive: 'true' } }, createMockRes(), jest.fn());
+
+    expect(Project.find).toHaveBeenCalledWith({});
+  });
+
+  test('getProjects filters by status=active', async () => {
+    const sort = jest.fn().mockResolvedValue([]);
+    Project.find.mockReturnValue({ sort });
+
+    await controller.getProjects({ query: { status: 'active' } }, createMockRes(), jest.fn());
+
+    expect(Project.find).toHaveBeenCalledWith({ status: 'active' });
+  });
+
+  test('getProjects filters by status=inactive', async () => {
+    const sort = jest.fn().mockResolvedValue([]);
+    Project.find.mockReturnValue({ sort });
+
+    await controller.getProjects({ query: { status: 'inactive' } }, createMockRes(), jest.fn());
+
+    expect(Project.find).toHaveBeenCalledWith({ status: 'inactive' });
+  });
+
+  test('createProject uses body.image as coverImageUrl fallback', async () => {
+    Project.create.mockResolvedValue({
+      _id: 'p1', title: 'T', description: 'D', coverImageUrl: 'https://img.com/a.jpg',
+      category: 'luxury', galleryImages: [], displayOrder: 0, status: 'active',
+      toObject: function() { return this; }
+    });
+
+    const req = { body: { title: 'T', description: 'D', image: 'https://img.com/a.jpg', category: 'luxury' } };
+    const res = createMockRes();
+
+    await controller.createProject(req, res, jest.fn());
+
+    expect(Project.create).toHaveBeenCalledWith(
+      expect.objectContaining({ coverImageUrl: 'https://img.com/a.jpg' })
+    );
+  });
+
+  test('createProject uses body.images as galleryImages fallback', async () => {
+    Project.create.mockResolvedValue({
+      _id: 'p1', title: 'T', description: 'D', coverImageUrl: 'u',
+      category: 'luxury', galleryImages: ['a', 'b'], displayOrder: 0, status: 'active',
+      toObject: function() { return this; }
+    });
+
+    const req = { body: { title: 'T', description: 'D', coverImageUrl: 'u', category: 'luxury', images: ['a', 'b'] } };
+    const res = createMockRes();
+
+    await controller.createProject(req, res, jest.fn());
+
+    expect(Project.create).toHaveBeenCalledWith(
+      expect.objectContaining({ galleryImages: ['a', 'b'] })
+    );
+  });
+
   test('deleteProject succeeds', async () => {
     const deleteOne = jest.fn().mockResolvedValue(undefined);
     Project.findById.mockResolvedValue({ _id: 'p1', deleteOne });

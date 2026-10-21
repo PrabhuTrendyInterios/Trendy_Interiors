@@ -1,4 +1,12 @@
-const { calculateEstimate, calcArea } = require('../../utils/calculateEstimate');
+const {
+  calculateEstimate,
+  calcArea,
+  findRoomCatalogEntry,
+  getLayoutPrice,
+  getRoomAddonsTotal,
+  getPackageComponentsTotal,
+  refreshLineItemSizes,
+} = require('../../utils/calculateEstimate');
 
 describe('server/utils/calculateEstimate', () => {
   const roomsCatalog = [
@@ -401,5 +409,222 @@ describe('server/utils/calculateEstimate', () => {
     ]);
     expect(quote.lineItems[0].packageComponentsTotal).toBe(3500);
     expect(quote.lineItems[0].layoutMaterials).toEqual([]);
+  });
+});
+
+describe('server/utils/calculateEstimate — helper functions', () => {
+  describe('findRoomCatalogEntry', () => {
+    test('returns room by name', () => {
+      const catalog = [{ name: 'Kitchen' }, { name: 'Bedroom' }];
+      expect(findRoomCatalogEntry(catalog, 'Kitchen')).toEqual({ name: 'Kitchen' });
+    });
+
+    test('returns null when not found', () => {
+      expect(findRoomCatalogEntry([{ name: 'Kitchen' }], 'Bathroom')).toBeNull();
+    });
+
+    test('returns null for empty catalog', () => {
+      expect(findRoomCatalogEntry([], 'Kitchen')).toBeNull();
+    });
+  });
+
+  describe('getLayoutPrice', () => {
+    const roomDoc = {
+      layouts: [
+        { name: 'L Shape', fixedPrice: 15000 },
+        { label: 'Straight', price: 8000 },
+      ],
+    };
+
+    test('returns fixedPrice by name', () => {
+      expect(getLayoutPrice(roomDoc, 'L Shape')).toBe(15000);
+    });
+
+    test('returns price by label', () => {
+      expect(getLayoutPrice(roomDoc, 'Straight')).toBe(8000);
+    });
+
+    test('returns 0 when layout not found', () => {
+      expect(getLayoutPrice(roomDoc, 'Unknown')).toBe(0);
+    });
+
+    test('returns 0 when layoutName is empty', () => {
+      expect(getLayoutPrice(roomDoc, '')).toBe(0);
+    });
+
+    test('returns 0 when roomDoc has no layouts', () => {
+      expect(getLayoutPrice({ layouts: [] }, 'L Shape')).toBe(0);
+    });
+  });
+
+  describe('getRoomAddonsTotal', () => {
+    const roomDoc = {
+      addons: [
+        { name: 'Chimney', price: 25000 },
+        { name: 'Loft', price: 12000 },
+      ],
+    };
+
+    test('sums selected addon prices', () => {
+      expect(getRoomAddonsTotal(roomDoc, ['Chimney', 'Loft'])).toBe(37000);
+    });
+
+    test('returns 0 for empty addon list', () => {
+      expect(getRoomAddonsTotal(roomDoc, [])).toBe(0);
+    });
+
+    test('returns 0 when roomDoc has no addons', () => {
+      expect(getRoomAddonsTotal({ addons: [] }, ['Chimney'])).toBe(0);
+    });
+
+    test('ignores unknown addon names', () => {
+      expect(getRoomAddonsTotal(roomDoc, ['Unknown'])).toBe(0);
+    });
+  });
+
+  describe('getPackageComponentsTotal', () => {
+    const components = [
+      { _id: 'c1', name: 'Hinges', price: 2000, mandatory: true },
+      { _id: 'c2', name: 'Handle', price: 1500, mandatory: false },
+      { _id: 'c3', name: 'Soft Close', price: 3000, mandatory: false },
+    ];
+
+    test('includes mandatory components always', () => {
+      expect(getPackageComponentsTotal(components, [])).toBe(2000);
+    });
+
+    test('includes explicitly selected optional components', () => {
+      expect(getPackageComponentsTotal(components, ['c2'])).toBe(3500);
+    });
+
+    test('returns 0 for empty array', () => {
+      expect(getPackageComponentsTotal([], [])).toBe(0);
+    });
+  });
+
+  describe('normalizeExtraAddonEntries (via calculateEstimate) — filter branches', () => {
+    test('filters out extraAddon entries with no id', () => {
+      const quote = calculateEstimate({
+        roomInstances: [],
+        normalizedDimensions: {},
+        roomsCatalog: [],
+        extraAddons: [{ count: 1 }],
+        globalAddons: [],
+      });
+      expect(quote.globalAddonsTotal).toBe(0);
+    });
+
+    test('filters out duplicate extraAddon entries — only counted once', () => {
+      const quote = calculateEstimate({
+        roomInstances: [],
+        normalizedDimensions: {},
+        roomsCatalog: [],
+        extraAddons: [
+          { id: 'ga1', count: 1 },
+          { id: 'ga1', count: 1 },
+        ],
+        globalAddons: [{ _id: 'ga1', name: 'Lighting', price: 5000, active: true }],
+      });
+      expect(quote.globalAddonsTotal).toBe(5000);
+    });
+
+    test('filters out extraAddon entries with count <= 0', () => {
+      const quote = calculateEstimate({
+        roomInstances: [],
+        normalizedDimensions: {},
+        roomsCatalog: [],
+        extraAddons: [{ id: 'ga1', count: 0 }],
+        globalAddons: [{ _id: 'ga1', name: 'Lighting', price: 5000, active: true }],
+      });
+      expect(quote.globalAddonsTotal).toBe(0);
+    });
+  });
+
+  describe('calculateEstimate — early return when area is zero', () => {
+    test('skips room when area is 0 and roomRequiresDimensions is true', () => {
+      const quote = calculateEstimate({
+        roomInstances: [{ id: 'r1', roomName: 'Bedroom', label: 'Bedroom' }],
+        normalizedDimensions: {
+          'r1': { length: 0, width: 0, selectedDesignIdea: {} },
+        },
+        roomsCatalog: [{ name: 'Bedroom', pricePerSqFt: 1000, requiresDimensions: true, layouts: [], addons: [] }],
+        extraAddons: [],
+        globalAddons: [],
+      });
+      expect(quote.totalAreaSqFt).toBe(0);
+      expect(quote.lineItems).toHaveLength(0);
+    });
+  });
+
+  describe('refreshLineItemSizes', () => {
+    const catalog = [
+      {
+        name: 'Kitchen',
+        layouts: [
+          {
+            configurations: [
+              {
+                materials: [
+                  { _id: 'mat1', size: 'Large' },
+                  { id: 'mat2', size: 'Medium' },
+                ],
+              },
+            ],
+          },
+        ],
+        dimensions: [
+          {
+            packageComponents: [
+              { _id: 'comp1', size: 'XL' },
+            ],
+          },
+        ],
+      },
+    ];
+
+    test('returns global-addons items unchanged', () => {
+      const items = [{ roomId: 'global-addons', name: 'Lighting', price: 5000 }];
+      expect(refreshLineItemSizes(items, catalog)).toEqual(items);
+    });
+
+    test('returns extra-addons items unchanged', () => {
+      const items = [{ roomId: 'extra-addons', name: 'Misc', price: 1000 }];
+      expect(refreshLineItemSizes(items, catalog)).toEqual(items);
+    });
+
+    test('returns item unchanged when room not found in catalog', () => {
+      const items = [{ roomId: 'r1', roomName: 'Bathroom', layoutMaterials: [], packageComponents: [] }];
+      expect(refreshLineItemSizes(items, catalog)).toEqual(items);
+    });
+
+    test('updates material sizes from catalog', () => {
+      const items = [
+        {
+          roomId: 'r1',
+          roomName: 'Kitchen',
+          layoutMaterials: [{ id: 'mat1', size: '' }],
+          packageComponents: [],
+        },
+      ];
+      const result = refreshLineItemSizes(items, catalog);
+      expect(result[0].layoutMaterials[0].size).toBe('Large');
+    });
+
+    test('updates component sizes from catalog', () => {
+      const items = [
+        {
+          roomId: 'r1',
+          roomName: 'Kitchen',
+          layoutMaterials: [],
+          packageComponents: [{ id: 'comp1', size: '' }],
+        },
+      ];
+      const result = refreshLineItemSizes(items, catalog);
+      expect(result[0].packageComponents[0].size).toBe('XL');
+    });
+
+    test('returns empty array for non-array input', () => {
+      expect(refreshLineItemSizes(null, catalog)).toEqual([]);
+    });
   });
 });

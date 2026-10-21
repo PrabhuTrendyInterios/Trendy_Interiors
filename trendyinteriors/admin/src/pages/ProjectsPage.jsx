@@ -196,16 +196,18 @@ const ProjectsPage = () => {
                   imageUrl={form.coverImageUrl}
                   onImageUrlChange={(url) => setForm({ ...form, coverImageUrl: url })}
                   label="Cover Image"
+                  folder="projects"
                 />
               </div>
 
               <div className="form-subsection">
                 <h4 className="subsection-title">Gallery Images</h4>
-                <p className="subsection-description">Add up to 5 additional images for the slideshow</p>
+                <p className="subsection-description">Add up to 10 additional images for the slideshow (max 6MB each)</p>
                 <MultiImageUpload
                   images={form.galleryImages}
                   onImagesChange={(galleryImages) => setForm({ ...form, galleryImages })}
-                  maxImages={5}
+                  maxImages={10}
+                  folder="projects"
                 />
               </div>
 

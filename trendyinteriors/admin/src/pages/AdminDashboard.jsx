@@ -769,16 +769,18 @@ We look forward to transforming your space!`;
                                             imageUrl={projectForm.image}
                                             onImageUrlChange={(url) => setProjectForm({ ...projectForm, image: url })}
                                             label="Project Image"
+                                            folder="projects"
                                         />
                                     </div>
 
                                     <div className="form-subsection">
                                         <h4 className="subsection-title">Project Gallery Images (Optional)</h4>
-                                        <p className="subsection-description">Add up to 5 additional images for the project slideshow</p>
+                                        <p className="subsection-description">Add up to 10 additional images for the project slideshow (max 6MB each)</p>
                                         <MultiImageUpload
                                             images={projectForm.images}
                                             onImagesChange={(images) => setProjectForm({ ...projectForm, images })}
-                                            maxImages={5}
+                                            maxImages={10}
+                                            folder="projects"
                                         />
                                     </div>
 
@@ -886,7 +888,7 @@ We look forward to transforming your space!`;
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="team-image">Profile Image <span className="required">*</span></label>
-                                        <DragDropUpload imageUrl={teamForm.image} onImageUrlChange={(url) => setTeamForm({ ...teamForm, image: url })} label="Profile Image" />
+                                        <DragDropUpload imageUrl={teamForm.image} onImageUrlChange={(url) => setTeamForm({ ...teamForm, image: url })} label="Profile Image" folder="team-members" />
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="team-linkedin">LinkedIn URL</label>

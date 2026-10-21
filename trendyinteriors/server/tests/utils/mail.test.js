@@ -13,6 +13,27 @@ describe('server/utils/mail', () => {
     process.env.ADMIN_EMAIL = 'admin@example.com';
   });
 
+  describe('sendAdminEmail — EMAIL_FROM missing', () => {
+    test('resolves silently when EMAIL_FROM is not set', async () => {
+      delete process.env.EMAIL_FROM;
+      await expect(
+        mail.sendAdminEmail({ to: 'admin@example.com', subject: 'Test', html: '<p/>' })
+      ).resolves.toBeUndefined();
+      expect(sgMail.send).not.toHaveBeenCalled();
+      process.env.EMAIL_FROM = 'noreply@trendyinterios.com';
+    });
+  });
+
+  describe('sendUserEmail — EMAIL_FROM missing', () => {
+    test('throws when EMAIL_FROM is not set', async () => {
+      delete process.env.EMAIL_FROM;
+      await expect(
+        mail.sendUserEmail({ email: 'user@example.com', subject: 'Test', message: 'Hi' })
+      ).rejects.toThrow(/not properly configured/i);
+      process.env.EMAIL_FROM = 'noreply@trendyinterios.com';
+    });
+  });
+
   describe('sendAdminEmail', () => {
     test('resolves when recipient missing', async () => {
       await expect(mail.sendAdminEmail({ to: '', subject: 'x' })).resolves.toBeUndefined();
@@ -200,6 +221,119 @@ describe('server/utils/mail', () => {
         subject: 'Test',
         message: 'Test'
       })).rejects.toThrow('Connection failed');
+    });
+  });
+
+  describe('sendEmailWithAttachment', () => {
+    const validAttachment = {
+      content: Buffer.from('pdf-content'),
+      filename: 'quote.pdf',
+      type: 'application/pdf',
+    };
+
+    test('throws when to is missing', async () => {
+      await expect(
+        mail.sendEmailWithAttachment({ subject: 'Q', html: '<p/>', attachment: validAttachment })
+      ).rejects.toThrow(/required/i);
+      expect(sgMail.send).not.toHaveBeenCalled();
+    });
+
+    test('throws when EMAIL_FROM is not set', async () => {
+      delete process.env.EMAIL_FROM;
+      await expect(
+        mail.sendEmailWithAttachment({ to: 'x@x.com', subject: 'Q', html: '<p/>', attachment: validAttachment })
+      ).rejects.toThrow(/not properly configured/i);
+      process.env.EMAIL_FROM = 'noreply@trendyinterios.com';
+    });
+
+    test('throws when attachment is missing', async () => {
+      await expect(
+        mail.sendEmailWithAttachment({ to: 'x@x.com', subject: 'Q', html: '<p/>' })
+      ).rejects.toThrow(/attachment/i);
+    });
+
+    test('throws when attachment.content is missing', async () => {
+      await expect(
+        mail.sendEmailWithAttachment({ to: 'x@x.com', subject: 'Q', html: '<p/>', attachment: { filename: 'f.pdf' } })
+      ).rejects.toThrow(/attachment/i);
+    });
+
+    test('throws when attachment.filename is missing', async () => {
+      await expect(
+        mail.sendEmailWithAttachment({ to: 'x@x.com', subject: 'Q', html: '<p/>', attachment: { content: Buffer.from('x') } })
+      ).rejects.toThrow(/attachment/i);
+    });
+
+    test('sends successfully with all valid params', async () => {
+      sgMail.send.mockResolvedValue([{ statusCode: 202 }]);
+
+      const result = await mail.sendEmailWithAttachment({
+        to: 'client@example.com',
+        subject: 'Your Quote',
+        html: '<p>Here is your quote</p>',
+        text: 'Here is your quote',
+        attachment: validAttachment,
+      });
+
+      expect(sgMail.send).toHaveBeenCalledTimes(1);
+      const msg = sgMail.send.mock.calls[0][0];
+      expect(msg.to).toBe('client@example.com');
+      expect(msg.subject).toBe('Your Quote');
+      expect(msg.attachments[0].filename).toBe('quote.pdf');
+      expect(msg.attachments[0].disposition).toBe('attachment');
+    });
+
+    test('uses default text and html when not provided', async () => {
+      sgMail.send.mockResolvedValue([{ statusCode: 202 }]);
+
+      await mail.sendEmailWithAttachment({
+        to: 'client@example.com',
+        subject: 'Quote',
+        attachment: validAttachment,
+      });
+
+      const msg = sgMail.send.mock.calls[0][0];
+      expect(msg.text).toBe('Please see attached quotation');
+      expect(msg.html).toBe('<p>Please see attached quotation</p>');
+    });
+
+    test('uses attachment.type when provided', async () => {
+      sgMail.send.mockResolvedValue([{ statusCode: 202 }]);
+
+      await mail.sendEmailWithAttachment({
+        to: 'client@example.com',
+        subject: 'Quote',
+        attachment: { ...validAttachment, type: 'application/pdf' },
+      });
+
+      const msg = sgMail.send.mock.calls[0][0];
+      expect(msg.attachments[0].type).toBe('application/pdf');
+    });
+
+    test('rethrows error when send fails with response body errors', async () => {
+      const err = new Error('SendGrid error');
+      err.response = { body: { errors: [{ message: 'Invalid API key' }] } };
+      sgMail.send.mockRejectedValue(err);
+
+      await expect(
+        mail.sendEmailWithAttachment({
+          to: 'client@example.com',
+          subject: 'Quote',
+          attachment: validAttachment,
+        })
+      ).rejects.toThrow('SendGrid error');
+    });
+
+    test('rethrows error when send fails without response body', async () => {
+      sgMail.send.mockRejectedValue(new Error('Network timeout'));
+
+      await expect(
+        mail.sendEmailWithAttachment({
+          to: 'client@example.com',
+          subject: 'Quote',
+          attachment: validAttachment,
+        })
+      ).rejects.toThrow('Network timeout');
     });
   });
 });

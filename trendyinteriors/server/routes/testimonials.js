@@ -50,15 +50,30 @@ router.get('/admin/all', protect, authorize('admin'), async (req, res) => {
   }
 });
 
-// Get all approved testimonials (Public endpoint)
+// Get all approved testimonials (Public endpoint) — supports ?page=1&limit=9
 router.get('/', async (req, res) => {
   try {
-    const testimonials = await Testimonial.find({ approved: true }).sort({
-      createdAt: -1,
-    });
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 9));
+    const skip = (page - 1) * limit;
+
+    const [total, testimonials] = await Promise.all([
+      Testimonial.countDocuments({ approved: true }),
+      Testimonial.find({ approved: true })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+    ]);
+
     res.status(200).json({
       success: true,
       data: testimonials,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     res.status(500).json({

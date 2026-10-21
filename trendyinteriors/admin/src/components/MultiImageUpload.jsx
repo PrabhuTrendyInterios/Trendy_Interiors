@@ -2,207 +2,242 @@ import React, { useState } from 'react';
 import { FaCloudUploadAlt, FaTimes, FaPlus } from 'react-icons/fa';
 import './MultiImageUpload.css';
 
-const MultiImageUpload = ({ images = [], onImagesChange, maxImages = 5 }) => {
-    const [isDragging, setIsDragging] = useState(false);
-    const [useURL, setUseURL] = useState(true);
-    const [urlInput, setUrlInput] = useState('');
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://localhost:5001'
+    : 'https://trendyinteriors-1.onrender.com');
 
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(true);
-    };
+const uploadToServer = async (file, folder) => {
+  const formData = new FormData();
+  formData.append('image', file);
 
-    const handleDragLeave = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
-    };
+  const token = localStorage.getItem('token');
+  const url = folder ? `${API_BASE_URL}/api/upload?folder=${encodeURIComponent(folder)}` : `${API_BASE_URL}/api/upload`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
 
-    const handleDrop = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Upload failed');
+  }
+  return data.data.url;
+};
 
-        const files = e.dataTransfer.files;
-        if (files && files.length > 0) {
-            const newImages = [...images];
-            for (let i = 0; i < files.length && newImages.length < maxImages; i++) {
-                const file = files[i];
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const newImage = event.target.result;
-                    if (!newImages.includes(newImage)) {
-                        newImages.push(newImage);
-                        if (newImages.length <= maxImages) {
-                            onImagesChange(newImages);
-                        }
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
+const MAX_FILE_SIZE_MB = 6;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+const MultiImageUpload = ({ images = [], onImagesChange, maxImages = 10, folder = '' }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [useURL, setUseURL] = useState(true);
+  const [urlInput, setUrlInput] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
+  const handleFiles = async (files) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    setUploadError('');
+
+    const current = [...images];
+    for (let i = 0; i < files.length && current.length < maxImages; i++) {
+      const file = files[i];
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        setUploadError(`"${file.name}" exceeds the ${MAX_FILE_SIZE_MB}MB limit. Please choose a smaller file.`);
+        setUploading(false);
+        return;
+      }
+      try {
+        const url = await uploadToServer(file, folder);
+        if (!current.includes(url)) {
+          current.push(url);
         }
-    };
+      } catch (err) {
+        setUploadError(err.message || 'Upload failed');
+        break;
+      }
+    }
 
-    const handleFileSelect = (e) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            const newImages = [...images];
-            for (let i = 0; i < files.length && newImages.length < maxImages; i++) {
-                const file = files[i];
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const newImage = event.target.result;
-                    if (!newImages.includes(newImage)) {
-                        newImages.push(newImage);
-                        if (newImages.length <= maxImages) {
-                            onImagesChange(newImages);
-                        }
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-    };
+    onImagesChange(current);
+    setUploading(false);
+  };
 
-    const handleAddURL = () => {
-        if (urlInput.trim() && images.length < maxImages) {
-            if (!images.includes(urlInput.trim())) {
-                onImagesChange([...images, urlInput.trim()]);
-                setUrlInput('');
-            }
-        }
-    };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
 
-    const removeImage = (index) => {
-        const newImages = images.filter((_, i) => i !== index);
-        onImagesChange(newImages);
-    };
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
 
-    const handleClickUpload = () => {
-        document.querySelector('.multi-image-upload .file-input')?.click();
-    };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    handleFiles(e.dataTransfer.files);
+  };
 
-    const canUploadMore = images.length < maxImages;
+  const handleFileSelect = (e) => {
+    handleFiles(e.target.files);
+    e.target.value = '';
+  };
 
-    return (
-        <div className="multi-image-upload">
-            {/* Uploaded Images Grid */}
-            {images.length > 0 && (
-                <div className="uploaded-images-grid">
-                    <h5 className="grid-title">
-                        Gallery Images ({images.length}/{maxImages})
-                    </h5>
-                    <div className="images-gallery">
-                        {images.map((img, index) => (
-                            <div key={index} className="gallery-item">
-                                <img src={img} alt={`Gallery ${index + 1}`} />
-                                <div className="image-number">{index + 1}</div>
-                                <button
-                                    type="button"
-                                    className="remove-image-btn"
-                                    onClick={() => removeImage(index)}
-                                    title="Remove image"
-                                >
-                                    <FaTimes />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+  const handleAddURL = () => {
+    if (urlInput.trim() && images.length < maxImages) {
+      if (!images.includes(urlInput.trim())) {
+        onImagesChange([...images, urlInput.trim()]);
+        setUrlInput('');
+      }
+    }
+  };
 
-            {/* Upload Section */}
-            {canUploadMore && (
-                <div className="upload-section">
-                    <div className="upload-tabs">
-                        <button
-                            type="button"
-                            className={`tab-btn ${useURL ? 'active' : ''}`}
-                            onClick={() => setUseURL(true)}
-                        >
-                            📁 Upload Files
-                        </button>
-                        <button
-                            type="button"
-                            className={`tab-btn ${!useURL ? 'active' : ''}`}
-                            onClick={() => setUseURL(false)}
-                        >
-                            🔗 Paste URL
-                        </button>
-                    </div>
+  const removeImage = (index) => {
+    onImagesChange(images.filter((_, i) => i !== index));
+  };
 
-                    {useURL ? (
-                        <div className="upload-input-wrapper">
-                            <div
-                                className={`drag-drop-zone ${isDragging ? 'dragging' : ''}`}
-                                onDragOver={handleDragOver}
-                                onDragLeave={handleDragLeave}
-                                onDrop={handleDrop}
-                                onClick={handleClickUpload}
-                            >
-                                <FaCloudUploadAlt className="upload-icon" />
-                                <h4 className="upload-title">Drag & drop images here</h4>
-                                <p className="upload-subtitle">or click to browse files</p>
-                                <p className="upload-info">
-                                    Add up to {maxImages - images.length} more {maxImages - images.length === 1 ? 'image' : 'images'}
-                                </p>
-                                <p className="upload-formats">Supported: JPG, PNG, WebP (Max 5MB each)</p>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleFileSelect}
-                                    className="file-input"
-                                    multiple
-                                />
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="url-input-section">
-                            <p className="url-section-title">Paste image URL</p>
-                            <div className="url-input-group">
-                                <input
-                                    type="url"
-                                    value={urlInput}
-                                    onChange={(e) => setUrlInput(e.target.value)}
-                                    placeholder="https://example.com/image.jpg"
-                                    className="url-input"
-                                    onKeyPress={(e) => {
-                                        if (e.key === 'Enter') handleAddURL();
-                                    }}
-                                />
-                                <button
-                                    type="button"
-                                    className="add-url-btn"
-                                    onClick={handleAddURL}
-                                    disabled={!urlInput.trim()}
-                                >
-                                    <FaPlus /> Add
-                                </button>
-                            </div>
-                            <small className="url-hint">Direct image links from Unsplash, Pexels, or verified URLs</small>
-                        </div>
-                    )}
-                </div>
-            )}
+  const handleClickUpload = () => {
+    document.querySelector('.multi-image-upload .file-input')?.click();
+  };
 
-            {/* Full Gallery Message */}
-            {!canUploadMore && (
-                <div className="gallery-full">
-                    <p>📸 You've added {maxImages} images (maximum reached)</p>
-                </div>
-            )}
+  const canUploadMore = images.length < maxImages;
 
-            {/* Info Message */}
-            {images.length === 0 && (
-                <div className="info-message">
-                    <FaPlus className="info-icon" />
-                    <p>Add up to {maxImages} images for your project gallery</p>
-                    <small>These images will be shown in a slideshow when customers view your project</small>
-                </div>
-            )}
+  return (
+    <div className="multi-image-upload">
+      {images.length > 0 && (
+        <div className="uploaded-images-grid">
+          <h5 className="grid-title">
+            Gallery Images ({images.length}/{maxImages})
+          </h5>
+          <div className="images-gallery">
+            {images.map((img, index) => (
+              <div key={index} className="gallery-item">
+                <img src={img} alt={`Gallery ${index + 1}`} />
+                <div className="image-number">{index + 1}</div>
+                <button
+                  type="button"
+                  className="remove-image-btn"
+                  onClick={() => removeImage(index)}
+                  title="Remove image"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
-    );
+      )}
+
+      {canUploadMore && (
+        <div className="upload-section">
+          <div className="upload-tabs">
+            <button
+              type="button"
+              className={`tab-btn ${useURL ? 'active' : ''}`}
+              onClick={() => setUseURL(true)}
+            >
+              📁 Upload Files
+            </button>
+            <button
+              type="button"
+              className={`tab-btn ${!useURL ? 'active' : ''}`}
+              onClick={() => setUseURL(false)}
+            >
+              🔗 Paste URL
+            </button>
+          </div>
+
+          {useURL ? (
+            <div className="upload-input-wrapper">
+              <div
+                className={`drag-drop-zone ${isDragging ? 'dragging' : ''} ${uploading ? 'uploading' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={!uploading ? handleClickUpload : undefined}
+              >
+                <FaCloudUploadAlt className="upload-icon" />
+                {uploading ? (
+                  <>
+                    <h4 className="upload-title">Uploading…</h4>
+                    <p className="upload-subtitle">Saving to Google Drive</p>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="upload-title">Drag &amp; drop images here</h4>
+                    <p className="upload-subtitle">or click to browse files</p>
+                    <p className="upload-info">
+                      Add up to {maxImages - images.length} more{' '}
+                      {maxImages - images.length === 1 ? 'image' : 'images'}
+                    </p>
+                    <p className="upload-formats">Supported: JPG, PNG, WebP (Max {MAX_FILE_SIZE_MB}MB each · up to {maxImages} images)</p>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="file-input"
+                  multiple
+                  disabled={uploading}
+                />
+              </div>
+              {uploadError && (
+                <p className="upload-error" style={{ color: 'red', marginTop: 8 }}>
+                  {uploadError}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="url-input-section">
+              <p className="url-section-title">Paste image URL</p>
+              <div className="url-input-group">
+                <input
+                  type="url"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="url-input"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') handleAddURL();
+                  }}
+                />
+                <button
+                  type="button"
+                  className="add-url-btn"
+                  onClick={handleAddURL}
+                  disabled={!urlInput.trim()}
+                >
+                  <FaPlus /> Add
+                </button>
+              </div>
+              <small className="url-hint">Direct image links from Unsplash, Pexels, or verified URLs</small>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!canUploadMore && (
+        <div className="gallery-full">
+          <p>📸 You've added {maxImages} images (maximum reached)</p>
+        </div>
+      )}
+
+      {images.length === 0 && (
+        <div className="info-message">
+          <FaPlus className="info-icon" />
+          <p>Add up to {maxImages} images for your project gallery</p>
+          <small>These images will be shown in a slideshow when customers view your project</small>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default MultiImageUpload;
