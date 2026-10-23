@@ -1,4 +1,5 @@
 const Project = require('../models/Project');
+const { deleteFromCloudinary, extractCloudinaryPublicId } = require('../utils/cloudinary');
 
 const normalizeProjectPayload = (body = {}) => ({
   title: body.title?.trim(),
@@ -155,6 +156,21 @@ exports.deleteProject = async (req, res) => {
         error: 'Project not found',
       });
     }
+
+    // Delete all associated Cloudinary images (cover + gallery)
+    const imageUrls = [
+      project.coverImageUrl,
+      project.image,
+      ...(project.galleryImages || []),
+      ...(project.images || []),
+    ].filter(Boolean);
+
+    await Promise.all(
+      imageUrls.map((url) => {
+        const publicId = extractCloudinaryPublicId(url);
+        return publicId ? deleteFromCloudinary(publicId) : Promise.resolve();
+      })
+    );
 
     await project.deleteOne();
 

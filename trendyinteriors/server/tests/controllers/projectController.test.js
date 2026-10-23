@@ -5,7 +5,17 @@ jest.mock('../../models/Project', () => ({
   findByIdAndUpdate: jest.fn(),
 }));
 
+jest.mock('../../utils/cloudinary', () => ({
+  deleteFromCloudinary: jest.fn().mockResolvedValue(undefined),
+  extractCloudinaryPublicId: jest.fn((url) => {
+    if (!url) return null;
+    const m = url.match(/\/image\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z]+)?$/i);
+    return m ? m[1] : null;
+  }),
+}));
+
 const Project = require('../../models/Project');
+const { deleteFromCloudinary } = require('../../utils/cloudinary');
 const controller = require('../../controllers/projectController');
 const { createMockRes } = require('../helpers/mockExpress');
 
@@ -296,7 +306,10 @@ describe('server/controllers/projectController', () => {
 
   test('deleteProject succeeds', async () => {
     const deleteOne = jest.fn().mockResolvedValue(undefined);
-    Project.findById.mockResolvedValue({ _id: 'p1', deleteOne });
+    Project.findById.mockResolvedValue({
+      _id: 'p1', deleteOne,
+      coverImageUrl: '', image: '', galleryImages: [], images: [],
+    });
 
     const req = { params: { id: 'p1' } };
     const res = createMockRes();
@@ -309,6 +322,47 @@ describe('server/controllers/projectController', () => {
       success: true,
       data: {}
     }));
+  });
+
+  test('deleteProject deletes Cloudinary images before removing document', async () => {
+    const deleteOne = jest.fn().mockResolvedValue(undefined);
+    Project.findById.mockResolvedValue({
+      _id: 'p1', deleteOne,
+      coverImageUrl: 'https://res.cloudinary.com/demo/image/upload/v123/projects/cover.jpg',
+      image: '',
+      galleryImages: [
+        'https://res.cloudinary.com/demo/image/upload/v123/projects/img1.jpg',
+        'https://res.cloudinary.com/demo/image/upload/v123/projects/img2.jpg',
+      ],
+      images: [],
+    });
+
+    const req = { params: { id: 'p1' } };
+    const res = createMockRes();
+
+    await controller.deleteProject(req, res, jest.fn());
+
+    expect(deleteFromCloudinary).toHaveBeenCalledTimes(3);
+    expect(deleteOne).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  test('deleteProject skips non-Cloudinary URLs silently', async () => {
+    const deleteOne = jest.fn().mockResolvedValue(undefined);
+    Project.findById.mockResolvedValue({
+      _id: 'p1', deleteOne,
+      coverImageUrl: 'https://example.com/old-image.jpg',
+      image: '', galleryImages: [], images: [],
+    });
+
+    const req = { params: { id: 'p1' } };
+    const res = createMockRes();
+
+    await controller.deleteProject(req, res, jest.fn());
+
+    expect(deleteFromCloudinary).not.toHaveBeenCalled();
+    expect(deleteOne).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 
   test('deleteProject returns 404 when project not found', async () => {
@@ -327,9 +381,10 @@ describe('server/controllers/projectController', () => {
   });
 
   test('deleteProject handles error', async () => {
-    Project.findById.mockResolvedValue({ 
+    Project.findById.mockResolvedValue({
       _id: 'p1',
-      deleteOne: jest.fn().mockRejectedValue(new Error('Delete failed'))
+      coverImageUrl: '', image: '', galleryImages: [], images: [],
+      deleteOne: jest.fn().mockRejectedValue(new Error('Delete failed')),
     });
 
     const req = { params: { id: 'p1' } };
