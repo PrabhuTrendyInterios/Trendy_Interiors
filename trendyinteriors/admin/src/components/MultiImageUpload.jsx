@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { FaCloudUploadAlt, FaTimes, FaPlus } from 'react-icons/fa';
 import './MultiImageUpload.css';
 
@@ -31,6 +31,7 @@ const MAX_FILE_SIZE_MB = 6;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const MultiImageUpload = ({ images = [], onImagesChange, maxImages = 10, folder = '' }) => {
+  const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [useURL, setUseURL] = useState(true);
   const [urlInput, setUrlInput] = useState('');
@@ -103,7 +104,7 @@ const MultiImageUpload = ({ images = [], onImagesChange, maxImages = 10, folder 
   };
 
   const handleClickUpload = () => {
-    document.querySelector('.multi-image-upload .file-input')?.click();
+    fileInputRef.current?.click();
   };
 
   const canUploadMore = images.length < maxImages;
@@ -166,7 +167,7 @@ const MultiImageUpload = ({ images = [], onImagesChange, maxImages = 10, folder 
                 {uploading ? (
                   <>
                     <h4 className="upload-title">Uploading…</h4>
-                    <p className="upload-subtitle">Saving to Google Drive</p>
+                    <p className="upload-subtitle">Saving to Cloudinary…</p>
                   </>
                 ) : (
                   <>
@@ -180,6 +181,7 @@ const MultiImageUpload = ({ images = [], onImagesChange, maxImages = 10, folder 
                   </>
                 )}
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   onChange={handleFileSelect}
