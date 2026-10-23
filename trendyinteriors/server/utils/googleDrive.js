@@ -6,6 +6,18 @@ const FOLDER_NAMES = ['projects', 'rooms', 'layouts', 'addons', 'team-members', 
 const folderIdCache = {};
 
 const getAuthClient = () => {
+  // Prefer OAuth2 (personal Gmail) — files are owned by the user, quota applies normally
+  if (process.env.GOOGLE_OAUTH_REFRESH_TOKEN) {
+    const oauth2 = new google.auth.OAuth2(
+      process.env.GOOGLE_OAUTH_CLIENT_ID,
+      process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+      'urn:ietf:wg:oauth:2.0:oob'
+    );
+    oauth2.setCredentials({ refresh_token: process.env.GOOGLE_OAUTH_REFRESH_TOKEN });
+    return oauth2;
+  }
+
+  // Fallback: service account (requires Shared Drive or Workspace)
   const credentials = {
     type: 'service_account',
     project_id: process.env.GOOGLE_PROJECT_ID,
@@ -49,6 +61,8 @@ const getOrCreateSubfolder = async (drive, folderName) => {
     q: searchQuery,
     fields: 'files(id, name)',
     spaces: 'drive',
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
   });
 
   if (searchRes.data.files && searchRes.data.files.length > 0) {
@@ -65,6 +79,7 @@ const getOrCreateSubfolder = async (drive, folderName) => {
       ...(rootFolderId ? { parents: [rootFolderId] } : {}),
     },
     fields: 'id',
+    supportsAllDrives: true,
   });
 
   const newId = createRes.data.id;
@@ -106,6 +121,7 @@ const uploadFileToDrive = async (buffer, originalName, mimeType, folderName) => 
     requestBody: fileMetadata,
     media,
     fields: 'id, name',
+    supportsAllDrives: true,
   });
 
   const fileId = response.data.id;
@@ -131,7 +147,7 @@ const uploadFileToDrive = async (buffer, originalName, mimeType, folderName) => 
 const deleteFileFromDrive = async (fileId) => {
   try {
     const drive = await getDriveClient();
-    await drive.files.delete({ fileId });
+    await drive.files.delete({ fileId, supportsAllDrives: true });
   } catch (err) {
     console.error(`[GoogleDrive] Failed to delete file ${fileId}:`, err.message);
   }

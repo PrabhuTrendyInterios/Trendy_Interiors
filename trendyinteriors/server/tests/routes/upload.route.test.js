@@ -1,5 +1,5 @@
-jest.mock('../../utils/googleDrive', () => ({
-  uploadFileToDrive: jest.fn(),
+jest.mock('../../utils/cloudinary', () => ({
+  uploadToCloudinary: jest.fn(),
 }));
 
 jest.mock('../../middleware/authMiddleware', () => ({
@@ -11,7 +11,7 @@ jest.mock('../../middleware/authMiddleware', () => ({
 
 const express = require('express');
 const request = require('supertest');
-const { uploadFileToDrive } = require('../../utils/googleDrive');
+const { uploadToCloudinary } = require('../../utils/cloudinary');
 const uploadRoute = require('../../routes/upload');
 
 const app = express();
@@ -32,9 +32,9 @@ describe('server/routes/upload — POST /api/upload', () => {
   });
 
   test('uploads to root (no folder param) and returns url', async () => {
-    uploadFileToDrive.mockResolvedValue({
-      fileId: 'FILE_ROOT',
-      url: 'https://lh3.googleusercontent.com/d/FILE_ROOT',
+    uploadToCloudinary.mockResolvedValue({
+      fileId: 'uploads/FILE_ROOT',
+      url: 'https://res.cloudinary.com/bazqzf7v/image/upload/uploads/FILE_ROOT.jpg',
     });
 
     const res = await request(app)
@@ -47,21 +47,20 @@ describe('server/routes/upload — POST /api/upload', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.fileId).toBe('FILE_ROOT');
-    expect(res.body.data.url).toBe('https://lh3.googleusercontent.com/d/FILE_ROOT');
+    expect(res.body.data.fileId).toBe('uploads/FILE_ROOT');
+    expect(res.body.data.url).toMatch(/cloudinary\.com/);
 
-    expect(uploadFileToDrive).toHaveBeenCalledWith(
+    expect(uploadToCloudinary).toHaveBeenCalledWith(
       expect.any(Buffer),
       'test.jpg',
-      'image/jpeg',
       ''
     );
   });
 
-  test('passes folder=projects to uploadFileToDrive', async () => {
-    uploadFileToDrive.mockResolvedValue({
-      fileId: 'FILE_PROJ',
-      url: 'https://lh3.googleusercontent.com/d/FILE_PROJ',
+  test('passes folder=projects to uploadToCloudinary', async () => {
+    uploadToCloudinary.mockResolvedValue({
+      fileId: 'projects/FILE_PROJ',
+      url: 'https://res.cloudinary.com/bazqzf7v/image/upload/projects/FILE_PROJ.jpg',
     });
 
     await request(app)
@@ -69,18 +68,17 @@ describe('server/routes/upload — POST /api/upload', () => {
       .set('Authorization', 'Bearer token')
       .attach('image', Buffer.from('img'), { filename: 'cover.jpg', contentType: 'image/jpeg' });
 
-    expect(uploadFileToDrive).toHaveBeenCalledWith(
+    expect(uploadToCloudinary).toHaveBeenCalledWith(
       expect.any(Buffer),
       'cover.jpg',
-      'image/jpeg',
       'projects'
     );
   });
 
-  test('passes folder=team-members to uploadFileToDrive', async () => {
-    uploadFileToDrive.mockResolvedValue({
-      fileId: 'FILE_TEAM',
-      url: 'https://lh3.googleusercontent.com/d/FILE_TEAM',
+  test('passes folder=team-members to uploadToCloudinary', async () => {
+    uploadToCloudinary.mockResolvedValue({
+      fileId: 'team-members/FILE_TEAM',
+      url: 'https://res.cloudinary.com/bazqzf7v/image/upload/team-members/FILE_TEAM.jpg',
     });
 
     await request(app)
@@ -88,10 +86,9 @@ describe('server/routes/upload — POST /api/upload', () => {
       .set('Authorization', 'Bearer token')
       .attach('image', Buffer.from('img'), { filename: 'headshot.png', contentType: 'image/png' });
 
-    expect(uploadFileToDrive).toHaveBeenCalledWith(
+    expect(uploadToCloudinary).toHaveBeenCalledWith(
       expect.any(Buffer),
       'headshot.png',
-      'image/png',
       'team-members'
     );
   });
@@ -106,11 +103,11 @@ describe('server/routes/upload — POST /api/upload', () => {
       });
 
     expect(res.status).toBe(400);
-    expect(uploadFileToDrive).not.toHaveBeenCalled();
+    expect(uploadToCloudinary).not.toHaveBeenCalled();
   });
 
-  test('returns 500 when uploadFileToDrive throws', async () => {
-    uploadFileToDrive.mockRejectedValue(new Error('Drive quota exceeded'));
+  test('returns 500 when uploadToCloudinary throws', async () => {
+    uploadToCloudinary.mockRejectedValue(new Error('Cloudinary quota exceeded'));
 
     const res = await request(app)
       .post('/api/upload')
@@ -119,11 +116,10 @@ describe('server/routes/upload — POST /api/upload', () => {
 
     expect(res.status).toBe(500);
     expect(res.body.success).toBe(false);
-    expect(res.body.error).toMatch(/Drive quota exceeded/i);
+    expect(res.body.error).toMatch(/Cloudinary quota exceeded/i);
   });
 
   test('rejects file over 6MB with 400', async () => {
-    // Create a buffer just over 6MB
     const bigBuffer = Buffer.alloc(6 * 1024 * 1024 + 1, 'x');
 
     const res = await request(app)
@@ -132,6 +128,6 @@ describe('server/routes/upload — POST /api/upload', () => {
       .attach('image', bigBuffer, { filename: 'huge.jpg', contentType: 'image/jpeg' });
 
     expect(res.status).toBe(400);
-    expect(uploadFileToDrive).not.toHaveBeenCalled();
+    expect(uploadToCloudinary).not.toHaveBeenCalled();
   });
 });

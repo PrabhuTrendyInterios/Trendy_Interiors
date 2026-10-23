@@ -1,11 +1,11 @@
 const express = require('express');
 const multer = require('multer');
 const { protect } = require('../middleware/authMiddleware');
-const { uploadFileToDrive } = require('../utils/googleDrive');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 const router = express.Router();
 
-// Store files in memory so we can stream them to Google Drive
+// Store files in memory so we can stream them to Cloudinary
 const storage = multer.memoryStorage();
 
 const upload = multer({
@@ -19,7 +19,7 @@ const upload = multer({
   },
 });
 
-// POST /api/upload?folder=<name> — upload a single image to Google Drive (admin only)
+// POST /api/upload?folder=<name> — upload a single image to Cloudinary (admin only)
 // Supported folder values: projects, team-members
 router.post('/', protect, (req, res) => {
   upload.single('image')(req, res, async (err) => {
@@ -34,16 +34,15 @@ router.post('/', protect, (req, res) => {
 
       const folderName = req.query.folder || '';
 
-      const { fileId, url } = await uploadFileToDrive(
+      const { fileId, url } = await uploadToCloudinary(
         req.file.buffer,
         req.file.originalname,
-        req.file.mimetype,
         folderName
       );
 
       res.status(201).json({ success: true, data: { fileId, url } });
     } catch (uploadErr) {
-      console.error('[Upload] Error uploading to Google Drive:', uploadErr.message);
+      console.error('[Upload] Error uploading to Cloudinary:', uploadErr.message);
       res.status(500).json({ success: false, error: uploadErr.message || 'Upload failed' });
     }
   });

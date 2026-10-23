@@ -236,7 +236,7 @@ describe('server/utils/googleDrive — deleteFileFromDrive', () => {
   test('calls drive.files.delete with the given fileId', async () => {
     mockDrive.files.delete.mockResolvedValue({});
     await deleteFileFromDrive('FILE_TO_DELETE');
-    expect(mockDrive.files.delete).toHaveBeenCalledWith({ fileId: 'FILE_TO_DELETE' });
+    expect(mockDrive.files.delete).toHaveBeenCalledWith({ fileId: 'FILE_TO_DELETE', supportsAllDrives: true });
   });
 
   test('does not throw when delete fails (logs error instead)', async () => {
